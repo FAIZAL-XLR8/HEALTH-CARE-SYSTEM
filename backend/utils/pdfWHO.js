@@ -2,18 +2,26 @@ import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
-import { GoogleGenerativeAIEmbeddings } from '@langchain/google-genai';
+import { Pinecone } from '@pinecone-database/pinecone';
+import { PineconeStore } from '@langchain/pinecone';
+import dotenv from 'dotenv';
+import { NewGoogleGenAIEmbeddings } from './embeddings.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Load environment variables from backend/.env
+dotenv.config({ path: join(__dirname, '../.env') });
+
 const PDF_Path = join(__dirname, 'psoriosis_data_who.pdf');
 
 async function indexDocument()
 {
+    //load the pdf
     const loader = new PDFLoader(PDF_Path);
     const docs = await loader.load();
-    console.log(`Loaded ${docs.length} raw pages from the PDF.`);
 
+    //split the pdf into chunks
     const textSplitter = new RecursiveCharacterTextSplitter({
         chunkSize: 1000,
         chunkOverlap: 200,
@@ -27,10 +35,24 @@ async function indexDocument()
         console.log(chunkedDocs[0].pageContent);
         console.log("Metadata:", chunkedDocs[0].metadata);
     }
-    const embeddings = new GoogleGenerativeAIEmbeddings({
-    apiKey: process.env.GEMINI_API_KEY,
-    model: 'text-embedding-004',
-  });
+    
+    //make embeddings of vector
+    const embeddings = new NewGoogleGenAIEmbeddings({
+      apiKey: process.env.GEMINI_API_KEY,
+      model: 'gemini-embedding-001',
+    });
+    
+    // configure database vector
+    const pinecone = new Pinecone();
+    const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX_NAME);
+    
+    //add to vector database
+    await PineconeStore.fromDocuments(chunkedDocs, embeddings, {
+      pineconeIndex,
+      namespace: 'medical-docs',
+      maxConcurrency : 5,
+    });
+    console.log('Data stored. PDF content indexed successfully in Pinecone!');
 }
 
 indexDocument();

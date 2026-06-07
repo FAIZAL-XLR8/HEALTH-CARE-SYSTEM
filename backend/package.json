@@ -15,7 +15,7 @@
     "@langchain/google-genai": "^2.1.31",
     "@langchain/pinecone": "^1.0.3",
     "@langchain/textsplitters": "^1.0.1",
-    "@pinecone-database/pinecone": "^7.2.0",
+    "@pinecone-database/pinecone": "^5.1.2",
     "axios": "^1.6.8",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",

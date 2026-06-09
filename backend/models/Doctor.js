@@ -22,13 +22,15 @@ const doctorSchema = new mongoose.Schema({
   },
   fee: {
     type: Number,
-    required: true,
+    default: null,
   },
-  rating: {
+  googleRating: {
     type: Number,
-    default: 5.0,
-    min: 0,
-    max: 5,
+    default: null,
+  },
+  scrapedRating: {
+    type: Number,
+    default: null,
   },
   location: {
     type: {

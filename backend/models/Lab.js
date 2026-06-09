@@ -13,7 +13,7 @@ const testItemSchema = new mongoose.Schema({
   },
   price: {
     type: Number,
-    required: true,
+    default: null,
   },
   tat: {
     type: String, // Turnaround time (e.g., "6 hours", "12 hours")
@@ -39,11 +39,13 @@ const labSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
-  rating: {
+  googleRating: {
     type: Number,
-    default: 5.0,
-    min: 0,
-    max: 5,
+    default: null,
+  },
+  scrapedRating: {
+    type: Number,
+    default: null,
   },
   location: {
     type: {

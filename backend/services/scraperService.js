@@ -1,4 +1,7 @@
 const Lab = require('../models/Lab');
+const Doctor = require('../models/Doctor');
+const { scrapePathkindPrice } = require('./pathkindScraper');
+const { scrapeLybrateDoctors } = require('./lybrateScraper');
 
 // Global list to track active Server-Sent Events (SSE) client streams
 let activeClients = [];
@@ -48,47 +51,43 @@ const broadcastPriceUpdate = (labId, testId, price, tat) => {
   });
 };
 
-// Asynchronous Background Scraper Worker (Crawl Simulation)
-// Simulated web scraping targeting pricing pages or private APIs
+// Asynchronous Background Scraper Worker (Real Live Crawler)
 const executeBackgroundScrape = async (labId, testId) => {
   try {
-    console.log(`🕵️ [Background Scraper] Initiating live crawl for Lab: ${labId}, Test: ${testId}...`);
+    console.log(`🕵️ [Live Scraper Worker] Launching background scrape for Lab: ${labId}, Test: ${testId}...`);
 
-    // Simulate standard scraping delay (1.5 seconds) to mimic actual Puppeteer crawling
-    await new Promise(resolve => setTimeout(resolve, 1800));
+    // Fetch the live price from Pathkind Labs portal
+    const scrapedPrice = await scrapePathkindPrice(testId);
 
     const lab = await Lab.findById(labId);
     if (!lab) {
-      console.log(`🕵️ [Background Scraper] Error: Lab ${labId} not found.`);
+      console.log(`🕵️ [Live Scraper Worker] Error: Lab ${labId} not found.`);
       return;
     }
 
     // Find the test inside the embedded array
     const testIndex = lab.tests.findIndex(t => t.testId === testId);
     if (testIndex === -1) {
-      console.log(`🕵️ [Background Scraper] Error: Test ${testId} not offered by lab ${lab.name}.`);
+      console.log(`🕵️ [Live Scraper Worker] Error: Test ${testId} not offered by lab ${lab.name}.`);
       return;
     }
 
-    // Simulate price fluctuation (a real crawl might yield a revised price or static verification)
     const currentPrice = lab.tests[testIndex].price;
-    
-    // 50% chance of price change for demonstration, else stays verified
-    const priceChange = Math.random() > 0.5 ? (Math.random() > 0.5 ? 20 : -20) : 0;
-    const newPrice = currentPrice + priceChange;
+    // Update price if we successfully scraped a real value, else set to null
+    const finalPrice = scrapedPrice;
 
     // Update in MongoDB
-    lab.tests[testIndex].price = newPrice;
-    lab.tests[testIndex].updatedAt = new Date(); // Reset freshness TTL
+    lab.tests[testIndex].price = finalPrice;
+    lab.tests[testIndex].updatedAt = new Date(); // Reset TTL freshness
     await lab.save();
 
-    console.log(`🕵️ [Background Scraper] Database Synced. Scraped Price: ₹${newPrice} (Was ₹${currentPrice})`);
+    console.log(`🕵️ [Live Scraper Worker] Database Synced. Scraped Price: ₹${finalPrice} (Was ₹${currentPrice})`);
 
     // Broadcast the new price immediately to the active UI cards over Server-Sent Events!
-    broadcastPriceUpdate(labId, testId, newPrice, lab.tests[testIndex].tat);
+    broadcastPriceUpdate(labId, testId, finalPrice, lab.tests[testIndex].tat);
 
   } catch (error) {
-    console.error(`🕵️ [Background Scraper] Error crawling ${testId} for ${labId}:`, error);
+    console.error(`🕵️ [Live Scraper Worker] Error in background scrape for ${testId}:`, error);
   }
 };
 
@@ -96,6 +95,8 @@ const executeBackgroundScrape = async (labId, testId) => {
 const executeCronDailyScrape = async () => {
   try {
     console.log('🕵️ [Cron Daily Scraper] Triggering 2:00 AM sequential ETL pipeline...');
+    
+    // 1. Crawl Lab diagnostic test prices dynamically
     const labs = await Lab.find();
     const testsList = ['cbc', 'lipid', 'hba1c'];
 
@@ -103,22 +104,56 @@ const executeCronDailyScrape = async () => {
       console.log(`🕵️ [Cron Daily Scraper] Ingesting updates for Lab: ${lab.name}...`);
       
       for (const testId of testsList) {
-        // Sequential query delay (Jitter) of 1.5 seconds to avoid IP block fires
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Live scrape for this test
+        const scrapedPrice = await scrapePathkindPrice(testId);
         
         const testIndex = lab.tests.findIndex(t => t.testId === testId);
         if (testIndex !== -1) {
-          // Verify price (mock fluctuation)
-          const currentPrice = lab.tests[testIndex].price;
-          const fluctuation = Math.random() > 0.7 ? 10 : 0;
-          
-          lab.tests[testIndex].price = currentPrice + fluctuation;
+          lab.tests[testIndex].price = scrapedPrice;
           lab.tests[testIndex].updatedAt = new Date();
         }
+        
+        // Wait 1.5 seconds to avoid spamming the registry server
+        await new Promise(resolve => setTimeout(resolve, 1500));
       }
       
       await lab.save();
       console.log(`🕵️ [Cron Daily Scraper] ✅ Lab ${lab.name} successfully updated.`);
+    }
+
+    // 2. Crawl and ingest Doctor lists from Lybrate
+    console.log('🕵️ [Cron Daily Scraper] Ingesting doctor directories from Lybrate...');
+    
+    // We scrape ENT specialist doctors in Jamshedpur
+    const entDoctors = await scrapeLybrateDoctors('Jamshedpur', 'ENT');
+    for (const doc of entDoctors) {
+      await Doctor.findOneAndUpdate(
+        { name: new RegExp('^' + doc.name + '$', 'i'), specialty: 'ENT' },
+        { 
+          $set: { 
+            scrapedRating: doc.rating, 
+            fee: doc.fee,
+            experience: doc.experience,
+            clinicName: doc.clinicName
+          } 
+        }
+      );
+    }
+
+    // We scrape Cardiologists in Bengaluru
+    const cardDoctors = await scrapeLybrateDoctors('Bengaluru', 'Cardiologist');
+    for (const doc of cardDoctors) {
+      await Doctor.findOneAndUpdate(
+        { name: new RegExp('^' + doc.name + '$', 'i'), specialty: 'Cardiologist' },
+        { 
+          $set: { 
+            scrapedRating: doc.rating, 
+            fee: doc.fee,
+            experience: doc.experience,
+            clinicName: doc.clinicName
+          } 
+        }
+      );
     }
 
     console.log('🕵️ [Cron Daily Scraper] Database synchronization completed.');

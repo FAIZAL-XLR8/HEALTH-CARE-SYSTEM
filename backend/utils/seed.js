@@ -30,7 +30,8 @@ const seedData = async () => {
         experience: 12,
         clinicName: 'Clear Hearing Clinic',
         fee: 600,
-        rating: 4.8,
+        googleRating: 4.8,
+        scrapedRating: 4.6,
         location: {
           type: 'Point',
           coordinates: [77.6375, 12.9725], // Indiranagar [lng, lat]
@@ -43,7 +44,8 @@ const seedData = async () => {
         experience: 18,
         clinicName: 'Apex Heart Center',
         fee: 1000,
-        rating: 4.9,
+        googleRating: 4.9,
+        scrapedRating: 4.7,
         location: {
           type: 'Point',
           coordinates: [77.6250, 12.9330], // Koramangala [lng, lat]
@@ -56,7 +58,8 @@ const seedData = async () => {
         experience: 8,
         clinicName: 'Glow Skin Clinic',
         fee: 700,
-        rating: 4.6,
+        googleRating: 4.6,
+        scrapedRating: 4.4,
         location: {
           type: 'Point',
           coordinates: [77.6350, 12.9100], // HSR Layout [lng, lat]
@@ -69,7 +72,8 @@ const seedData = async () => {
         experience: 22,
         clinicName: 'Family Health Care Clinic',
         fee: 400,
-        rating: 4.7,
+        googleRating: 4.7,
+        scrapedRating: 4.5,
         location: {
           type: 'Point',
           coordinates: [77.6390, 12.9590], // Domlur [lng, lat]
@@ -82,7 +86,8 @@ const seedData = async () => {
         experience: 15,
         clinicName: 'Swasthya Clinic',
         fee: 500,
-        rating: 4.5,
+        googleRating: 4.5,
+        scrapedRating: 4.3,
         location: {
           type: 'Point',
           coordinates: [77.6190, 12.9350], // Koramangala [lng, lat]
@@ -95,7 +100,8 @@ const seedData = async () => {
         experience: 10,
         clinicName: 'Verma ENT Hospital',
         fee: 800,
-        rating: 4.4,
+        googleRating: 4.4,
+        scrapedRating: 4.2,
         location: {
           type: 'Point',
           coordinates: [77.7450, 12.9670], // Whitefield [lng, lat]
@@ -113,7 +119,8 @@ const seedData = async () => {
         name: 'Apollo Diagnostics',
         nablAccredited: true,
         homeCollection: true,
-        rating: 4.6,
+        googleRating: 4.6,
+        scrapedRating: 4.4,
         location: {
           type: 'Point',
           coordinates: [77.626579, 12.934533], // Koramangala [lng, lat]
@@ -128,7 +135,8 @@ const seedData = async () => {
         name: 'Dr. Lal PathLabs',
         nablAccredited: true,
         homeCollection: true,
-        rating: 4.8,
+        googleRating: 4.8,
+        scrapedRating: 4.5,
         location: {
           type: 'Point',
           coordinates: [77.641151, 12.971891], // Indiranagar [lng, lat]
@@ -143,7 +151,8 @@ const seedData = async () => {
         name: 'Thyrocare Technologies',
         nablAccredited: true,
         homeCollection: true,
-        rating: 4.2,
+        googleRating: 4.2,
+        scrapedRating: 4.0,
         location: {
           type: 'Point',
           coordinates: [77.638706, 12.911623], // HSR Layout [lng, lat]
@@ -158,7 +167,8 @@ const seedData = async () => {
         name: 'SRL Diagnostics',
         nablAccredited: true,
         homeCollection: false,
-        rating: 4.4,
+        googleRating: 4.4,
+        scrapedRating: 4.1,
         location: {
           type: 'Point',
           coordinates: [77.749927, 12.969792], // Whitefield [lng, lat]
@@ -173,7 +183,8 @@ const seedData = async () => {
         name: 'Medall Healthcare',
         nablAccredited: false,
         homeCollection: true,
-        rating: 4.0,
+        googleRating: 4.0,
+        scrapedRating: 3.8,
         location: {
           type: 'Point',
           coordinates: [77.638531, 12.960986], // Domlur [lng, lat]

@@ -108,10 +108,66 @@ const seedData = async () => {
         },
         activeHours: '10:00 AM - 01:00 PM, 03:00 PM - 06:00 PM',
       },
+      {
+        name: 'Dr. Rajesh Kumar',
+        specialty: 'Dentist',
+        experience: 14,
+        clinicName: 'Smile Care Dental Clinic',
+        fee: 500,
+        googleRating: 4.7,
+        scrapedRating: 4.5,
+        location: {
+          type: 'Point',
+          coordinates: [77.6210, 12.9360], // Koramangala [lng, lat]
+        },
+        activeHours: '09:30 AM - 01:30 PM, 05:00 PM - 08:30 PM',
+      },
+      {
+        name: 'Dr. Sunitha Pillai',
+        specialty: 'Gynecologist/obstetrician',
+        experience: 16,
+        clinicName: 'Women Wellness Center',
+        fee: 700,
+        googleRating: 4.8,
+        scrapedRating: 4.6,
+        location: {
+          type: 'Point',
+          coordinates: [77.6410, 12.9730], // Indiranagar [lng, lat]
+        },
+        activeHours: '10:00 AM - 02:30 PM',
+      },
+      {
+        name: 'Dr. Anil Gowda',
+        specialty: 'Homoeopath',
+        experience: 9,
+        clinicName: 'Hahnemann Homoeo Clinic',
+        fee: 300,
+        googleRating: 4.5,
+        scrapedRating: 4.3,
+        location: {
+          type: 'Point',
+          coordinates: [77.6360, 12.9120], // HSR Layout [lng, lat]
+        },
+        activeHours: '11:30 AM - 03:30 PM, 06:00 PM - 09:00 PM',
+      },
+      {
+        name: 'Dr. Hariprasad',
+        specialty: 'Ayurveda',
+        experience: 20,
+        clinicName: 'Kerala Ayurveda Wellness Care',
+        fee: 450,
+        googleRating: 4.6,
+        scrapedRating: 4.4,
+        location: {
+          type: 'Point',
+          coordinates: [77.6395, 12.9585], // Domlur [lng, lat]
+        },
+        activeHours: '08:00 AM - 01:00 PM, 04:00 PM - 08:00 PM',
+      },
     ];
 
     await Doctor.insertMany(doctors);
-    console.log('Seeded 6 Doctors successfully.');
+    console.log(`Seeded ${doctors.length} Doctors successfully.`);
 
     // Seed Diagnostic Labs
     const labs = [

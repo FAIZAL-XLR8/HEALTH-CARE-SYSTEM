@@ -16,7 +16,7 @@ exports.searchDoctors = async (req, res) => {
     const searchRadius = parseInt(radius) || 10000; // Default 10km search radius
 
     // MongoDB Aggregation utilizing $geoNear to calculate distances dynamically
-    const matchedDoctors = await Doctor.aggregate([
+    let matchedDoctors = await Doctor.aggregate([
       {
         $geoNear: {
           near: {
@@ -30,6 +30,63 @@ exports.searchDoctors = async (req, res) => {
         },
       },
     ]);
+
+    // If matched doctors count in local cache is low (e.g., first-time searches for low-seeded specialties), trigger live crawler from Lybrate
+    if (matchedDoctors.length < 5) {
+      try {
+        console.log(`🕵️ [Live Doctor Crawler] Cache sparse (${matchedDoctors.length} records) for '${specialty}'. Querying Lybrate...`);
+        const { scrapeLybrateDoctors } = require('../services/lybrateScraper');
+        
+        // Trigger live search for Bengaluru
+        const scrapedDocs = await scrapeLybrateDoctors('Bengaluru', specialty);
+        
+        if (scrapedDocs && scrapedDocs.length > 0) {
+          const insertPromises = scrapedDocs.map(async (doc) => {
+            const exists = await Doctor.findOne({ name: doc.name, specialty: doc.specialty });
+            if (!exists) {
+              // Generate coordinates near search center (roughly 5km offset)
+              const offsetLng = (Math.random() - 0.5) * 0.05;
+              const offsetLat = (Math.random() - 0.5) * 0.05;
+              
+              return Doctor.create({
+                name: doc.name,
+                specialty: doc.specialty,
+                experience: doc.experience || 10,
+                clinicName: doc.clinicName || 'Metro Health Clinic',
+                fee: doc.fee || 500,
+                googleRating: doc.rating || 4.5,
+                scrapedRating: doc.rating,
+                location: {
+                  type: 'Point',
+                  coordinates: [userLng + offsetLng, userLat + offsetLat],
+                },
+                activeHours: '09:00 AM - 05:00 PM',
+              });
+            }
+          });
+          
+          await Promise.all(insertPromises);
+          
+          // Re-query database after inserting scraped items
+          matchedDoctors = await Doctor.aggregate([
+            {
+              $geoNear: {
+                near: {
+                  type: 'Point',
+                  coordinates: [userLng, userLat],
+                },
+                distanceField: 'distanceInMeters',
+                maxDistance: searchRadius,
+                spherical: true,
+                query: { specialty: { $regex: new RegExp(specialty, 'i') } },
+              },
+            },
+          ]);
+        }
+      } catch (scrapeError) {
+        console.error('❌ [Live Doctor Crawler] Failed during dynamic search crawling:', scrapeError.message);
+      }
+    }
 
     // Format the response to present clean, structured comparative data
     const doctors = matchedDoctors.map(doc => {

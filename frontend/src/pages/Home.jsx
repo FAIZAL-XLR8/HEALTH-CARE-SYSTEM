@@ -5,13 +5,128 @@ const Home = ({ onSearch }) => {
   const [activeTab, setActiveTab] = useState('labs'); // 'labs' | 'doctors'
   const [searchQuery, setSearchQuery] = useState('');
   const [locationInput, setLocationInput] = useState('Koramangala, Bengaluru');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const commonSpecialties = [
+    'Dentist',
+    'Gynecologist/obstetrician',
+    'General Physician',
+    'Dermatologist',
+    'ENT Specialist',
+    'Homoeopath',
+    'Ayurveda'
+  ];
+
+  const allSpecialties = [
+    'Dentist',
+    'Gynecologist/obstetrician',
+    'General Physician',
+    'Dermatologist',
+    'ENT Specialist',
+    'Homoeopath',
+    'Ayurveda',
+    'Cardiologist',
+    'Neurologist',
+    'Pediatrician',
+    'Orthopedist',
+    'Oncologist',
+    'Psychiatrist',
+    'Urologist',
+    'Gastroenterologist',
+    'Pulmonologist',
+    'Endocrinologist',
+    'Nephrologist',
+    'Ophthalmologist',
+    'Physiotherapist',
+    'Sexologist',
+    'Dietitian'
+  ];
+
+  const getFilteredSpecialties = () => {
+    if (!searchQuery.trim()) return commonSpecialties;
+    
+    // Normalize query and handle common spelling mistakes / variations
+    const cleanQuery = searchQuery.toLowerCase().trim()
+      .replace(/nuer/g, 'neur')         // typo: nuerologist -> neurologist
+      .replace(/neurolg/g, 'neurolog')   // typo: neurolgist -> neurologist
+      .replace(/physcian/g, 'physician') // typo: general physcian -> general physician
+      .replace(/physican/g, 'physician') // typo: general physican -> general physician
+      .replace(/gyna/g, 'gyne')         // typo: gynaecologist -> gynecologist
+      .replace(/cardio/g, 'cardio');
+
+    const scored = allSpecialties.map(spec => {
+      const specLower = spec.toLowerCase();
+      let score = 0;
+      
+      if (specLower === cleanQuery) {
+        score = 100; // Exact match
+      } else if (specLower.startsWith(cleanQuery)) {
+        score = 90;  // Starts with prefix
+      } else if (specLower.includes(cleanQuery)) {
+        score = 80;  // Contains substring
+      } else {
+        // Sequential matching check (fzf-style fuzzy search)
+        let qIdx = 0;
+        let matchCount = 0;
+        for (let i = 0; i < specLower.length; i++) {
+          if (specLower[i] === cleanQuery[qIdx]) {
+            qIdx++;
+            if (qIdx === cleanQuery.length) {
+              matchCount = cleanQuery.length;
+              break;
+            }
+          }
+        }
+        if (matchCount === cleanQuery.length) {
+          score = 50;
+        } else {
+          // Check for high character intersection (helpful for typos)
+          let matchingChars = 0;
+          const specChars = new Set(specLower);
+          for (const char of cleanQuery) {
+            if (specChars.has(char)) {
+              matchingChars++;
+            }
+          }
+          const similarity = matchingChars / Math.max(cleanQuery.length, 1);
+          if (similarity > 0.75) {
+            score = 30 + Math.floor(similarity * 20);
+          }
+        }
+      }
+      return { spec, score };
+    });
+
+    return scored
+      .filter(item => item.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map(item => item.spec);
+  };
+
+  const suggestions = getFilteredSpecialties();
 
   const handleSearchSubmit = (e) => {
-    e.preventDefault();
+    e?.preventDefault();
     if (!searchQuery) return;
+    let queryVal = searchQuery.trim();
+    // Normalize specialty terms for clean database queries
+    if (queryVal.toLowerCase() === 'ent specialist' || queryVal.toLowerCase() === 'ent') {
+      queryVal = 'ENT';
+    }
     onSearch({
       type: activeTab,
-      query: searchQuery.trim(),
+      query: queryVal,
+      location: locationInput.trim()
+    });
+  };
+
+  const handleSpecialtySelect = (specialty) => {
+    const searchVal = specialty === 'ENT Specialist' ? 'ENT' : specialty;
+    setSearchQuery(searchVal);
+    setShowSuggestions(false);
+    onSearch({
+      type: 'doctors',
+      query: searchVal,
       location: locationInput.trim()
     });
   };
@@ -48,7 +163,7 @@ const Home = ({ onSearch }) => {
       </section>
 
       {/* 🔍 Dynamic Skyscanner-Style Search Console */}
-      <section className="glass-panel" style={{ padding: '24px', maxWidth: '850px', width: '100%', margin: '0 auto', position: 'relative' }}>
+      <section className="glass-panel" style={{ padding: '24px', maxWidth: '850px', width: '100%', margin: '0 auto', position: 'relative', zIndex: 10 }}>
         
         {/* Tab Selectors */}
         <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
@@ -104,6 +219,8 @@ const Home = ({ onSearch }) => {
               type="text" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setShowSuggestions(false)}
               placeholder={activeTab === 'labs' ? "Search tests (e.g. CBC, Lipid, HbA1c)..." : "Specialty (e.g. ENT, Cardiologist)..."}
               style={{
                 width: '100%',
@@ -116,6 +233,64 @@ const Home = ({ onSearch }) => {
                 outline: 'none'
               }}
             />
+
+            {/* Practo-style Common Specialties Dropdown suggestions */}
+            {showSuggestions && activeTab === 'doctors' && (
+              <div 
+                className="glass-panel" 
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  width: '100%',
+                  zIndex: 1000,
+                  marginTop: '8px',
+                  maxHeight: '320px',
+                  overflowY: 'auto',
+                  background: 'rgba(13, 17, 29, 0.95)',
+                  border: '1px solid rgba(6, 182, 212, 0.35)',
+                  boxShadow: '0 8px 30px rgba(6, 182, 212, 0.25)',
+                  borderRadius: '8px',
+                  padding: '8px 0',
+                  textAlign: 'left'
+                }}
+              >
+                <div style={{ padding: '8px 16px', fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid var(--card-border)', marginBottom: '4px' }}>
+                  {searchQuery.trim() ? 'Suggested Specialities' : 'Common Specialities'}
+                </div>
+                {suggestions.length === 0 ? (
+                  <div style={{ padding: '16px', fontSize: '0.82rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+                    No matching specialties found. Try searching anyway!
+                  </div>
+                ) : (
+                  suggestions.map((spec) => (
+                    <div
+                      key={spec}
+                      onMouseDown={() => handleSpecialtySelect(spec)}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '10px 16px',
+                        fontSize: '0.82rem',
+                        color: '#fff',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                      className="suggestion-item"
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Search size={14} style={{ color: 'var(--text-muted)' }} />
+                        <span>{spec}</span>
+                      </div>
+                      <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
+                        SPECIALITY
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
 
           {/* Location input */}
@@ -238,6 +413,12 @@ const Home = ({ onSearch }) => {
         </div>
       </section>
 
+      <style dangerouslySetInnerHTML={{__html: `
+        .suggestion-item:hover {
+          background: rgba(6, 182, 212, 0.1) !important;
+          color: var(--primary-neon) !important;
+        }
+      `}} />
     </div>
   );
 };

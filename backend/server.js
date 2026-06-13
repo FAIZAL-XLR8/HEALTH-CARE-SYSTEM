@@ -16,7 +16,9 @@ app.use(express.json());
 
 // API Routes Configuration
 const apiRoutes = require('./routes/api');
+const authRoutes = require('./routes/auth');
 app.use('/api', apiRoutes);
+app.use('/api/auth', authRoutes);
 
 // Register 2:00 AM Daily Cron Ingestion Scheduler
 const cron = require('node-cron');

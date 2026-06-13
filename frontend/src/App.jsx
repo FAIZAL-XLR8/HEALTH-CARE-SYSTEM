@@ -5,17 +5,47 @@ import SearchHub from './pages/SearchHub';
 import ReportAnalyzer from './pages/ReportAnalyzer';
 import LifestyleConsole from './pages/LifestyleConsole';
 import ChatDrawer from './components/ChatDrawer';
+import AuthModal from './components/AuthModal';
 
 function App() {
   const [activePage, setActivePage] = useState('home'); // 'home' | 'search' | 'reports' | 'lifestyle' | 'confirmation'
   const [searchParams, setSearchParams] = useState(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   
+  // Authentication states
+  const [token, setToken] = useState(localStorage.getItem('token') || '');
+  const [user, setUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem('user');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
   // Booking confirmation states
   const [bookingDetails, setBookingDetails] = useState(null);
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [bookingDate, setBookingDate] = useState('2026-05-25');
   const [bookingSlot, setBookingSlot] = useState('10:30 AM');
+
+  // Handle Authentication Callbacks
+  const handleAuthSuccess = (data) => {
+    setToken(data.token);
+    setUser(data.user);
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    setIsAuthModalOpen(false);
+  };
+
+  const handleLogout = () => {
+    setToken('');
+    setUser(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setActivePage('home');
+  };
 
   // Trigger search from Home Search Console
   const handleSearchTrigger = (params) => {
@@ -40,9 +70,13 @@ function App() {
   };
 
   const executeBooking = async () => {
+    if (!token) {
+      setIsAuthModalOpen(true);
+      return;
+    }
     try {
       const payload = {
-        patientId: '6650be1947b1e847c1f8ebef', // Mock User Mongoose Object ID
+        patientId: user.id || user._id, // Real authenticated User ID
         providerId: selectedProvider.labId || selectedProvider.doctorId,
         type: selectedProvider.price ? 'lab' : 'doctor',
         date: bookingDate,
@@ -52,7 +86,10 @@ function App() {
 
       const response = await fetch('/api/appointments', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(payload),
       });
 
@@ -131,6 +168,47 @@ function App() {
             <ClipboardList size={16} />
             Lifestyle Console
           </button>
+
+          {user ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ fontSize: '0.82rem', color: 'var(--primary-neon)', fontWeight: 600 }}>
+                👤 {user.name}
+              </span>
+              <button 
+                onClick={handleLogout}
+                style={{
+                  background: 'none',
+                  border: '1px solid var(--card-border)',
+                  borderRadius: '6px',
+                  color: 'var(--accent-alert)',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  padding: '6px 12px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <button 
+              onClick={() => setIsAuthModalOpen(true)}
+              style={{
+                background: 'var(--primary-neon)',
+                color: '#000',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                padding: '6px 16px',
+                cursor: 'pointer',
+                boxShadow: '0 2px 10px rgba(6, 182, 212, 0.2)'
+              }}
+            >
+              Login / Signup
+            </button>
+          )}
         </div>
       </nav>
 
@@ -145,11 +223,11 @@ function App() {
         )}
         
         {activePage === 'reports' && (
-          <ReportAnalyzer onSearchDoctor={handleSearchSpecialtyFromAI} />
+          <ReportAnalyzer onSearchDoctor={handleSearchSpecialtyFromAI} token={token} onOpenAuth={() => setIsAuthModalOpen(true)} />
         )}
         
         {activePage === 'lifestyle' && (
-          <LifestyleConsole />
+          <LifestyleConsole token={token} onOpenAuth={() => setIsAuthModalOpen(true)} />
         )}
 
         {/* 📅 Step 1: Select Appointment Slot Panel */}
@@ -246,7 +324,7 @@ function App() {
                 </div>
                 <div style={{ display: 'flex', justifyBetween: 'space-between', justifyContent: 'space-between' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Patient ID:</span>
-                  <span style={{ color: 'var(--text-muted)' }}>6650be1947b...</span>
+                  <span style={{ color: 'var(--text-muted)' }}>{user ? (user.id || user._id) : 'Guest'}</span>
                 </div>
               </div>
 
@@ -310,6 +388,13 @@ function App() {
         isOpen={isChatOpen} 
         onClose={() => setIsChatOpen(false)} 
         onSearchSpecialty={handleSearchSpecialtyFromAI}
+      />
+
+      {/* Authentication and Registration Modal */}
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+        onSuccess={handleAuthSuccess}
       />
 
     </div>

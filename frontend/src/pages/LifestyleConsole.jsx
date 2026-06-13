@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, User, Clock, Heart, ShieldCheck, Moon, Coffee, Dumbbell, Sparkles, Loader } from 'lucide-react';
 
-const LifestyleConsole = () => {
+const LifestyleConsole = ({ token, onOpenAuth }) => {
   const [step, setStep] = useState(1);
   const [sleepingHours, setSleepingHours] = useState(6);
   const [sleepTime, setSleepTime] = useState('11:30 PM');
@@ -26,11 +26,16 @@ const LifestyleConsole = () => {
       location,
     };
 
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     try {
       // POST request to backend Express lifestyle personalization engine
       const response = await fetch('/api/ai/lifestyle', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(payload),
       });
 
@@ -62,7 +67,38 @@ const LifestyleConsole = () => {
       </section>
 
       {/* 🧙‍♂️ Multi-Step Glassmorphic Wizard Form */}
-      {!recommendations && !isLoading && (
+      {!token && (
+        <div className="glass-panel" style={{ padding: '50px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px', textAlign: 'center' }}>
+          <div style={{ background: 'rgba(16, 185, 129, 0.1)', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+            <Calendar style={{ color: 'var(--secondary-neon)' }} size={28} />
+          </div>
+          <div>
+            <h3 style={{ fontSize: '1.2rem', color: '#fff', fontWeight: 700 }}>Authentication Required</h3>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '6px', maxWidth: '360px' }}>
+              Please login or sign up to access your personalized AI lifestyle and diet routine.
+            </p>
+          </div>
+          <button 
+            type="button"
+            onClick={onOpenAuth}
+            style={{
+              background: 'var(--primary-neon)',
+              color: '#000',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '12px 24px',
+              fontSize: '0.85rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 4px 15px rgba(6, 182, 212, 0.25)'
+            }}
+          >
+            Login / Sign Up
+          </button>
+        </div>
+      )}
+
+      {token && !recommendations && !isLoading && (
         <form onSubmit={handleWizardSubmit} className="glass-panel" style={{ padding: '30px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
           
           {/* Step 1: Sleeping Schedule */}

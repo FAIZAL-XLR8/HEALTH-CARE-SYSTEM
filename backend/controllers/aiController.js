@@ -13,7 +13,7 @@ const getGenAIClient = () => {
 // Multiparts form upload: requires Multer middleware (req.file)
 exports.analyzeReport = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const userId = req.user ? req.user.id : req.body.userId;
 
     if (!req.file) {
       return res.status(400).json({ message: 'No medical report file (PDF or image) uploaded.' });

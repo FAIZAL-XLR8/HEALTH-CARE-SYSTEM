@@ -120,7 +120,8 @@ const SearchHub = ({ searchParams, onBook }) => {
       // 'BEST' Tab: Dynamic Weighted Scoring (Distance 40%, Price 30%, Rating 20%, Credentials 10%)
       const getScore = (p) => {
         const distanceScore = Math.max(0, 100 - (p.distanceKm * 10)); // closer is better
-        const ratingScore = (p.rating || 4.0) * 20; // max 100
+        const ratingVal = p.googleRating || p.scrapedRating || 4.0;
+        const ratingScore = ratingVal * 20; // max 100
         
         const price = p.price || p.fee || 500;
         const priceScore = Math.max(0, 100 - (price / 10)); // cheaper is better
@@ -295,9 +296,27 @@ const SearchHub = ({ searchParams, onBook }) => {
                       </div>
 
                       {/* Ratings */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255, 255, 255, 0.03)', padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--card-border)' }}>
-                        <Star size={12} fill="var(--accent-star)" stroke="var(--accent-star)" />
-                        <span style={{ fontSize: '0.78rem', fontWeight: 'bold', color: '#fff' }}>{p.rating}</span>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        {p.googleRating !== undefined && p.googleRating !== null && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255, 255, 255, 0.03)', padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--card-border)' }} title="Google Places Rating">
+                            <Star size={12} fill="var(--accent-star)" stroke="var(--accent-star)" />
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Google:</span>
+                            <span style={{ fontSize: '0.72rem', fontWeight: 'bold', color: '#fff' }}>{p.googleRating}</span>
+                          </div>
+                        )}
+                        {p.scrapedRating !== undefined && p.scrapedRating !== null && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255, 255, 255, 0.03)', padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--card-border)' }} title={type === 'labs' ? 'Scraped Rating' : 'Lybrate Scraped Rating'}>
+                            <Star size={12} fill="var(--primary-neon)" stroke="var(--primary-neon)" />
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{type === 'labs' ? 'Web' : 'Lybrate'}:</span>
+                            <span style={{ fontSize: '0.72rem', fontWeight: 'bold', color: '#fff' }}>{p.scrapedRating}</span>
+                          </div>
+                        )}
+                        {((p.googleRating === undefined || p.googleRating === null) && (p.scrapedRating === undefined || p.scrapedRating === null)) && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255, 255, 255, 0.03)', padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--card-border)' }}>
+                            <Star size={12} fill="none" stroke="var(--text-muted)" />
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Rating: N/A</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 

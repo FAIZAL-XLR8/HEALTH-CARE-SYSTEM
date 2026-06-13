@@ -7,6 +7,7 @@ const doctorController = require('../controllers/doctorController');
 const appointmentController = require('../controllers/appointmentController');
 const aiController = require('../controllers/aiController');
 const { registerSSEClient } = require('../services/scraperService');
+const { protect } = require('../middleware/authMiddleware');
 
 // Multer memory-storage configuration to handle medical report uploads safely
 const upload = multer({
@@ -30,13 +31,13 @@ router.get('/doctors/compare', doctorController.compareDoctors);
 // ==========================================
 // 📅 Appointment Booking Routes
 // ==========================================
-router.post('/appointments', appointmentController.createAppointment);
-router.get('/appointments/patient/:patientId', appointmentController.getPatientAppointments);
+router.post('/appointments', protect, appointmentController.createAppointment);
+router.get('/appointments/patient/:patientId', protect, appointmentController.getPatientAppointments);
 
 // ==========================================
 // 🤖 AI Multimodal & Wizard Routes
 // ==========================================
-router.post('/reports/analyze', upload.single('report'), aiController.analyzeReport);
-router.post('/ai/lifestyle', aiController.getLifestyleRecommendations);
+router.post('/reports/analyze', protect, upload.single('report'), aiController.analyzeReport);
+router.post('/ai/lifestyle', protect, aiController.getLifestyleRecommendations);
 
 module.exports = router;

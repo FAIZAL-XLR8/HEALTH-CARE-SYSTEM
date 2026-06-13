@@ -6,7 +6,10 @@ const Lab = require('../models/Lab');
 // Body: patientId, providerId, type ('doctor' | 'lab'), date, slotTime, testsSelected (array, optional)
 exports.createAppointment = async (req, res) => {
   try {
-    const { patientId, providerId, type, date, slotTime, testsSelected } = req.body;
+    const { providerId, type, date, slotTime, testsSelected } = req.body;
+    
+    // Ensure we use the authenticated user's ID
+    const patientId = req.user ? req.user.id : req.body.patientId;
 
     if (!patientId || !providerId || !type || !date || !slotTime) {
       return res.status(400).json({ message: 'All booking fields are required.' });
@@ -101,6 +104,11 @@ exports.createAppointment = async (req, res) => {
 exports.getPatientAppointments = async (req, res) => {
   try {
     const { patientId } = req.params;
+
+    // Security check: Patients can only retrieve their own booking histories
+    if (req.user && req.user.id !== patientId) {
+      return res.status(403).json({ message: 'Forbidden: You cannot retrieve other patients\' records.' });
+    }
 
     const appointments = await Appointment.find({ patient: patientId })
       .populate('doctor', 'name specialty clinicName')

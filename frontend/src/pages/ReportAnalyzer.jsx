@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Upload, AlertOctagon, Heart, BrainCircuit, Activity, Calendar, ArrowRight, Loader } from 'lucide-react';
 
-const ReportAnalyzer = ({ onSearchDoctor }) => {
+const ReportAnalyzer = ({ onSearchDoctor, token, onOpenAuth }) => {
   const [file, setFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [analysis, setAnalysis] = useState(null);
@@ -23,10 +23,16 @@ const ReportAnalyzer = ({ onSearchDoctor }) => {
     formData.append('report', file);
     formData.append('userId', 'mock-user-123'); // Demo placeholder
 
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     try {
       // POST to our backend Express multimodal analysis route
       const response = await fetch('/api/reports/analyze', {
         method: 'POST',
+        headers,
         body: formData,
       });
       const data = await response.json();
@@ -60,8 +66,39 @@ const ReportAnalyzer = ({ onSearchDoctor }) => {
       {/* Main Console */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
         
+        {/* Lockscreen Panel for Unauthenticated Users */}
+        {!token && (
+          <div className="glass-panel" style={{ padding: '50px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px', textAlign: 'center' }}>
+            <div style={{ background: 'rgba(244, 63, 94, 0.1)', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+              <Upload style={{ color: 'var(--accent-alert)' }} size={28} />
+            </div>
+            <div>
+              <h3 style={{ fontSize: '1.2rem', color: '#fff', fontWeight: 700 }}>Authentication Required</h3>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '6px', maxWidth: '360px' }}>
+                Please login or sign up to access your personal AI medical report locker.
+              </p>
+            </div>
+            <button 
+              onClick={onOpenAuth}
+              style={{
+                background: 'var(--primary-neon)',
+                color: '#000',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '12px 24px',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: '0 4px 15px rgba(6, 182, 212, 0.25)'
+              }}
+            >
+              Login / Sign Up
+            </button>
+          </div>
+        )}
+
         {/* Upload Container Panel */}
-        {!analysis && (
+        {token && !analysis && (
           <form onSubmit={handleUploadSubmit} className="glass-panel" style={{ padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px', borderStyle: 'dashed', borderWidth: '2px', borderColor: file ? 'var(--primary-neon)' : 'var(--card-border)' }}>
             <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyCenter: 'center', padding: '16px' }}>
               <Upload style={{ color: 'var(--primary-neon)' }} size={28} />

@@ -6,6 +6,7 @@ import ReportAnalyzer from './pages/ReportAnalyzer';
 import LifestyleConsole from './pages/LifestyleConsole';
 import ChatDrawer from './components/ChatDrawer';
 import AuthModal from './components/AuthModal';
+import LiveSimulation from './pages/LiveSimulation';
 
 function App() {
   const [activePage, setActivePage] = useState('home'); // 'home' | 'search' | 'reports' | 'lifestyle' | 'confirmation'
@@ -29,6 +30,14 @@ function App() {
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [bookingDate, setBookingDate] = useState('2026-05-25');
   const [bookingSlot, setBookingSlot] = useState('10:30 AM');
+
+  // Journey simulation states
+  const [simulationParams, setSimulationParams] = useState(null);
+
+  const handleSimulateTrigger = (params) => {
+    setSimulationParams(params);
+    setActivePage('simulate-journey');
+  };
 
   // Handle Authentication Callbacks
   const handleAuthSuccess = (data) => {
@@ -219,7 +228,11 @@ function App() {
         )}
         
         {activePage === 'search' && searchParams && (
-          <SearchHub searchParams={searchParams} onBook={handleBookTrigger} />
+          <SearchHub searchParams={searchParams} onBook={handleBookTrigger} onSimulate={handleSimulateTrigger} />
+        )}
+
+        {activePage === 'simulate-journey' && simulationParams && (
+          <LiveSimulation params={simulationParams} onBack={() => setActivePage('search')} />
         )}
         
         {activePage === 'reports' && (
@@ -388,6 +401,7 @@ function App() {
         isOpen={isChatOpen} 
         onClose={() => setIsChatOpen(false)} 
         onSearchSpecialty={handleSearchSpecialtyFromAI}
+        onBook={handleBookTrigger}
       />
 
       {/* Authentication and Registration Modal */}

@@ -1,13 +1,123 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Compass } from 'lucide-react';
 
-const MapView = ({ providers = [], activeProviderId, onSelectProvider, centerCoords = [77.641151, 12.971891] }) => {
+const MapView = ({ 
+  providers = [], 
+  activeProviderId, 
+  onSelectProvider, 
+  centerCoords = [77.641151, 12.971891], 
+  userCoords, 
+  onUpdateUserCoords 
+}) => {
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState(false);
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
   const markersRef = useRef([]);
   const searchCenterMarkerRef = useRef(null);
+  const userMarkerRef = useRef(null);
+
+  // Dynamic User GPS Geolocation Tracking Hook
+  useEffect(() => {
+    if (!onUpdateUserCoords) return;
+    
+    if (navigator.geolocation) {
+      const watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          const { longitude, latitude } = position.coords;
+          console.log("📍 GPS Position Updated:", longitude, latitude);
+          onUpdateUserCoords([longitude, latitude]);
+        },
+        (error) => {
+          console.warn("⚠️ Geolocation watch error:", error.message);
+        },
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+      );
+      
+      return () => navigator.geolocation.clearWatch(watchId);
+    }
+  }, [onUpdateUserCoords]);
+
+  // Sync user position marker on the map
+  useEffect(() => {
+    if (!mapRef.current || !mapLoaded) return;
+    const mapboxgl = window.mapboxgl;
+    
+    if (!userMarkerRef.current) {
+      const el = document.createElement('div');
+      el.className = 'user-position-marker';
+      el.style.width = '24px';
+      el.style.height = '24px';
+      el.style.borderRadius = '50%';
+      el.style.background = 'rgba(59, 130, 246, 0.15)';
+      el.style.border = '2px solid #3b82f6';
+      el.style.display = 'flex';
+      el.style.alignItems = 'center';
+      el.style.justifyContent = 'center';
+      el.style.boxShadow = '0 0 10px rgba(59, 130, 246, 0.5)';
+      
+      const dot = document.createElement('div');
+      dot.style.width = '8px';
+      dot.style.height = '8px';
+      dot.style.borderRadius = '50%';
+      dot.style.background = '#3b82f6';
+      dot.style.boxShadow = '0 0 6px #3b82f6';
+      dot.style.animation = 'pulse-user 1.6s ease-in-out infinite';
+      el.appendChild(dot);
+      
+      const userPopup = new mapboxgl.Popup({ offset: 10 })
+        .setHTML('<div style="color:#1e293b; font-family:sans-serif; font-size:10px; font-weight:bold; padding:2px;">Your Location (🚶)</div>');
+
+      userMarkerRef.current = new mapboxgl.Marker(el)
+        .setLngLat(userCoords)
+        .setPopup(userPopup)
+        .addTo(mapRef.current);
+    } else {
+      userMarkerRef.current.setLngLat(userCoords);
+    }
+  }, [userCoords, mapLoaded]);
+
+  // Real-time dotted route line rendering
+  useEffect(() => {
+    if (!mapRef.current || !mapLoaded) return;
+    const map = mapRef.current;
+    
+    if (map.getLayer('route-line')) map.removeLayer('route-line');
+    if (map.getSource('route-line')) map.removeSource('route-line');
+    
+    if (!activeProviderId) return;
+    
+    const activeProvider = providers.find(p => p.labId === activeProviderId || p.doctorId === activeProviderId);
+    if (activeProvider && activeProvider.coordinates && activeProvider.coordinates.length === 2) {
+      map.addSource('route-line', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: [userCoords, activeProvider.coordinates]
+          }
+        }
+      });
+      
+      map.addLayer({
+        id: 'route-line',
+        type: 'line',
+        source: 'route-line',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#06b6d4',
+          'line-width': 3.5,
+          'line-dasharray': [2, 3]
+        }
+      });
+    }
+  }, [activeProviderId, userCoords, mapLoaded, providers]);
+
 
   // Helper to compute average center of coordinates dynamically
   const getCenterCoords = () => {
@@ -62,9 +172,17 @@ const MapView = ({ providers = [], activeProviderId, onSelectProvider, centerCoo
     const mapboxgl = window.mapboxgl;
     
     // Set Mapbox access token (use public sandbox default or frontend env var)
-    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || 
+    const token = import.meta.env.VITE_MAPBOX_TOKEN || 
       window.MAPBOX_TOKEN || 
       '';
+      
+    if (!token) {
+      console.warn('Mapbox access token is missing. Skipping map initialization.');
+      setMapError(true);
+      return;
+    }
+    
+    mapboxgl.accessToken = token;
       
     const [centerLng, centerLat] = getCenterCoords();
     
@@ -77,7 +195,6 @@ const MapView = ({ providers = [], activeProviderId, onSelectProvider, centerCoo
     });
     
     map.on('error', (e) => {
-      // Gracefully catch access token or styles failures and show setup instructions
       console.warn('Mapbox error encountered:', e.error?.message || e);
       setMapError(true);
     });
@@ -91,6 +208,10 @@ const MapView = ({ providers = [], activeProviderId, onSelectProvider, centerCoo
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
+      }
+      if (userMarkerRef.current) {
+        userMarkerRef.current.remove();
+        userMarkerRef.current = null;
       }
     };
   }, [mapLoaded]);
@@ -342,6 +463,11 @@ const MapView = ({ providers = [], activeProviderId, onSelectProvider, centerCoo
         .mapboxgl-popup-anchor-left .mapboxgl-popup-tip { border-right-color: #ffffff !important; }
         .mapboxgl-popup-anchor-right .mapboxgl-popup-tip { border-left-color: #ffffff !important; }
 
+        @keyframes pulse-user {
+          0% { transform: scale(0.95); opacity: 1; }
+          50% { transform: scale(1.25); opacity: 0.7; }
+          100% { transform: scale(0.95); opacity: 1; }
+        }
       `}} />
     </div>
   );

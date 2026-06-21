@@ -6,6 +6,7 @@ const labController = require('../controllers/labController');
 const doctorController = require('../controllers/doctorController');
 const appointmentController = require('../controllers/appointmentController');
 const aiController = require('../controllers/aiController');
+const chatbotController = require('../controllers/chatbotController');
 const { registerSSEClient } = require('../services/scraperService');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -35,9 +36,11 @@ router.post('/appointments', protect, appointmentController.createAppointment);
 router.get('/appointments/patient/:patientId', protect, appointmentController.getPatientAppointments);
 
 // ==========================================
-// 🤖 AI Multimodal & Wizard Routes
+// 🤖 AI Multimodal, Wizard & Chatbot Routes
 // ==========================================
 router.post('/reports/analyze', protect, upload.single('report'), aiController.analyzeReport);
 router.post('/ai/lifestyle', protect, aiController.getLifestyleRecommendations);
+router.post('/ai/chatbot', chatbotController.handleChatbotMessage);
 
 module.exports = router;
+

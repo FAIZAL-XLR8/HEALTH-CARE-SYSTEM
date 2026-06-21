@@ -1,16 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Stethoscope, AlertTriangle, ArrowRight } from 'lucide-react';
+import { MessageSquare, X, Send, Stethoscope, AlertTriangle, ArrowRight, Star, MapPin, Calendar } from 'lucide-react';
 
-const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty }) => {
+const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
   const [messages, setMessages] = useState([
     {
       sender: 'ai',
-      text: "Hello! I am your AI Symptom Assistant. Describe your symptoms (e.g. 'I have had a throbbing earache and mild dizziness for 2 days') and I will help triage your condition and recommend the correct nearby specialist.",
+      text: "Hello! I am your Apollo-style AI Symptom Assistant. Describe your symptoms (e.g. 'I have had a throbbing headache and mild fever for 2 days') and I will ask follow-up questions to understand your case, triage severity, and suggest the right specialists and doctors.",
       type: 'welcome'
     }
   ]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedOptions, setSelectedOptions] = useState([]);
+  const [isRagActive, setIsRagActive] = useState(true);
   const chatEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -21,68 +23,109 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty }) => {
     scrollToBottom();
   }, [messages, isLoading]);
 
-  const handleSend = async (e) => {
-    e.preventDefault();
-    if (!inputText.trim() || isLoading) return;
+  const sendMessage = async (text) => {
+    if (!text.trim() || isLoading) return;
 
-    const userMsg = inputText.trim();
-    setInputText('');
-    setMessages(prev => [...prev, { sender: 'user', text: userMsg }]);
+    const userMsg = text.trim();
+    
+    // Optimistically update message list with user query
+    const updatedMessages = [...messages, { sender: 'user', text: userMsg }];
+    setMessages(updatedMessages);
     setIsLoading(true);
+    setSelectedOptions([]); // Clear selection state
 
     try {
-      // In production, we POST to our backend Express AI lifestyle / triage route.
-      // We will make a POST to /api/ai/lifestyle or create a mock triager response if offline.
-      // E.g., if we hit our backend `/api/ai/lifestyle` with symptom parameters, Gemini parses it.
-      // For testing, let's execute a smart local analysis that mimics Gemini and gives a beautiful themed triage:
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate AI computation
+      // POST chat history to backend chatbot endpoint
+      const response = await fetch('/api/ai/chatbot', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ messages: updatedMessages })
+      });
 
-      let triageData = {
-        analysis: "Your symptoms point toward possible middle ear congestion or labyrinthitis, which often causes minor balance disturbances (dizziness).",
-        priority: "Medium",
-        specialist: "ENT",
-        followUp: "Consult an ear, nose, and throat practitioner for a physical inspection."
-      };
-
-      // Customized triage parsing based on keywords
-      const lower = userMsg.toLowerCase();
-      if (lower.includes('chest') || lower.includes('heart') || lower.includes('breath') || lower.includes('cardio')) {
-        triageData = {
-          analysis: "Chest pressure, difficulty breathing, or erratic heart beats can indicate cardiorespiratory strain.",
-          priority: "High",
-          specialist: "Cardiologist",
-          followUp: "Please seek an emergency consultation or contact a cardiologist immediately."
-        };
-      } else if (lower.includes('skin') || lower.includes('rash') || lower.includes('acne') || lower.includes('allergy')) {
-        triageData = {
-          analysis: "Local epidermal flares, redness, or itching indicate common skin irritation or dermatitis.",
-          priority: "Low",
-          specialist: "Dermatologist",
-          followUp: "Consult a dermatologist. Avoid scratching or using perfumed topical creams."
-        };
-      } else if (lower.includes('fever') || lower.includes('cold') || lower.includes('cough') || lower.includes('headache')) {
-        triageData = {
-          analysis: "Mild systemic fever and minor body fatigue are typical markers of acute viral infections.",
-          priority: "Medium",
-          specialist: "General Physician",
-          followUp: "Monitor fluid hydration, rest, and consult a general physician if fever exceeds 101°F."
-        };
+      if (!response.ok) {
+        throw new Error("Chatbot API returned error status.");
       }
 
+      const data = await response.json();
+      setIsRagActive(!!data.isRagUsed);
+
+      // Log to browser developer console if RAG was used
+      if (data.isRagUsed) {
+        console.log("🤖 [Apollo Assist RAG] Chatbot query parsed using Retrieval-Augmented Generation (RAG) context.");
+        console.log("- Context retrieval status: ACTIVE");
+      } else {
+        console.log("⚠️ [Apollo Assist RAG] Chatbot query parsed without RAG context fallback.");
+      }
+      
+      // Update state with AI response, including triage & recommended doctors
       setMessages(prev => [...prev, {
         sender: 'ai',
-        text: triageData.analysis,
-        triage: triageData
+        text: data.text,
+        isComplete: data.isComplete,
+        options: data.options || [],
+        optionsType: data.optionsType || 'single',
+        triage: data.isComplete ? {
+          analysis: data.triageAnalysis,
+          priority: data.priority,
+          specialist: data.specialty,
+          followUp: data.followUpInstructions
+        } : null,
+        doctors: data.doctors || []
       }]);
+
     } catch (err) {
-      console.error(err);
+      console.error("❌ Chatbot UI request failed:", err);
       setMessages(prev => [...prev, {
         sender: 'ai',
-        text: "I encountered an error connecting to the medical AI engine. Please try describing your symptoms again."
+        text: "I encountered an error connecting to the medical AI engine. Please verify your connection or try again."
       }]);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSend = async (e) => {
+    e.preventDefault();
+    if (!inputText.trim() || isLoading) return;
+    const textToSend = inputText;
+    setInputText('');
+    await sendMessage(textToSend);
+  };
+
+  const handleToggleOption = (opt) => {
+    const isNone = opt.toLowerCase().includes('none');
+    setSelectedOptions(prev => {
+      if (isNone) {
+        return prev.includes(opt) ? [] : [opt];
+      } else {
+        const filtered = prev.filter(item => !item.toLowerCase().includes('none'));
+        if (filtered.includes(opt)) {
+          return filtered.filter(item => item !== opt);
+        } else {
+          return [...filtered, opt];
+        }
+      }
+    });
+  };
+
+  const handleConfirmMultiSelect = () => {
+    if (selectedOptions.length === 0) return;
+    const textToSend = selectedOptions.join(', ');
+    sendMessage(textToSend);
+  };
+
+  const resetChat = () => {
+    setMessages([
+      {
+        sender: 'ai',
+        text: "Hello! I am your Apollo-style AI Symptom Assistant. Describe your symptoms (e.g. 'I have had a throbbing headache and mild fever for 2 days') and I will ask follow-up questions to understand your case, triage severity, and suggest the right specialists and doctors.",
+        type: 'welcome'
+      }
+    ]);
+    setSelectedOptions([]);
+    setIsRagActive(true);
   };
 
   if (!isOpen) return null;
@@ -94,14 +137,16 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty }) => {
         position: 'fixed',
         bottom: '24px',
         right: '24px',
-        width: '380px',
-        height: '520px',
+        width: '420px',
+        height: '600px',
         zIndex: 1000,
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
         border: '1px solid rgba(6, 182, 212, 0.35)',
-        boxShadow: '0 12px 40px rgba(6, 182, 212, 0.18)'
+        boxShadow: '0 12px 40px rgba(6, 182, 212, 0.18)',
+        background: 'rgba(7, 9, 19, 0.95)',
+        borderRadius: '16px'
       }}
     >
       {/* Header */}
@@ -119,22 +164,53 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty }) => {
           <Stethoscope style={{ color: 'var(--primary-neon)' }} size={20} />
           <div>
             <h3 style={{ fontSize: '0.95rem', color: '#fff', fontWeight: 600 }}>AI Symptom Triage</h3>
-            <span style={{ fontSize: '0.7rem', color: 'var(--secondary-neon)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--secondary-neon)', display: 'inline-block' }} />
-              Gemini 1.5 Engine Active
+            <span 
+              style={{ 
+                fontSize: '0.7rem', 
+                color: isRagActive ? 'var(--secondary-neon)' : '#ef4444', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '4px' 
+              }}
+            >
+              <span 
+                style={{ 
+                  width: '4px', 
+                  height: '4px', 
+                  borderRadius: '50%', 
+                  background: isRagActive ? 'var(--secondary-neon)' : '#ef4444', 
+                  display: 'inline-block' 
+                }} 
+              />
+              {isRagActive ? "Gemini + Pinecone RAG Active" : "Gemini Only Mode"}
             </span>
           </div>
         </div>
-        <button 
-          onClick={onClose} 
-          style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
-        >
-          <X size={18} />
-        </button>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <button 
+            onClick={resetChat}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--text-muted)',
+              fontSize: '0.7rem',
+              cursor: 'pointer',
+              textDecoration: 'underline'
+            }}
+          >
+            Reset
+          </button>
+          <button 
+            onClick={onClose} 
+            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+          >
+            <X size={18} />
+          </button>
+        </div>
       </div>
 
       {/* Message Sequence Container */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
         {messages.map((msg, index) => {
           const isAi = msg.sender === 'ai';
           return (
@@ -142,7 +218,7 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty }) => {
               key={index} 
               style={{
                 alignSelf: isAi ? 'flex-start' : 'flex-end',
-                maxWidth: '85%',
+                maxWidth: '90%',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '6px'
@@ -166,7 +242,7 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty }) => {
                   <div 
                     style={{
                       marginTop: '10px',
-                      background: 'rgba(7, 9, 19, 0.6)',
+                      background: 'rgba(7, 9, 19, 0.85)',
                       borderRadius: '8px',
                       border: `1px solid ${
                         msg.triage.priority === 'High' ? 'var(--accent-alert)' :
@@ -179,7 +255,7 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty }) => {
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.7rem', color: '#9ca3af', fontWeight: 500 }}>PRIORITY ASSESSMENT:</span>
+                      <span style={{ fontSize: '0.65rem', color: '#9ca3af', fontWeight: 500 }}>TRIAGE PRIORITY:</span>
                       <span 
                         style={{
                           fontSize: '0.65rem',
@@ -200,45 +276,232 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty }) => {
                       </span>
                     </div>
 
-                    <div style={{ fontSize: '0.75rem', color: '#fff' }}>
-                      <strong>Recommended Specialist:</strong> {msg.triage.specialist}
+                    <div style={{ fontSize: '0.78rem', color: '#fff' }}>
+                      <strong>Assessment:</strong> {msg.triage.analysis}
                     </div>
 
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                      {msg.triage.followUp}
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      <strong>Advice:</strong> {msg.triage.followUp}
                     </div>
-
-                    {/* Quick Skyscanner Trigger Action Link */}
-                    <button 
-                      onClick={() => {
-                        onSearchSpecialty(msg.triage.specialist);
-                        onClose();
-                      }}
-                      style={{
-                        marginTop: '4px',
-                        background: 'rgba(6, 182, 212, 0.1)',
-                        border: '1px solid rgba(6, 182, 212, 0.3)',
-                        borderRadius: '6px',
-                        color: 'var(--primary-neon)',
-                        padding: '6px 8px',
-                        fontSize: '0.72rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px',
-                        transition: 'all 0.2s'
-                      }}
-                      onMouseEnter={(e) => e.target.style.background = 'rgba(6, 182, 212, 0.2)'}
-                      onMouseLeave={(e) => e.target.style.background = 'rgba(6, 182, 212, 0.1)'}
-                    >
-                      Search Nearby {msg.triage.specialist}s
-                      <ArrowRight size={12} />
-                    </button>
                   </div>
                 )}
               </div>
+
+              {/* Recommended Doctors Carousel/List */}
+              {isAi && msg.doctors && msg.doctors.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px', width: '100%' }}>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--primary-neon)', fontWeight: 600, letterSpacing: '0.05em' }}>
+                    RECOMMENDED DOCTORS IN BANGALORE:
+                  </span>
+                  <div 
+                    style={{
+                      display: 'flex',
+                      gap: '10px',
+                      overflowX: 'auto',
+                      paddingBottom: '8px',
+                      width: '100%',
+                      scrollbarWidth: 'thin'
+                    }}
+                  >
+                    {msg.doctors.map((doc, docIdx) => (
+                      <div 
+                        key={doc.doctorId || docIdx}
+                        style={{
+                          flex: '0 0 260px',
+                          background: 'rgba(255, 255, 255, 0.02)',
+                          border: '1px solid rgba(255, 255, 255, 0.05)',
+                          borderRadius: '10px',
+                          padding: '10px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#fff' }}>
+                            Dr. {doc.name}
+                          </span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: 'rgba(255,255,255,0.03)', padding: '2px 4px', borderRadius: '4px' }}>
+                            <Star size={10} fill="var(--accent-star)" stroke="var(--accent-star)" />
+                            <span style={{ fontSize: '0.68rem', color: '#fff', fontWeight: 'bold' }}>
+                              {doc.googleRating || doc.scrapedRating || 4.5}
+                            </span>
+                          </div>
+                        </div>
+
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                          {doc.specialty} • {doc.experience} yrs exp
+                        </span>
+
+                        <span style={{ fontSize: '0.7rem', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <MapPin size={10} style={{ color: 'var(--primary-neon)' }} />
+                          {doc.clinicName} ({doc.distanceKm} km)
+                        </span>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: '6px' }}>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--secondary-neon)' }}>
+                            Fee: ₹{doc.fee}
+                          </span>
+                          <button
+                            onClick={() => {
+                              if (onBook) {
+                                onBook(doc);
+                                onClose();
+                              } else {
+                                onSearchSpecialty(doc.specialty);
+                                onClose();
+                              }
+                            }}
+                            style={{
+                              background: 'rgba(6, 182, 212, 0.1)',
+                              border: '1px solid rgba(6, 182, 212, 0.35)',
+                              borderRadius: '6px',
+                              color: 'var(--primary-neon)',
+                              padding: '4px 8px',
+                              fontSize: '0.68rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.background = 'var(--primary-neon)';
+                              e.target.style.color = '#000';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.background = 'rgba(6, 182, 212, 0.1)';
+                              e.target.style.color = 'var(--primary-neon)';
+                            }}
+                          >
+                            Book
+                            <ArrowRight size={10} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Option choices selection box */}
+              {isAi && index === messages.length - 1 && !msg.isComplete && msg.options && msg.options.length > 0 && !isLoading && (
+                <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
+                  {msg.optionsType === 'multi' ? (
+                    <div 
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.02)',
+                        border: '1px solid rgba(6, 182, 212, 0.25)',
+                        borderRadius: '10px',
+                        padding: '12px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px',
+                        width: '100%',
+                        boxSizing: 'border-box'
+                      }}
+                    >
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Select multiple options:
+                      </span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {msg.options.map((opt, optIdx) => {
+                          const isChecked = selectedOptions.includes(opt);
+                          return (
+                            <label 
+                              key={optIdx} 
+                              style={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: '8px', 
+                                fontSize: '0.8rem', 
+                                color: '#fff',
+                                cursor: 'pointer',
+                                padding: '6px 8px',
+                                borderRadius: '6px',
+                                background: isChecked ? 'rgba(6, 182, 212, 0.08)' : 'transparent',
+                                border: '1px solid ' + (isChecked ? 'rgba(6, 182, 212, 0.3)' : 'transparent'),
+                                transition: 'all 0.2s',
+                                boxSizing: 'border-box'
+                              }}
+                            >
+                              <input 
+                                type="checkbox" 
+                                checked={isChecked}
+                                onChange={() => handleToggleOption(opt)}
+                                style={{ 
+                                  accentColor: 'var(--primary-neon)',
+                                  width: '15px',
+                                  height: '15px',
+                                  cursor: 'pointer'
+                                }}
+                              />
+                              {opt}
+                            </label>
+                          );
+                        })}
+                      </div>
+                      <button
+                        onClick={handleConfirmMultiSelect}
+                        disabled={selectedOptions.length === 0}
+                        style={{
+                          marginTop: '6px',
+                          background: selectedOptions.length === 0 ? 'rgba(6, 182, 212, 0.1)' : 'var(--primary-neon)',
+                          border: selectedOptions.length === 0 ? '1px solid rgba(6, 182, 212, 0.2)' : 'none',
+                          borderRadius: '6px',
+                          color: selectedOptions.length === 0 ? 'var(--text-muted)' : '#000',
+                          padding: '8px 12px',
+                          fontSize: '0.8rem',
+                          fontWeight: 700,
+                          cursor: selectedOptions.length === 0 ? 'not-allowed' : 'pointer',
+                          transition: 'all 0.2s',
+                          textAlign: 'center',
+                          width: '100%'
+                        }}
+                      >
+                        Confirm
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
+                      {msg.options.map((opt, optIdx) => (
+                        <button
+                          key={optIdx}
+                          onClick={() => sendMessage(opt)}
+                          style={{
+                            width: '100%',
+                            padding: '10px 14px',
+                            background: 'rgba(255, 255, 255, 0.03)',
+                            border: '1px solid rgba(6, 182, 212, 0.25)',
+                            borderRadius: '8px',
+                            color: '#fff',
+                            fontSize: '0.8rem',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            boxSizing: 'border-box'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(6, 182, 212, 0.15)';
+                            e.currentTarget.style.borderColor = 'var(--primary-neon)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                            e.currentTarget.style.borderColor = 'rgba(6, 182, 212, 0.25)';
+                          }}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}
@@ -260,7 +523,7 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty }) => {
           type="text" 
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          placeholder="Describe symptoms (e.g. fever, headache)..."
+          placeholder="Describe symptoms (e.g. cough, fever)..."
           disabled={isLoading}
           style={{
             flex: 1,

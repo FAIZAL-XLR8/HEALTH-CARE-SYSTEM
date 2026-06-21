@@ -26,7 +26,7 @@ exports.searchDoctors = async (req, res) => {
           distanceField: 'distanceInMeters',
           maxDistance: searchRadius,
           spherical: true,
-          query: { specialty: { $regex: new RegExp(specialty, 'i') } }, // Case-insensitive matching
+          query: { specialty: { $regex: new RegExp('\\b' + specialty.trim() + '\\b', 'i') } }, // Case-insensitive matching with word boundaries
         },
       },
     ]);
@@ -78,7 +78,7 @@ exports.searchDoctors = async (req, res) => {
                 distanceField: 'distanceInMeters',
                 maxDistance: searchRadius,
                 spherical: true,
-                query: { specialty: { $regex: new RegExp(specialty, 'i') } },
+                query: { specialty: { $regex: new RegExp('\\b' + specialty.trim() + '\\b', 'i') } },
               },
             },
           ]);

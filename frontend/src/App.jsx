@@ -388,7 +388,9 @@ function App() {
         isOpen={isChatOpen} 
         onClose={() => setIsChatOpen(false)} 
         onSearchSpecialty={handleSearchSpecialtyFromAI}
+        onBook={handleBookTrigger}
       />
+
 
       {/* Authentication and Registration Modal */}
       <AuthModal 

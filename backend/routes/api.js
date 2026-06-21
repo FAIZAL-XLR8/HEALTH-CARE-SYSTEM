@@ -41,6 +41,7 @@ router.get('/appointments/patient/:patientId', protect, appointmentController.ge
 router.post('/reports/analyze', protect, upload.single('report'), aiController.analyzeReport);
 router.post('/ai/lifestyle', protect, aiController.getLifestyleRecommendations);
 router.post('/ai/chatbot', chatbotController.handleChatbotMessage);
+router.post('/ai/chat-triage', aiController.chatTriage);
 
 module.exports = router;
 

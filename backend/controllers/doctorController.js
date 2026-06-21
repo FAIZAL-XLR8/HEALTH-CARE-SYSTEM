@@ -36,10 +36,10 @@ exports.searchDoctors = async (req, res) => {
       try {
         console.log(`🕵️ [Live Doctor Crawler] Cache sparse (${matchedDoctors.length} records) for '${specialty}'. Querying Lybrate...`);
         const { scrapeLybrateDoctors } = require('../services/lybrateScraper');
-        
+
         // Trigger live search for Bengaluru
         const scrapedDocs = await scrapeLybrateDoctors('Bengaluru', specialty);
-        
+
         if (scrapedDocs && scrapedDocs.length > 0) {
           const insertPromises = scrapedDocs.map(async (doc) => {
             const exists = await Doctor.findOne({ name: doc.name, specialty: doc.specialty });
@@ -47,14 +47,14 @@ exports.searchDoctors = async (req, res) => {
               // Generate coordinates near search center (roughly 5km offset)
               const offsetLng = (Math.random() - 0.5) * 0.05;
               const offsetLat = (Math.random() - 0.5) * 0.05;
-              
+
               return Doctor.create({
                 name: doc.name,
                 specialty: doc.specialty,
                 experience: doc.experience || 10,
                 clinicName: doc.clinicName || 'Metro Health Clinic',
                 fee: doc.fee || 500,
-                googleRating: doc.rating || 4.5,
+                googleRating: null, // Removed Google reviews
                 scrapedRating: doc.rating,
                 location: {
                   type: 'Point',
@@ -64,9 +64,9 @@ exports.searchDoctors = async (req, res) => {
               });
             }
           });
-          
+
           await Promise.all(insertPromises);
-          
+
           // Re-query database after inserting scraped items
           matchedDoctors = await Doctor.aggregate([
             {

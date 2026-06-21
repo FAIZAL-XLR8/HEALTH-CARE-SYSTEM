@@ -15,6 +15,14 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
   const [isRagActive, setIsRagActive] = useState(true);
   const chatEndRef = useRef(null);
 
+  const [triageState, setTriageState] = useState({
+    stage: 'initial',
+    specialist: '',
+    priority: '',
+    analysis: '',
+    answers: []
+  });
+
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -237,6 +245,32 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
               >
                 {msg.text}
 
+                {/* Quick replies options (rendered only on the latest message) */}
+                {isAi && msg.options && msg.options.length > 0 && index === messages.length - 1 && (
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '10px' }}>
+                    {msg.options.map((option, oIdx) => (
+                      <button
+                        key={oIdx}
+                        onClick={() => sendMessage(option)}
+                        disabled={isLoading}
+                        style={{
+                          background: 'rgba(6, 182, 212, 0.1)',
+                          border: '1px solid rgba(6, 182, 212, 0.35)',
+                          borderRadius: '50px',
+                          color: 'var(--primary-neon)',
+                          padding: '6px 12px',
+                          fontSize: '0.74rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 {/* Triage Results Card */}
                 {isAi && msg.triage && (
                   <div 
@@ -248,17 +282,18 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                         msg.triage.priority === 'High' ? 'var(--accent-alert)' :
                         msg.triage.priority === 'Medium' ? 'var(--accent-star)' : 'var(--secondary-neon)'
                       }`,
-                      padding: '10px',
+                      padding: '12px',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '8px'
+                      gap: '8px',
+                      maxWidth: '100%'
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontSize: '0.65rem', color: '#9ca3af', fontWeight: 500 }}>TRIAGE PRIORITY:</span>
                       <span 
                         style={{
-                          fontSize: '0.65rem',
+                          fontSize: '0.62rem',
                           fontWeight: 'bold',
                           padding: '2px 6px',
                           borderRadius: '4px',
@@ -280,9 +315,44 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                       <strong>Assessment:</strong> {msg.triage.analysis}
                     </div>
 
+                    {msg.triage.specialist && (
+                      <div style={{ fontSize: '0.74rem', color: '#fff' }}>
+                        <strong>Specialist:</strong> {msg.triage.specialist}
+                      </div>
+                    )}
+
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                       <strong>Advice:</strong> {msg.triage.followUp}
                     </div>
+
+                    {/* Quick Skyscanner Trigger Action Link */}
+                    {msg.triage.specialist && (
+                      <button 
+                        onClick={() => {
+                          onSearchSpecialty(msg.triage.specialist);
+                          onClose();
+                        }}
+                        style={{
+                          marginTop: '2px',
+                          background: 'rgba(6, 182, 212, 0.08)',
+                          border: '1px solid rgba(6, 182, 212, 0.25)',
+                          borderRadius: '6px',
+                          color: 'var(--primary-neon)',
+                          padding: '5px 8px',
+                          fontSize: '0.7rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '4px',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        View on interactive map
+                        <ArrowRight size={10} />
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -557,11 +627,23 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
         </button>
       </form>
 
-      {/* Embedded CSS for dots pulse */}
+      {/* Embedded CSS for dots pulse and scrollbars */}
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes pulseDot {
           0%, 100% { transform: scale(0.6); opacity: 0.4; }
           50% { transform: scale(1.2); opacity: 1; }
+        }
+        
+        .chat-carousel::-webkit-scrollbar {
+          height: 4px;
+        }
+        .chat-carousel::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.2);
+          border-radius: 4px;
+        }
+        .chat-carousel::-webkit-scrollbar-thumb {
+          background: var(--primary-neon, #06b6d4);
+          border-radius: 4px;
         }
       `}} />
     </div>

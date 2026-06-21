@@ -2,13 +2,33 @@ import React, { useState, useEffect } from 'react';
 import { Star, Shield, ArrowRight, ArrowDownUp, RefreshCw, Sparkles, Navigation } from 'lucide-react';
 import MapView from '../components/MapView';
 
-const SearchHub = ({ searchParams, onBook }) => {
+const SearchHub = ({ searchParams, onBook, onSimulate }) => {
   const [providers, setProviders] = useState([]);
   const [sortTab, setSortTab] = useState('best'); // 'best' | 'cheapest' | 'fastest'
   const [activeProviderId, setActiveProviderId] = useState(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [progressWidth, setProgressWidth] = useState(0);
   const [expandedLabId, setExpandedLabId] = useState(null); // Accordion state for collapsed comparison matrix
+
+  // Geolocation states (defaults to Bengaluru center)
+  const [userCoords, setUserCoords] = useState([77.641151, 12.971891]);
+  const [isSimulating, setIsSimulating] = useState(false);
+
+  // Haversine Distance Formula (calculates distance in km dynamically)
+  const getLiveDistance = (providerCoords) => {
+    if (!providerCoords || providerCoords.length !== 2) return 0;
+    const [lon1, lat1] = userCoords;
+    const [lon2, lat2] = providerCoords;
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return parseFloat((R * c).toFixed(1));
+  };
 
   const { type, query, location } = searchParams;
 
@@ -17,8 +37,8 @@ const SearchHub = ({ searchParams, onBook }) => {
     setIsVerifying(true);
     setProgressWidth(20);
     try {
-      const endpoint = type === 'labs' 
-        ? `/api/labs/search-test?test=${query.toLowerCase()}&forceRefresh=${force}` 
+      const endpoint = type === 'labs'
+        ? `/api/labs/search-test?test=${query.toLowerCase()}&forceRefresh=${force}`
         : `/api/doctors/search?specialty=${query}&forceRefresh=${force}`;
 
       const res = await fetch(endpoint);
@@ -109,7 +129,7 @@ const SearchHub = ({ searchParams, onBook }) => {
         const priceB = b.price || b.fee || 0;
         return priceA - priceB;
       }
-      
+
       if (sortTab === 'fastest') {
         if (type === 'labs') {
           return parsedTatHours(a.tat) - parsedTatHours(b.tat);
@@ -119,12 +139,14 @@ const SearchHub = ({ searchParams, onBook }) => {
 
       // 'BEST' Tab: Dynamic Weighted Scoring (Distance 40%, Price 30%, Rating 20%, Credentials 10%)
       const getScore = (p) => {
-        const distanceScore = Math.max(0, 100 - (p.distanceKm * 10)); // closer is better
-        const ratingScore = (p.rating || 4.0) * 20; // max 100
-        
+        const distanceKm = getLiveDistance(p.coordinates);
+        const distanceScore = Math.max(0, 100 - (distanceKm * 10)); // closer is better
+        const ratingVal = p.scrapedRating || 4.5;
+        const ratingScore = ratingVal * 20; // max 100
+
         const price = p.price || p.fee || 500;
         const priceScore = Math.max(0, 100 - (price / 10)); // cheaper is better
-        
+
         const credentialScore = p.nablAccredited || p.experience > 15 ? 100 : 50;
 
         return (distanceScore * 0.40) + (priceScore * 0.30) + (ratingScore * 0.20) + (credentialScore * 0.10);
@@ -138,7 +160,7 @@ const SearchHub = ({ searchParams, onBook }) => {
 
   return (
     <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 16px' }}>
-      
+
       {/* 📡 Skyscanner Loading Tracker HUD */}
       {isVerifying && (
         <div style={{ margin: '16px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -154,10 +176,10 @@ const SearchHub = ({ searchParams, onBook }) => {
 
       {/* Skyscanner Split Screen Grid */}
       <div className="skyscanner-layout" style={{ marginTop: '24px' }}>
-        
+
         {/* Left Side: Sorting Tabs & Listings */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          
+
           {/* Header Dashboard Info */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
@@ -168,9 +190,9 @@ const SearchHub = ({ searchParams, onBook }) => {
                 Showing results near {location} • {providers.length} providers found
               </span>
             </div>
-            
+
             {/* Force Refresh Manual Hook */}
-            <button 
+            <button
               onClick={() => fetchInitialResults(true)}
               style={{
                 background: 'rgba(255, 255, 255, 0.03)',
@@ -193,7 +215,7 @@ const SearchHub = ({ searchParams, onBook }) => {
 
           {/* 📊 Skyscanner Sorting Tabs */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', background: 'var(--card-border)', borderRadius: '12px', overflow: 'hidden', padding: '1px' }}>
-            <button 
+            <button
               onClick={() => setSortTab('best')}
               style={{
                 padding: '12px',
@@ -212,7 +234,7 @@ const SearchHub = ({ searchParams, onBook }) => {
               <Sparkles size={14} />
               Best Match
             </button>
-            <button 
+            <button
               onClick={() => setSortTab('cheapest')}
               style={{
                 padding: '12px',
@@ -231,7 +253,7 @@ const SearchHub = ({ searchParams, onBook }) => {
               <ArrowDownUp size={14} />
               Cheapest
             </button>
-            <button 
+            <button
               onClick={() => setSortTab('fastest')}
               style={{
                 padding: '12px',
@@ -261,9 +283,9 @@ const SearchHub = ({ searchParams, onBook }) => {
             ) : (
               sortedList.map((p) => {
                 const isActive = activeProviderId === p.labId || activeProviderId === p.doctorId;
-                
+
                 return (
-                  <div 
+                  <div
                     key={p.labId || p.doctorId}
                     className="glass-panel"
                     onMouseEnter={() => setActiveProviderId(p.labId || p.doctorId)}
@@ -295,9 +317,19 @@ const SearchHub = ({ searchParams, onBook }) => {
                       </div>
 
                       {/* Ratings */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255, 255, 255, 0.03)', padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--card-border)' }}>
-                        <Star size={12} fill="var(--accent-star)" stroke="var(--accent-star)" />
-                        <span style={{ fontSize: '0.78rem', fontWeight: 'bold', color: '#fff' }}>{p.rating}</span>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        {p.scrapedRating !== undefined && p.scrapedRating !== null ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255, 255, 255, 0.03)', padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--card-border)' }} title={type === 'labs' ? 'Web Rating' : 'Lybrate Rating'}>
+                            <Star size={12} fill="var(--accent-star, #fbbf24)" stroke="var(--accent-star, #fbbf24)" />
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{type === 'labs' ? 'Rating' : 'Lybrate'}:</span>
+                            <span style={{ fontSize: '0.72rem', fontWeight: 'bold', color: '#fff' }}>{p.scrapedRating}</span>
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255, 255, 255, 0.03)', padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--card-border)' }}>
+                            <Star size={12} fill="none" stroke="var(--text-muted)" />
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Rating: N/A</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -305,7 +337,7 @@ const SearchHub = ({ searchParams, onBook }) => {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', background: 'rgba(0,0,0,0.15)', padding: '12px', borderRadius: '8px', border: '1px solid var(--card-border)' }}>
                       <div>
                         <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block' }}>PROXIMITY</span>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff' }}>{p.distanceKm} km away</span>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff' }}>{getLiveDistance(p.coordinates)} km away</span>
                       </div>
                       <div>
                         <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block' }}>
@@ -323,7 +355,7 @@ const SearchHub = ({ searchParams, onBook }) => {
                           <span style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--secondary-neon)', transition: 'all 0.3s' }}>
                             ₹{p.price || p.fee}
                           </span>
-                          
+
                           {/* Skyscanner Live Verification Badges */}
                           {type === 'labs' && (
                             p.isVerifiedLive ? (
@@ -339,7 +371,7 @@ const SearchHub = ({ searchParams, onBook }) => {
                     {/* Collapsible Skyscanner Comparative Accordion for Labs */}
                     {type === 'labs' && (
                       <div>
-                        <button 
+                        <button
                           onClick={() => setExpandedLabId(expandedLabId === p.labId ? null : p.labId)}
                           style={{
                             background: 'none',
@@ -366,25 +398,25 @@ const SearchHub = ({ searchParams, onBook }) => {
                               <span>Proximity</span>
                               <span style={{ textAlign: 'right' }}>Price</span>
                             </div>
-                            
+
                             {/* Comparison list rendering matching lab options */}
                             <div style={{ display: 'flex', flexDirection: 'column', fontSize: '0.75rem' }}>
                               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', padding: '10px', borderBottom: '1px solid rgba(255,255,255,0.03)', alignItems: 'center' }}>
                                 <span style={{ fontWeight: 600, color: '#fff' }}>{p.labName}</span>
                                 <span style={{ color: 'var(--secondary-neon)' }}>NABL</span>
-                                <span>{p.distanceKm} km</span>
+                                <span>{getLiveDistance(p.coordinates)} km</span>
                                 <span style={{ textAlign: 'right', fontWeight: 'bold', color: 'var(--secondary-neon)' }}>₹{p.price}</span>
                               </div>
                               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', padding: '10px', borderBottom: '1px solid rgba(255,255,255,0.03)', alignItems: 'center', opacity: 0.65 }}>
                                 <span style={{ fontWeight: 600, color: '#fff' }}>Thyrocare Technologies</span>
                                 <span style={{ color: 'var(--secondary-neon)' }}>NABL</span>
-                                <span>{parseFloat((p.distanceKm * 1.5).toFixed(1))} km</span>
+                                <span>{parseFloat((getLiveDistance(p.coordinates) * 1.5).toFixed(1))} km</span>
                                 <span style={{ textAlign: 'right', fontWeight: 'bold', color: '#fff' }}>₹{p.price - 50}</span>
                               </div>
                               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', padding: '10px', alignItems: 'center', opacity: 0.65 }}>
                                 <span style={{ fontWeight: 600, color: '#fff' }}>Dr. Lal PathLabs</span>
                                 <span style={{ color: 'var(--secondary-neon)' }}>NABL</span>
-                                <span>{parseFloat((p.distanceKm * 0.8).toFixed(1))} km</span>
+                                <span>{parseFloat((getLiveDistance(p.coordinates) * 0.8).toFixed(1))} km</span>
                                 <span style={{ textAlign: 'right', fontWeight: 'bold', color: '#fff' }}>₹{p.price + 50}</span>
                               </div>
                             </div>
@@ -398,35 +430,72 @@ const SearchHub = ({ searchParams, onBook }) => {
                       <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                         {p.homeCollection ? '🏡 Free Home Sample Collection' : '🏥 Clinic Visit Consultation'}
                       </span>
-                      
-                      <button 
-                        onClick={() => onBook(p)}
-                        style={{
-                          background: 'rgba(6, 182, 212, 0.1)',
-                          border: '1px solid rgba(6, 182, 212, 0.35)',
-                          borderRadius: '8px',
-                          color: 'var(--primary-neon)',
-                          padding: '8px 16px',
-                          fontSize: '0.8rem',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.target.style.background = 'var(--primary-neon)';
-                          e.target.style.color = '#000';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.target.style.background = 'rgba(6, 182, 212, 0.1)';
-                          e.target.style.color = 'var(--primary-neon)';
-                        }}
-                      >
-                        Book Appointment
-                        <ArrowRight size={14} />
-                      </button>
+
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        {isActive && p.coordinates && p.coordinates.length === 2 && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (onSimulate) {
+                                onSimulate({
+                                  providerId: p.labId || p.doctorId,
+                                  name: p.name || p.labName,
+                                  clinicName: p.clinicName || 'Metro Health Clinic',
+                                  fee: p.fee || p.price,
+                                  coordinates: p.coordinates,
+                                  startCoords: userCoords,
+                                  type: type
+                                });
+                              }
+                            }}
+                            disabled={isSimulating}
+                            style={{
+                              background: isSimulating ? 'rgba(255, 255, 255, 0.05)' : 'rgba(16, 185, 129, 0.1)',
+                              border: '1px solid rgba(16, 185, 129, 0.35)',
+                              borderRadius: '8px',
+                              color: isSimulating ? 'var(--text-muted)' : 'var(--secondary-neon, #10b981)',
+                              padding: '8px 14px',
+                              fontSize: '0.8rem',
+                              fontWeight: 700,
+                              cursor: isSimulating ? 'not-allowed' : 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              transition: 'all 0.2s'
+                            }}
+                          >
+                            {isSimulating ? 'Simulating...' : 'Simulate Travel 🚶'}
+                          </button>
+                        )}
+                        <button
+                          onClick={() => onBook(p)}
+                          style={{
+                            background: 'rgba(6, 182, 212, 0.1)',
+                            border: '1px solid rgba(6, 182, 212, 0.35)',
+                            borderRadius: '8px',
+                            color: 'var(--primary-neon)',
+                            padding: '8px 16px',
+                            fontSize: '0.8rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.background = 'var(--primary-neon)';
+                            e.target.style.color = '#000';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.background = 'rgba(6, 182, 212, 0.1)';
+                            e.target.style.color = 'var(--primary-neon)';
+                          }}
+                        >
+                          Book Appointment
+                          <ArrowRight size={14} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -438,16 +507,19 @@ const SearchHub = ({ searchParams, onBook }) => {
 
         {/* Right Side: Geolocation Interactive MapHUD */}
         <div style={{ position: 'sticky', top: '24px', height: 'fit-content' }}>
-          <MapView 
+          <MapView
             providers={providers}
             activeProviderId={activeProviderId}
             onSelectProvider={setActiveProviderId}
+            userCoords={userCoords}
+            onUpdateUserCoords={setUserCoords}
           />
         </div>
 
       </div>
 
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }

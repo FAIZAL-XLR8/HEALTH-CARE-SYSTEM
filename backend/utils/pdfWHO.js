@@ -39,7 +39,7 @@ async function indexDocument()
     //make embeddings of vector
     const embeddings = new NewGoogleGenAIEmbeddings({
       apiKey: process.env.GEMINI_API_KEY,
-      model: 'gemini-embedding-001',
+      model: 'gemini-embedding-2',
     });
     
     // configure database vector

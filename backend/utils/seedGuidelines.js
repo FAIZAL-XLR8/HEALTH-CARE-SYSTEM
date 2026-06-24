@@ -6,6 +6,7 @@ import { Pinecone } from '@pinecone-database/pinecone';
 import { PineconeStore } from '@langchain/pinecone';
 import dotenv from 'dotenv';
 import { NewGoogleGenAIEmbeddings } from './embeddings.js';
+import { GoogleGenAI } from '@google/genai';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -16,50 +17,50 @@ dotenv.config({ path: join(__dirname, '../.env') });
 const CSV_PATH = join(__dirname, '../data/disease_symtoms.csv');
 const PRECAUTION_CSV_PATH = join(__dirname, '../data/disease_precaution.csv');
 
-// Predefined disease mapping to precise specialties (we dynamically scrape from Lybrate for any specialty!)
-const diseaseToSpecialty = {
-  'Fungal infection': 'Dermatologist',
-  'Allergy': 'General Physician',
-  'GERD': 'Gastroenterologist',
-  'Chronic cholestasis': 'Gastroenterologist',
-  'Drug Reaction': 'Dermatologist',
-  'Peptic ulcer diseae': 'Gastroenterologist',
-  'AIDS': 'General Physician',
-  'Diabetes ': 'Endocrinologist',
-  'Gastroenteritis': 'Gastroenterologist',
-  'Bronchial Asthma': 'Pulmonologist',
-  'Hypertension ': 'Cardiologist',
-  'Migraine': 'Neurologist',
-  'Cervical spondylosis': 'Orthopedist',
-  'Paralysis (brain hemorrhage)': 'Neurologist',
-  'Jaundice': 'Gastroenterologist',
-  'Malaria': 'General Physician',
-  'Chicken pox': 'Dermatologist',
-  'Dengue': 'General Physician',
-  'Typhoid': 'General Physician',
-  'hepatitis A': 'Gastroenterologist',
-  'Hepatitis B': 'Gastroenterologist',
-  'Hepatitis C': 'Gastroenterologist',
-  'Hepatitis D': 'Gastroenterologist',
-  'Hepatitis E': 'Gastroenterologist',
-  'Alcoholic hepatitis': 'Gastroenterologist',
-  'Tuberculosis': 'Pulmonologist',
-  'Common Cold': 'General Physician',
-  'Pneumonia': 'Pulmonologist',
-  'Dimorphic hemmorhoids(piles)': 'Gastroenterologist',
-  'Heart attack': 'Cardiologist',
-  'Varicose veins': 'Dermatologist',
-  'Hypothyroidism': 'Endocrinologist',
-  'Hyperthyroidism': 'Endocrinologist',
-  'Hypoglycemia': 'Endocrinologist',
-  'Osteoarthristis': 'Orthopedist',
-  'Arthritis': 'Orthopedist',
-  '(vertigo) Paroymsal  Positional Vertigo': 'ENT',
-  'Acne': 'Dermatologist',
-  'Urinary tract infection': 'Urologist',
-  'Psoriasis': 'Dermatologist',
-  'Impetigo': 'Dermatologist'
-};
+async function getSpecialtyMappingFromGemini(diseases, apiKey) {
+  console.log(`🤖 Querying Gemini to map ${diseases.length} diseases to medical specialties...`);
+  const ai = new GoogleGenAI({ apiKey, apiVersion: 'v1beta' });
+  const allowedSpecialties = [
+    'Dentist', 'Gynecologist/obstetrician', 'General Physician', 'Dermatologist', 
+    'ENT Specialist', 'Homoeopath', 'Ayurveda', 'Cardiologist', 'Neurologist', 
+    'Pediatrician', 'Orthopedist', 'Oncologist', 'Psychiatrist', 'Urologist', 
+    'Gastroenterologist', 'Pulmonologist', 'Endocrinologist', 'Nephrologist', 
+    'Ophthalmologist', 'Physiotherapist', 'Sexologist', 'Dietitian'
+  ];
+
+  const prompt = `
+    You are a medical specialty mapping expert.
+    Map each disease in the following list to the single most appropriate medical specialty from the allowed specialties list.
+    
+    Diseases to map:
+    ${JSON.stringify(diseases)}
+
+    Allowed Specialties:
+    ${JSON.stringify(allowedSpecialties)}
+
+    You MUST respond with a strict, clean JSON object where keys are the exact disease names from the list and values are their corresponding mapped specialty. Do not include markdown code blocks or any other formatting.
+  `;
+
+  const response = await ai.models.generateContent({
+    model: 'gemini-3.1-flash-lite',
+    contents: prompt,
+    config: {
+      responseMimeType: "application/json"
+    }
+  });
+
+  let rawText = response.text.trim();
+  if (rawText.startsWith('```')) {
+    rawText = rawText.replace(/^```json|```$/g, '').trim();
+  }
+
+  try {
+    return JSON.parse(rawText);
+  } catch (err) {
+    console.error("❌ Failed to parse Gemini response as JSON mapping. Falling back to default General Physician.", err);
+    return {};
+  }
+}
 
 async function parseSymptomsCsv(filePath) {
   const fileStream = fs.createReadStream(filePath);
@@ -140,12 +141,19 @@ async function seedGuidelines() {
     const uniqueDiseases = Object.keys(diseaseMap);
     console.log(`📊 Parsed CSV dataset: Found ${uniqueDiseases.length} unique diseases.`);
 
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY_HERE') {
+      throw new Error("GEMINI_API_KEY is not configured in backend/.env!");
+    }
+
+    const specialtyMap = await getSpecialtyMappingFromGemini(uniqueDiseases, apiKey);
+
     const docs = [];
     let chunkId = 0;
 
     for (const [disease, symptomSet] of Object.entries(diseaseMap)) {
       const cleanDisease = disease.trim();
-      const specialty = diseaseToSpecialty[disease] || 'General Physician';
+      const specialty = specialtyMap[cleanDisease] || 'General Physician';
       const symptomsList = Array.from(symptomSet).join(', ');
 
       const diseaseKeyMatch = Object.keys(precautionMap).find(k => k.trim().toLowerCase() === cleanDisease.toLowerCase());
@@ -178,15 +186,12 @@ Clinical Guidelines: If a patient presents with symptoms such as ${symptomsList}
       console.log("--------------------------------\n");
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY_HERE') {
-      throw new Error("GEMINI_API_KEY is not configured in backend/.env!");
-    }
+
 
     // 1. Initialize Google GenAI Embeddings
     const embeddings = new NewGoogleGenAIEmbeddings({
       apiKey: apiKey,
-      model: 'gemini-embedding-001',
+      model: 'gemini-embedding-2',
     });
 
     // 2. Initialize Pinecone Client

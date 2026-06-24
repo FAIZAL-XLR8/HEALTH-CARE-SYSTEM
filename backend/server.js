@@ -6,7 +6,7 @@ const connectDB = require('./config/db');
 
 const app = express();
 
-// Connect to MongoDB
+// Connect to local MongoDB instance
 connectDB();
 
 // Global Middlewares

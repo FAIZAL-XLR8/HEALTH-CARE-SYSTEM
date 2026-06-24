@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { Home as HomeIcon, FileText, ClipboardList, MessageCircle, HeartPulse, CheckCircle, Clock, Calendar } from 'lucide-react';
+import { Home as HomeIcon, FileText, ClipboardList, MessageCircle, HeartPulse, CheckCircle, Clock, Calendar, Pill } from 'lucide-react';
 import Home from './pages/Home';
 import SearchHub from './pages/SearchHub';
 import ReportAnalyzer from './pages/ReportAnalyzer';
+import PrescriptionAnalyzer from './pages/PrescriptionAnalyzer';
 import LifestyleConsole from './pages/LifestyleConsole';
 import ChatDrawer from './components/ChatDrawer';
 import AuthModal from './components/AuthModal';
 import LiveSimulation from './pages/LiveSimulation';
 
 function App() {
-  const [activePage, setActivePage] = useState('home'); // 'home' | 'search' | 'reports' | 'lifestyle' | 'confirmation'
+  const [activePage, setActivePage] = useState('home'); // 'home' | 'search' | 'reports' | 'prescription' | 'lifestyle' | 'confirmation'
   const [searchParams, setSearchParams] = useState(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   
@@ -168,6 +169,16 @@ function App() {
             Report Locker
           </button>
           <button 
+            onClick={() => setActivePage('prescription')}
+            style={{
+              background: 'none', border: 'none', color: activePage === 'prescription' ? 'var(--primary-neon)' : 'var(--text-muted)',
+              fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
+            }}
+          >
+            <Pill size={16} />
+            Prescription Analyzer
+          </button>
+          <button 
             onClick={() => setActivePage('lifestyle')}
             style={{
               background: 'none', border: 'none', color: activePage === 'lifestyle' ? 'var(--primary-neon)' : 'var(--text-muted)',
@@ -237,6 +248,10 @@ function App() {
         
         {activePage === 'reports' && (
           <ReportAnalyzer onSearchDoctor={handleSearchSpecialtyFromAI} token={token} onOpenAuth={() => setIsAuthModalOpen(true)} />
+        )}
+        
+        {activePage === 'prescription' && (
+          <PrescriptionAnalyzer token={token} onOpenAuth={() => setIsAuthModalOpen(true)} />
         )}
         
         {activePage === 'lifestyle' && (

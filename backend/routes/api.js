@@ -7,6 +7,7 @@ const doctorController = require('../controllers/doctorController');
 const appointmentController = require('../controllers/appointmentController');
 const aiController = require('../controllers/aiController');
 const chatbotController = require('../controllers/chatbotController');
+const prescriptionController = require('../controllers/prescriptionController');
 const { registerSSEClient } = require('../services/scraperService');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -39,6 +40,7 @@ router.get('/appointments/patient/:patientId', protect, appointmentController.ge
 // 🤖 AI Multimodal, Wizard & Chatbot Routes
 // ==========================================
 router.post('/reports/analyze', protect, upload.single('report'), aiController.analyzeReport);
+router.post('/prescriptions/analyze', protect, upload.single('prescription'), prescriptionController.analyzePrescription);
 router.post('/ai/lifestyle', protect, aiController.getLifestyleRecommendations);
 router.post('/ai/chatbot', chatbotController.handleChatbotMessage);
 router.post('/ai/chat-triage', aiController.chatTriage);

@@ -12,7 +12,7 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState([]);
-  const [isRagActive, setIsRagActive] = useState(true);
+  const [isRagActive, setIsRagActive] = useState(false);
   const chatEndRef = useRef(null);
 
   const [triageState, setTriageState] = useState({
@@ -133,7 +133,7 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
       }
     ]);
     setSelectedOptions([]);
-    setIsRagActive(true);
+    setIsRagActive(false);
   };
 
   if (!isOpen) return null;

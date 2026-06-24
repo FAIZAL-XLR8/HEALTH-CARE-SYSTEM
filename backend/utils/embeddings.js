@@ -14,7 +14,7 @@ export class NewGoogleGenAIEmbeddings extends Embeddings {
   constructor(fields) {
     super(fields ?? {});
     this.apiKey = fields?.apiKey || process.env.GEMINI_API_KEY;
-    this.model = fields?.model || "gemini-embedding-001";
+    this.model = fields?.model || "gemini-embedding-2";
     this.ai = new GoogleGenAI({ apiKey: this.apiKey, apiVersion: 'v1' });
   }
 

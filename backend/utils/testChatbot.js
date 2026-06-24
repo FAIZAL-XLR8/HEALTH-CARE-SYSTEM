@@ -19,15 +19,7 @@ async function runTest() {
       messages: [
         {
           sender: 'user',
-          text: "I feel severe spinning movements and nausea"
-        },
-        {
-          sender: 'ai',
-          text: "Are you also experiencing any vomiting, headache, or loss of balance alongside the spinning movements?"
-        },
-        {
-          sender: 'user',
-          text: "Yes, I have vomiting, headache, loss of balance, and unsteadiness"
+          text: "i have vomitting"
         }
       ]
     }

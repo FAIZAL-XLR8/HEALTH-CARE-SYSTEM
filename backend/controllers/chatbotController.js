@@ -10,7 +10,7 @@ class CommonJSGoogleGenAIEmbeddings extends Embeddings {
   constructor(fields) {
     super(fields ?? {});
     this.apiKey = fields?.apiKey || process.env.GEMINI_API_KEY;
-    this.model = fields?.model || "gemini-embedding-001";
+    this.model = fields?.model || "gemini-embedding-2";
     this.ai = new GoogleGenAI({ apiKey: this.apiKey, apiVersion: 'v1' });
   }
 
@@ -43,16 +43,20 @@ const getGenAIClient = () => {
 
 // Retrieve context from Pinecone
 async function retrieveGuidelinesContext(userQuery) {
+  let context = "";
+  let ragUsed = false;
+
   try {
     const pineconeIndexName = process.env.PINECONE_INDEX_NAME;
     const pineconeApiKey = process.env.PINECONE_API_KEY;
     const geminiApiKey = process.env.GEMINI_API_KEY;
 
     if (
-      pineconeIndexName && 
-      pineconeApiKey && 
-      pineconeApiKey !== 'YOUR_PINECONE_API_KEY_HERE' && 
-      geminiApiKey && 
+      pineconeIndexName &&
+      pineconeIndexName !== 'YOUR_PINECONE_INDEX_NAME_HERE' &&
+      pineconeApiKey &&
+      pineconeApiKey !== 'YOUR_PINECONE_API_KEY_HERE' &&
+      geminiApiKey &&
       geminiApiKey !== 'YOUR_GEMINI_API_KEY_HERE'
     ) {
       console.log(`🔍 [RAG] Attempting vector retrieval from Pinecone index "${pineconeIndexName}"...`);
@@ -64,23 +68,33 @@ async function retrieveGuidelinesContext(userQuery) {
         pineconeIndex,
         namespace: 'assist-triage',
       });
+      const searchResultsWithScore = await vectorStore.similaritySearchWithScore(userQuery, 4);
+      // Filter by similarity score threshold to only count relevant documents
+      const relevantResults = searchResultsWithScore.filter(([doc, score]) => score >= 0.60);
 
-      const searchResults = await vectorStore.similaritySearch(userQuery, 4);
-      if (searchResults && searchResults.length > 0) {
-        console.log(`[RAG ACTIVE] Retrieved ${searchResults.length} chunks from Pinecone.`);
+      if (relevantResults && relevantResults.length > 0) {
+        console.log(`[RAG ACTIVE] Retrieved ${relevantResults.length} chunks from Pinecone.`);
+        console.log("=== RETRIEVED DOCUMENTS ===");
+        relevantResults.forEach(([doc, score], i) => {
+          console.log(`Document ${i + 1}:`);
+          console.log(doc.pageContent);
+        });
+
+        context = relevantResults.map(([doc, score]) => doc.pageContent).join("\n\n");
+        ragUsed = true;
         return {
-          context: searchResults.map(doc => doc.pageContent).join("\n\n"),
-          ragUsed: true
+          context,
+          ragUsed
         };
       }
     }
   } catch (err) {
-    console.error("⚠️ [RAG] Pinecone retrieval failed:", err.message);
+    console.error("⚠️ [RAG] Pinecone retrieval failed:", err.message || err);
   }
 
   console.log("[RAG INACTIVE] Using Gemini without retrieval.");
   return {
-    context: "No clinical guideline context is available. Fallback to basic medical knowledge.",
+    context: "",
     ragUsed: false
   };
 }
@@ -93,7 +107,10 @@ exports.handleChatbotMessage = async (req, res) => {
       return res.status(400).json({ message: "Conversational history is required." });
     }
 
-    const lastMessageText = messages[messages.length - 1].text || "";
+    // Gather all symptoms described by the user so far to query RAG,
+    // avoiding false-positive RAG activations from standalone choices (e.g. "Yes", "1-2 times per week")
+    const userMessages = messages.filter(msg => msg.sender === 'user').map(msg => msg.text);
+    const combinedQuery = userMessages.join(" ");
     const ai = getGenAIClient();
 
     if (!ai) {
@@ -102,7 +119,7 @@ exports.handleChatbotMessage = async (req, res) => {
     }
 
     // 1. Retrieve RAG Context
-    const { context, ragUsed } = await retrieveGuidelinesContext(lastMessageText);
+    const { context, ragUsed } = await retrieveGuidelinesContext(combinedQuery);
 
     // 2. Format chat history for Gemini SDK
     const formattedHistory = [];

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const doctorSchema = new mongoose.Schema({
   name: {
@@ -6,31 +7,129 @@ const doctorSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
-  specialty: {
+  email: {
+    type: String,
+    unique: true,
+    required: true,
+    trim: true,
+    lowercase: true,
+    match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Please fill a valid email address'],
+  },
+  password: {
+    type: String,
+    required: true,
+    minlength: [6, 'Password must be at least 6 characters'],
+    select: false, // Hidden by default
+  },
+  profileImage: {
+    type: String,
+    default: '',
+  },
+  specialization: {
     type: String,
     required: true,
     trim: true,
   },
-  experience: {
+  qualification: {
+    type: String,
+    default: '',
+  },
+  experienceYears: {
+    type: Number,
+    default: 0,
+    min: [0, 'Experience years cannot be negative'],
+  },
+  consultationFee: {
     type: Number,
     required: true,
+    min: [0, 'Consultation fee cannot be negative'],
   },
+  bio: {
+    type: String,
+    default: '',
+  },
+  isOnline: {
+    type: Boolean,
+    default: false,
+  },
+  lastSeen: {
+    type: Date,
+    default: Date.now,
+  },
+  phone: {
+    type: String,
+    required: true,
+    trim: true,
+    match: [/^\+?[\d\s\-()]{10,15}$/, 'Please fill a valid phone number'],
+  },
+  governmentIdUrl: {
+    type: String,
+    default: '',
+  },
+  emailVerified: {
+    type: Boolean,
+    default: false,
+  },
+  phoneVerified: {
+    type: Boolean,
+    default: false,
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected', 'suspended'],
+    default: 'pending',
+  },
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
+  rejectionReason: {
+    type: String,
+    default: '',
+  },
+  approvedBy: {
+    type: String,
+    default: '',
+  },
+  approvedAt: {
+    type: Date,
+  },
+  emailOtp: {
+    type: String,
+  },
+  emailOtpExpires: {
+    type: Date,
+  },
+  phoneOtp: {
+    type: String,
+  },
+  phoneOtpExpires: {
+    type: Date,
+  },
+  stripeAccountId: {
+    type: String,
+    default: '',
+  },
+  stripeCustomerId: {
+    type: String,
+    default: '',
+  },
+  stripeSubscriptionId: {
+    type: String,
+    default: '',
+  },
+  stripeOnboardingCompleted: {
+    type: Boolean,
+    default: false,
+  },
+  stripeSubscriptionActive: {
+    type: Boolean,
+    default: false,
+  },
+  // Keep original visual map layout properties
   clinicName: {
     type: String,
-    required: true,
-    trim: true,
-  },
-  fee: {
-    type: Number,
-    default: null,
-  },
-  googleRating: {
-    type: Number,
-    default: null,
-  },
-  scrapedRating: {
-    type: Number,
-    default: null,
+    default: 'Metro Health Clinic',
   },
   location: {
     type: {
@@ -41,15 +140,40 @@ const doctorSchema = new mongoose.Schema({
     coordinates: {
       type: [Number], // [longitude, latitude]
       required: true,
+      default: [77.641151, 12.971891],
     },
   },
   activeHours: {
     type: String,
-    required: true,
+    default: '09:00 AM - 05:00 PM',
   },
 }, {
   timestamps: true,
 });
+
+// Pre-save hook to hash password before storing in database
+doctorSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) {
+    return next();
+  }
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Instance method to compare passwords
+doctorSchema.methods.matchPassword = async function (enteredPassword) {
+  let passwordHash = this.password;
+  if (!passwordHash) {
+    const d = await this.model('Doctor').findById(this._id).select('+password');
+    passwordHash = d ? d.password : '';
+  }
+  return await bcrypt.compare(enteredPassword, passwordHash);
+};
 
 // Create a 2dsphere index for geospatial queries
 doctorSchema.index({ location: '2dsphere' });

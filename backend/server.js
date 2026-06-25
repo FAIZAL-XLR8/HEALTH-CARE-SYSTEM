@@ -2,16 +2,36 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const http = require('http');
+const { Server } = require('socket.io');
 const connectDB = require('./config/db');
+const initializeSocket = require('./config/socket');
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST'],
+  },
+});
 
 // Connect to local MongoDB instance
 connectDB();
 
+// Initialize socket listeners
+initializeSocket(io);
+
 // Global Middlewares
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false, // Turn off CSP temporarily to allow script imports for calling
+}));
 app.use(cors());
+
+// Stripe Webhook Endpoint needs Raw Buffer body BEFORE express.json() is applied
+const paymentController = require('./controllers/paymentController');
+app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), paymentController.handleWebhook);
+
 app.use(express.json());
 
 // API Routes Configuration
@@ -40,6 +60,6 @@ app.get('/api/health', (req, res) => {
 // Port configuration
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server is running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+server.listen(PORT, () => {
+  console.log(`Server is running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT} `);
 });

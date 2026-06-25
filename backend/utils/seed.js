@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const connectDB = require('../config/db');
 const Doctor = require('../models/Doctor');
 const Lab = require('../models/Lab');
-const Article = require('../models/Article');
+const User = require('../models/User');
 
 // Helper to generate a random unit vector of dimension 768
 function generateRandomVector(dim = 768) {
@@ -19,8 +19,18 @@ const seedData = async () => {
     // Clear existing data
     await Doctor.deleteMany();
     await Lab.deleteMany();
-    await Article.deleteMany();
+    await User.deleteMany();
     console.log('Database cleared of existing records.');
+
+    // Seed Admin User
+    await User.create({
+      name: 'System Admin',
+      email: 'admin@health.com',
+      password: 'admin_password_123',
+      phone: '+919999999999',
+      role: 'admin',
+    });
+    console.log('Seeded Admin User successfully.');
 
     // Seed Doctors
     const doctors = [
@@ -166,7 +176,34 @@ const seedData = async () => {
       },
     ];
 
-    await Doctor.insertMany(doctors);
+    const formattedDoctors = doctors.map((doc, idx) => {
+      const uniqueSlug = doc.name.toLowerCase().replace(/[^a-z]/g, '');
+      return {
+        name: doc.name,
+        email: `${uniqueSlug}@health.com`,
+        password: 'seeded_doctor_pass_123',
+        phone: `+9198765432${idx}`,
+        specialization: doc.specialty,
+        experienceYears: doc.experience,
+        clinicName: doc.clinicName,
+        consultationFee: doc.fee,
+        googleRating: doc.googleRating,
+        scrapedRating: doc.scrapedRating,
+        location: doc.location,
+        activeHours: doc.activeHours,
+        profileImage: '',
+        qualification: 'MBBS, MD',
+        bio: `Experienced ${doc.specialty} specialist practicing at ${doc.clinicName}.`,
+        isOnline: false,
+        lastSeen: new Date(),
+        status: 'approved',
+        isVerified: true,
+        emailVerified: true,
+        phoneVerified: true,
+      };
+    });
+
+    await Doctor.insertMany(formattedDoctors);
     console.log(`Seeded ${doctors.length} Doctors successfully.`);
 
     // Seed Diagnostic Labs
@@ -256,30 +293,7 @@ const seedData = async () => {
     await Lab.insertMany(labs);
     console.log('Seeded 5 Diagnostic Labs successfully.');
 
-    // Seed RAG Articles
-    const articles = [
-      {
-        title: 'Lipid Profile & Cholesterol Management Guidelines',
-        category: 'Cardiology',
-        content: 'Elevated total cholesterol (above 200 mg/dL) or LDL cholesterol (above 130 mg/dL) indicates high cholesterol levels. To manage this, consult a Cardiologist or a General Physician. Lifestyle modifications include reducing saturated fats, increasing soluble fiber intake (oats, beans), exercising at least 150 minutes per week, and potentially initiating doctor-prescribed statins if values exceed safety thresholds.',
-        embedding: generateRandomVector(),
-      },
-      {
-        title: 'Understanding Diabetes and HbA1c Levels',
-        category: 'Endocrinology',
-        content: 'An HbA1c test measures the average blood glucose levels over the past 3 months. A value below 5.7% is normal; 5.7% to 6.4% indicates prediabetes; and 6.5% or higher indicates diabetes. Patients with high HbA1c levels should consult an Endocrinologist or a General Physician. Lifestyle adjustments require reducing refined carbohydrate intake, monitoring daily fasting glucose, drinking 3L of water, and maintaining 7-8 hours of sleep to manage cortisol levels.',
-        embedding: generateRandomVector(),
-      },
-      {
-        title: 'Fever and Viral Triage Guidelines',
-        category: 'General Medicine',
-        content: 'Mild fevers (under 101°F) can be managed with paracetamol, adequate rest, and high hydration. However, persistent high fevers (above 102°F) for more than 3 days, accompanied by joint pain or throat swallowing difficulties, require consulting a General Physician or an ENT Specialist. Monitor fluid intake and avoid self-medicating with heavy antibiotics without a verified blood report.',
-        embedding: generateRandomVector(),
-      },
-    ];
 
-    await Article.insertMany(articles);
-    console.log('Seeded 3 RAG Knowledge Documents successfully.');
 
     mongoose.connection.close();
     console.log('Seed job completed. Connection closed.');

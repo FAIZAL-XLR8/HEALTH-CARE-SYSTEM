@@ -1,28 +1,38 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Doctor = require('../models/Doctor');
 
 const protect = async (req, res, next) => {
   let token;
 
-  // 1. Check if token is present in the Authorization header
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
     try {
-      // Get token from header (split "Bearer <token>" by space)
       token = req.headers.authorization.split(' ')[1];
 
-      // 2. Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecretkeyforextrasecurehealthauth12345');
 
-      // 3. Get user from the database and attach to request (excluding password hash)
-      req.user = await User.findById(decoded.id).select('-password');
+      // Check User (Patient) collection first
+      let account = await User.findById(decoded.id).select('-password');
       
-      if (!req.user) {
-        return res.status(401).json({ message: 'Not authorized, user not found' });
+      // If not found, check Doctor collection
+      if (!account) {
+        account = await Doctor.findById(decoded.id).select('-password');
+        if (account) {
+          // Add role field dynamically to maintain backward compat
+          account = { ...account.toObject(), role: 'doctor', id: account._id };
+        }
+      } else {
+        account = { ...account.toObject(), role: account.role || 'patient', id: account._id };
+      }
+      
+      if (!account) {
+        return res.status(401).json({ message: 'Not authorized, account not found' });
       }
 
+      req.user = account;
       next();
     } catch (error) {
       console.error('JWT Verification Error:', error.message);
@@ -30,10 +40,26 @@ const protect = async (req, res, next) => {
     }
   }
 
-  // 4. Return error if no token is found
   if (!token) {
     return res.status(401).json({ message: 'Not authorized, no token provided' });
   }
 };
 
-module.exports = { protect };
+const isAdmin = (req, res, next) => {
+  if (req.user && req.user.role === 'admin') {
+    next();
+  } else {
+    return res.status(403).json({ message: 'Access denied. Admin access required.' });
+  }
+};
+
+const requireApprovedDoctor = (req, res, next) => {
+  if (req.user && req.user.role === 'doctor') {
+    if (req.user.status !== 'approved' || !req.user.isVerified) {
+      return res.status(403).json({ message: 'Access denied. Doctor profile is not approved or verified.' });
+    }
+  }
+  next();
+};
+
+module.exports = { protect, isAdmin, requireApprovedDoctor };

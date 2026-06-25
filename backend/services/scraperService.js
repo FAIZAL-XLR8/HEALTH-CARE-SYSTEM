@@ -73,8 +73,8 @@ const executeBackgroundScrape = async (labId, testId) => {
     }
 
     const currentPrice = lab.tests[testIndex].price;
-    // Update price if we successfully scraped a real value, else set to null
-    const finalPrice = scrapedPrice;
+    // Update price if we successfully scraped a real value, else fallback to current price
+    const finalPrice = scrapedPrice || currentPrice;
 
     // Update in MongoDB
     lab.tests[testIndex].price = finalPrice;
@@ -109,7 +109,8 @@ const executeCronDailyScrape = async () => {
         
         const testIndex = lab.tests.findIndex(t => t.testId === testId);
         if (testIndex !== -1) {
-          lab.tests[testIndex].price = scrapedPrice;
+          const currentPrice = lab.tests[testIndex].price;
+          lab.tests[testIndex].price = scrapedPrice || currentPrice;
           lab.tests[testIndex].updatedAt = new Date();
         }
         

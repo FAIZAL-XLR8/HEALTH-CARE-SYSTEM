@@ -1,37 +1,23 @@
 const Doctor = require('../models/Doctor');
 
 // GET /api/doctors/search
-// Query parameters: specialty (e.g. "ENT"), lat, lng, radius (in meters)
+// Query parameters: specialty (e.g. "ENT")
 exports.searchDoctors = async (req, res) => {
   try {
-    const { specialty, lat, lng, radius } = req.query;
+    const { specialty } = req.query;
 
     if (!specialty) {
       return res.status(400).json({ message: 'Specialty query parameter is required.' });
     }
 
-    // Default to central Indiranagar, Bengaluru coordinates if not supplied
-    const userLng = parseFloat(lng) || 77.641151;
-    const userLat = parseFloat(lat) || 12.971891;
-    const searchRadius = parseInt(radius) || 10000; // Default 10km search radius
+    // Find all doctors with matching specialization
+    let matchedDoctors = await Doctor.find({
+      specialization: { $regex: new RegExp('\\b' + specialty.trim() + '\\b', 'i') },
+      status: 'approved',
+      isVerified: true
+    }).lean();
 
-    // MongoDB Aggregation utilizing $geoNear to calculate distances dynamically
-    let matchedDoctors = await Doctor.aggregate([
-      {
-        $geoNear: {
-          near: {
-            type: 'Point',
-            coordinates: [userLng, userLat],
-          },
-          distanceField: 'distanceInMeters',
-          maxDistance: searchRadius,
-          spherical: true,
-          query: { specialty: { $regex: new RegExp('\\b' + specialty.trim() + '\\b', 'i') } }, // Case-insensitive matching with word boundaries
-        },
-      },
-    ]);
-
-    // If matched doctors count in local cache is low (e.g., first-time searches for low-seeded specialties), trigger live crawler from Lybrate
+    // If matched doctors count in local cache is low, trigger live crawler from Lybrate
     if (matchedDoctors.length < 5) {
       try {
         console.log(`🕵️ [Live Doctor Crawler] Cache sparse (${matchedDoctors.length} records) for '${specialty}'. Querying Lybrate...`);
@@ -41,86 +27,105 @@ exports.searchDoctors = async (req, res) => {
         const scrapedDocs = await scrapeLybrateDoctors('Bengaluru', specialty);
 
         if (scrapedDocs && scrapedDocs.length > 0) {
-          const insertPromises = scrapedDocs.map(async (doc) => {
-            const exists = await Doctor.findOne({ name: doc.name, specialty: doc.specialty });
+          const defaultLng = 77.641151;
+          const defaultLat = 12.971891;
+
+          // Deduplicate scraped doctors
+          const uniqueDocs = [];
+          const seen = new Set();
+          for (const doc of scrapedDocs) {
+            const key = `${doc.name.toLowerCase().trim()}|${doc.specialty.toLowerCase().trim()}`;
+            if (!seen.has(key)) {
+              seen.add(key);
+              uniqueDocs.push(doc);
+            }
+          }
+
+          // Insert sequentially to prevent query race conditions
+          for (const doc of uniqueDocs) {
+            const exists = await Doctor.findOne({
+              name: { $regex: new RegExp('^' + doc.name.trim() + '$', 'i') },
+              specialization: { $regex: new RegExp('^' + doc.specialty.trim() + '$', 'i') }
+            });
+
             if (!exists) {
-              // Generate coordinates near search center (roughly 5km offset)
               const offsetLng = (Math.random() - 0.5) * 0.05;
               const offsetLat = (Math.random() - 0.5) * 0.05;
+              const uniqueSlug = `${doc.name.toLowerCase().replace(/[^a-z]/g, '')}_${Date.now()}`;
+              const mockPhone = `+919${Math.floor(100000000 + Math.random() * 900000000)}`;
 
-              return Doctor.create({
+              await Doctor.create({
                 name: doc.name,
-                specialty: doc.specialty,
-                experience: doc.experience || 10,
+                email: `${uniqueSlug}@health.com`,
+                password: 'default_scraped_password_123',
+                phone: mockPhone,
+                specialization: doc.specialty,
+                experienceYears: doc.experience || 10,
                 clinicName: doc.clinicName || 'Metro Health Clinic',
-                fee: doc.fee || 500,
-                googleRating: null, // Removed Google reviews
+                consultationFee: doc.fee || 500,
+                googleRating: null,
                 scrapedRating: doc.rating,
+                isOnline: false,
+                lastSeen: new Date(),
+                status: 'approved',
+                isVerified: true,
+                emailVerified: true,
+                phoneVerified: true,
                 location: {
                   type: 'Point',
-                  coordinates: [userLng + offsetLng, userLat + offsetLat],
+                  coordinates: [defaultLng + offsetLng, defaultLat + offsetLat],
                 },
                 activeHours: '09:00 AM - 05:00 PM',
               });
             }
-          });
+          }
 
-          await Promise.all(insertPromises);
-
-          // Re-query database after inserting scraped items
-          matchedDoctors = await Doctor.aggregate([
-            {
-              $geoNear: {
-                near: {
-                  type: 'Point',
-                  coordinates: [userLng, userLat],
-                },
-                distanceField: 'distanceInMeters',
-                maxDistance: searchRadius,
-                spherical: true,
-                query: { specialty: { $regex: new RegExp('\\b' + specialty.trim() + '\\b', 'i') } },
-              },
-            },
-          ]);
+          // Re-query database
+          matchedDoctors = await Doctor.find({
+            specialization: { $regex: new RegExp('\\b' + specialty.trim() + '\\b', 'i') },
+            status: 'approved',
+            isVerified: true
+          }).lean();
         }
       } catch (scrapeError) {
         console.error('❌ [Live Doctor Crawler] Failed during dynamic search crawling:', scrapeError.message);
       }
     }
 
-    // Format the response to present clean, structured comparative data
+    // Format response payload for Map and Listings component compatibility
     const doctors = matchedDoctors.map(doc => {
-      const distanceInKm = parseFloat((doc.distanceInMeters / 1000).toFixed(1));
-
       return {
         doctorId: doc._id,
         name: doc.name,
-        specialty: doc.specialty,
-        experience: doc.experience,
+        specialty: doc.specialization, // compat alias
+        specialization: doc.specialization,
+        experience: doc.experienceYears, // compat alias
+        experienceYears: doc.experienceYears,
         clinicName: doc.clinicName,
-        fee: doc.fee,
+        fee: doc.consultationFee, // compat alias
+        consultationFee: doc.consultationFee,
         googleRating: doc.googleRating,
         scrapedRating: doc.scrapedRating,
-        coordinates: doc.location.coordinates,
-        distanceKm: distanceInKm,
+        coordinates: doc.location ? doc.location.coordinates : null,
         activeHours: doc.activeHours,
+        profileImage: doc.profileImage || '',
+        isOnline: doc.isOnline,
       };
     });
 
     res.status(200).json({
       specialty,
-      searchCoordinates: [userLng, userLat],
       doctorsCount: doctors.length,
       doctors,
     });
   } catch (error) {
     console.error('Error in searchDoctors controller:', error);
-    res.status(500).json({ message: 'Internal Server Error during spatial doctor lookup.' });
+    res.status(500).json({ message: 'Internal Server Error during doctor lookup.' });
   }
 };
 
 // GET /api/doctors/compare
-// Query parameters: ids (comma-separated Doctor Mongoose Object IDs)
+// Query parameters: ids (comma-separated Doctor Object IDs)
 exports.compareDoctors = async (req, res) => {
   try {
     const { ids } = req.query;
@@ -131,9 +136,17 @@ exports.compareDoctors = async (req, res) => {
 
     const doctorIds = ids.split(',').filter(id => id.trim().length > 0);
 
-    const doctors = await Doctor.find({ _id: { $in: doctorIds } });
+    const doctorsList = await Doctor.find({ _id: { $in: doctorIds } });
 
-    res.status(200).json(doctors);
+    const formattedList = doctorsList.map(doc => ({
+      ...doc._doc,
+      // Compatibility mapping
+      specialty: doc.specialization,
+      experience: doc.experienceYears,
+      fee: doc.consultationFee,
+    }));
+
+    res.status(200).json(formattedList);
   } catch (error) {
     console.error('Error in compareDoctors controller:', error);
     res.status(500).json({ message: 'Internal Server Error during doctor comparison matrix fetch.' });

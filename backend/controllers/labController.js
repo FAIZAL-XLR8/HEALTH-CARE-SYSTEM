@@ -1,33 +1,19 @@
 const Lab = require('../models/Lab');
 
 // GET /api/labs/search-test
-// Query parameters: test (e.g. "cbc"), lat, lng, radius (in meters)
+// Query parameters: test (e.g. "cbc")
 exports.searchTest = async (req, res) => {
   try {
-    const { test, lat, lng, radius } = req.query;
+    const { test } = req.query;
 
     if (!test) {
       return res.status(400).json({ message: 'Test ID query parameter is required.' });
     }
 
-    // Default to central Indiranagar, Bengaluru coordinates if not supplied
-    const userLng = parseFloat(lng) || 77.641151;
-    const userLat = parseFloat(lat) || 12.971891;
-    const searchRadius = parseInt(radius) || 10000; // Default 10km search radius
-
-    // MongoDB Aggregation utilizing $geoNear to calculate distances dynamically
+    // MongoDB Aggregation utilizing $match to filter labs offering this specific test
     const matchedLabs = await Lab.aggregate([
       {
-        $geoNear: {
-          near: {
-            type: 'Point',
-            coordinates: [userLng, userLat],
-          },
-          distanceField: 'distanceInMeters',
-          maxDistance: searchRadius,
-          spherical: true,
-          query: { 'tests.testId': test }, // Filter labs offering this specific test
-        },
+        $match: { 'tests.testId': test },
       },
       {
         $project: {
@@ -37,7 +23,6 @@ exports.searchTest = async (req, res) => {
           googleRating: 1,
           scrapedRating: 1,
           location: 1,
-          distanceInMeters: 1,
           // Extract only the matching test details from the embedded array
           matchingTest: {
             $filter: {
@@ -53,7 +38,6 @@ exports.searchTest = async (req, res) => {
     // Format the response to present clean, structured comparative data
     const providers = matchedLabs.map(lab => {
       const testDetail = lab.matchingTest && lab.matchingTest[0];
-      const distanceInKm = parseFloat((lab.distanceInMeters / 1000).toFixed(1));
 
       return {
         labId: lab._id,
@@ -62,8 +46,7 @@ exports.searchTest = async (req, res) => {
         homeCollection: lab.homeCollection,
         googleRating: lab.googleRating,
         scrapedRating: lab.scrapedRating,
-        coordinates: lab.location.coordinates,
-        distanceKm: distanceInKm,
+        coordinates: lab.location ? lab.location.coordinates : null,
         price: testDetail ? testDetail.price : null,
         tat: testDetail ? testDetail.tat : null,
         updatedAt: testDetail ? testDetail.updatedAt : null,
@@ -98,14 +81,13 @@ exports.searchTest = async (req, res) => {
 
     res.status(200).json({
       testId: test,
-      searchCoordinates: [userLng, userLat],
       isStaleCache: isAnyStale || req.query.forceRefresh === 'true',
       providersCount: providers.length,
       providers,
     });
   } catch (error) {
     console.error('Error in searchTest controller:', error);
-    res.status(500).json({ message: 'Internal Server Error during spatial test lookup.' });
+    res.status(500).json({ message: 'Internal Server Error during test lookup.' });
   }
 };
 

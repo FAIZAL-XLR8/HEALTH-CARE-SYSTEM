@@ -4,7 +4,6 @@ import { Search, MapPin, Stethoscope, TestTube, Brain, HeartPulse, ShieldCheck, 
 const Home = ({ onSearch }) => {
   const [activeTab, setActiveTab] = useState('labs'); // 'labs' | 'doctors'
   const [searchQuery, setSearchQuery] = useState('');
-  const [locationInput, setLocationInput] = useState('Koramangala, Bengaluru');
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const commonSpecialties = [
@@ -115,8 +114,7 @@ const Home = ({ onSearch }) => {
     }
     onSearch({
       type: activeTab,
-      query: queryVal,
-      location: locationInput.trim()
+      query: queryVal
     });
   };
 
@@ -126,8 +124,7 @@ const Home = ({ onSearch }) => {
     setShowSuggestions(false);
     onSearch({
       type: 'doctors',
-      query: searchVal,
-      location: locationInput.trim()
+      query: searchVal
     });
   };
 
@@ -210,7 +207,7 @@ const Home = ({ onSearch }) => {
         </div>
 
         {/* Input Form Grid */}
-        <form onSubmit={handleSearchSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 120px', gap: '12px', alignItems: 'center' }}>
+        <form onSubmit={handleSearchSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: '12px', alignItems: 'center' }}>
           
           {/* Query input */}
           <div style={{ position: 'relative' }}>
@@ -293,26 +290,7 @@ const Home = ({ onSearch }) => {
             )}
           </div>
 
-          {/* Location input */}
-          <div style={{ position: 'relative' }}>
-            <MapPin style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255, 255, 255, 0.3)' }} size={18} />
-            <input 
-              type="text" 
-              value={locationInput}
-              onChange={(e) => setLocationInput(e.target.value)}
-              placeholder="Your neighborhood (e.g. Koramangala)..."
-              style={{
-                width: '100%',
-                background: 'rgba(0,0,0,0.2)',
-                border: '1px solid var(--card-border)',
-                borderRadius: '8px',
-                padding: '14px 16px 14px 40px',
-                color: '#fff',
-                fontSize: '0.88rem',
-                outline: 'none'
-              }}
-            />
-          </div>
+
 
           {/* Search Button */}
           <button 

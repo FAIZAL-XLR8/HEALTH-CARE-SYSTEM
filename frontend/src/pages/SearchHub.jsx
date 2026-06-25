@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Star, Shield, ArrowRight, ArrowDownUp, RefreshCw, Sparkles, Navigation } from 'lucide-react';
+import { Star, ArrowRight, ArrowDownUp, RefreshCw, Sparkles, Navigation } from 'lucide-react';
 import MapView from '../components/MapView';
 
-const SearchHub = ({ searchParams, onBook, onSimulate }) => {
+const SearchHub = ({ searchParams, onBook }) => {
   const [providers, setProviders] = useState([]);
   const [sortTab, setSortTab] = useState('best'); // 'best' | 'cheapest' | 'fastest'
   const [activeProviderId, setActiveProviderId] = useState(null);
@@ -10,27 +10,18 @@ const SearchHub = ({ searchParams, onBook, onSimulate }) => {
   const [progressWidth, setProgressWidth] = useState(0);
   const [expandedLabId, setExpandedLabId] = useState(null); // Accordion state for collapsed comparison matrix
 
-  // Geolocation states (defaults to Bengaluru center)
-  const [userCoords, setUserCoords] = useState([77.641151, 12.971891]);
-  const [isSimulating, setIsSimulating] = useState(false);
-
-  // Haversine Distance Formula (calculates distance in km dynamically)
-  const getLiveDistance = (providerCoords) => {
-    if (!providerCoords || providerCoords.length !== 2) return 0;
-    const [lon1, lat1] = userCoords;
-    const [lon2, lat2] = providerCoords;
-    const R = 6371; // Earth's radius in km
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return parseFloat((R * c).toFixed(1));
+  const getAreaName = (coords) => {
+    if (!coords || coords.length !== 2) return 'Bengaluru';
+    const [lng, lat] = coords;
+    if (lng > 77.630 && lng < 77.650 && lat > 12.965 && lat < 12.980) return 'Indiranagar';
+    if (lng > 77.610 && lng < 77.630 && lat > 12.925 && lat < 12.945) return 'Koramangala';
+    if (lng > 77.625 && lng < 77.645 && lat > 12.900 && lat < 12.920) return 'HSR Layout';
+    if (lng > 77.630 && lng < 77.645 && lat > 12.950 && lat < 12.965) return 'Domlur';
+    if (lng > 77.700) return 'Whitefield';
+    return 'Bengaluru';
   };
 
-  const { type, query, location } = searchParams;
+  const { type, query } = searchParams;
 
   // 1. Fetch initial cached search results (stale database check)
   const fetchInitialResults = async (force = false) => {
@@ -137,10 +128,8 @@ const SearchHub = ({ searchParams, onBook, onSimulate }) => {
         return b.experience - a.experience; // Doctor next slot proxy: Experience
       }
 
-      // 'BEST' Tab: Dynamic Weighted Scoring (Distance 40%, Price 30%, Rating 20%, Credentials 10%)
+      // 'BEST' Tab: Dynamic Weighted Scoring (Price 50%, Rating 30%, Credentials 20%)
       const getScore = (p) => {
-        const distanceKm = getLiveDistance(p.coordinates);
-        const distanceScore = Math.max(0, 100 - (distanceKm * 10)); // closer is better
         const ratingVal = p.scrapedRating || 4.5;
         const ratingScore = ratingVal * 20; // max 100
 
@@ -149,7 +138,7 @@ const SearchHub = ({ searchParams, onBook, onSimulate }) => {
 
         const credentialScore = p.nablAccredited || p.experience > 15 ? 100 : 50;
 
-        return (distanceScore * 0.40) + (priceScore * 0.30) + (ratingScore * 0.20) + (credentialScore * 0.10);
+        return (priceScore * 0.50) + (ratingScore * 0.30) + (credentialScore * 0.20);
       };
 
       return getScore(b) - getScore(a);
@@ -187,7 +176,7 @@ const SearchHub = ({ searchParams, onBook, onSimulate }) => {
                 {type === 'labs' ? `Diagnostic Test: ${query.toUpperCase()}` : `Clinics matching: ${query}`}
               </h2>
               <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Showing results near {location} • {providers.length} providers found
+                Showing all active {type === 'labs' ? 'diagnostic partners' : 'doctors'} in Bengaluru • {providers.length} found
               </span>
             </div>
 
@@ -316,35 +305,37 @@ const SearchHub = ({ searchParams, onBook, onSimulate }) => {
                         </span>
                       </div>
 
-                      {/* Ratings */}
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        {p.scrapedRating !== undefined && p.scrapedRating !== null ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255, 255, 255, 0.03)', padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--card-border)' }} title={type === 'labs' ? 'Web Rating' : 'Lybrate Rating'}>
-                            <Star size={12} fill="var(--accent-star, #fbbf24)" stroke="var(--accent-star, #fbbf24)" />
-                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{type === 'labs' ? 'Rating' : 'Lybrate'}:</span>
-                            <span style={{ fontSize: '0.72rem', fontWeight: 'bold', color: '#fff' }}>{p.scrapedRating}</span>
-                          </div>
-                        ) : (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255, 255, 255, 0.03)', padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--card-border)' }}>
-                            <Star size={12} fill="none" stroke="var(--text-muted)" />
-                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Rating: N/A</span>
-                          </div>
-                        )}
-                      </div>
+                      {/* Ratings (Only for doctors) */}
+                      {type !== 'labs' && (
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          {p.scrapedRating !== undefined && p.scrapedRating !== null ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255, 255, 255, 0.03)', padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--card-border)' }} title="Lybrate Rating">
+                              <Star size={12} fill="var(--accent-star, #fbbf24)" stroke="var(--accent-star, #fbbf24)" />
+                              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Lybrate:</span>
+                              <span style={{ fontSize: '0.72rem', fontWeight: 'bold', color: '#fff' }}>{p.scrapedRating}</span>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255, 255, 255, 0.03)', padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--card-border)' }}>
+                              <Star size={12} fill="none" stroke="var(--text-muted)" />
+                              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Rating: N/A</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Middle Row: Distance, TAT and Pricing */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', background: 'rgba(0,0,0,0.15)', padding: '12px', borderRadius: '8px', border: '1px solid var(--card-border)' }}>
                       <div>
-                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block' }}>PROXIMITY</span>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff' }}>{getLiveDistance(p.coordinates)} km away</span>
+                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block' }}>LOCATION</span>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff' }}>{getAreaName(p.coordinates)}</span>
                       </div>
                       <div>
                         <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block' }}>
-                          {type === 'labs' ? 'REPORT TAT' : 'CONSULT FEE'}
+                          {type === 'labs' ? 'REPORT TAT' : 'TIMINGS'}
                         </span>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff' }}>
-                          {type === 'labs' ? p.tat : `₹${p.fee}`}
+                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff' }} title={type === 'labs' ? p.tat : p.activeHours}>
+                          {type === 'labs' ? p.tat : p.activeHours}
                         </span>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center' }}>
@@ -395,7 +386,7 @@ const SearchHub = ({ searchParams, onBook, onSimulate }) => {
                             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', padding: '10px', borderBottom: '1px solid var(--card-border)', fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600 }}>
                               <span>Lab Brand</span>
                               <span>Accreditation</span>
-                              <span>Proximity</span>
+                              <span>Location</span>
                               <span style={{ textAlign: 'right' }}>Price</span>
                             </div>
 
@@ -404,19 +395,19 @@ const SearchHub = ({ searchParams, onBook, onSimulate }) => {
                               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', padding: '10px', borderBottom: '1px solid rgba(255,255,255,0.03)', alignItems: 'center' }}>
                                 <span style={{ fontWeight: 600, color: '#fff' }}>{p.labName}</span>
                                 <span style={{ color: 'var(--secondary-neon)' }}>NABL</span>
-                                <span>{getLiveDistance(p.coordinates)} km</span>
+                                <span>{getAreaName(p.coordinates)}</span>
                                 <span style={{ textAlign: 'right', fontWeight: 'bold', color: 'var(--secondary-neon)' }}>₹{p.price}</span>
                               </div>
                               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', padding: '10px', borderBottom: '1px solid rgba(255,255,255,0.03)', alignItems: 'center', opacity: 0.65 }}>
                                 <span style={{ fontWeight: 600, color: '#fff' }}>Thyrocare Technologies</span>
                                 <span style={{ color: 'var(--secondary-neon)' }}>NABL</span>
-                                <span>{parseFloat((getLiveDistance(p.coordinates) * 1.5).toFixed(1))} km</span>
+                                <span>{getAreaName([77.638706, 12.911623])}</span>
                                 <span style={{ textAlign: 'right', fontWeight: 'bold', color: '#fff' }}>₹{p.price - 50}</span>
                               </div>
                               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', padding: '10px', alignItems: 'center', opacity: 0.65 }}>
                                 <span style={{ fontWeight: 600, color: '#fff' }}>Dr. Lal PathLabs</span>
                                 <span style={{ color: 'var(--secondary-neon)' }}>NABL</span>
-                                <span>{parseFloat((getLiveDistance(p.coordinates) * 0.8).toFixed(1))} km</span>
+                                <span>{getAreaName([77.641151, 12.971891])}</span>
                                 <span style={{ textAlign: 'right', fontWeight: 'bold', color: '#fff' }}>₹{p.price + 50}</span>
                               </div>
                             </div>
@@ -432,41 +423,6 @@ const SearchHub = ({ searchParams, onBook, onSimulate }) => {
                       </span>
 
                       <div style={{ display: 'flex', gap: '8px' }}>
-                        {isActive && p.coordinates && p.coordinates.length === 2 && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (onSimulate) {
-                                onSimulate({
-                                  providerId: p.labId || p.doctorId,
-                                  name: p.name || p.labName,
-                                  clinicName: p.clinicName || 'Metro Health Clinic',
-                                  fee: p.fee || p.price,
-                                  coordinates: p.coordinates,
-                                  startCoords: userCoords,
-                                  type: type
-                                });
-                              }
-                            }}
-                            disabled={isSimulating}
-                            style={{
-                              background: isSimulating ? 'rgba(255, 255, 255, 0.05)' : 'rgba(16, 185, 129, 0.1)',
-                              border: '1px solid rgba(16, 185, 129, 0.35)',
-                              borderRadius: '8px',
-                              color: isSimulating ? 'var(--text-muted)' : 'var(--secondary-neon, #10b981)',
-                              padding: '8px 14px',
-                              fontSize: '0.8rem',
-                              fontWeight: 700,
-                              cursor: isSimulating ? 'not-allowed' : 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                              transition: 'all 0.2s'
-                            }}
-                          >
-                            {isSimulating ? 'Simulating...' : 'Simulate Travel 🚶'}
-                          </button>
-                        )}
                         <button
                           onClick={() => onBook(p)}
                           style={{
@@ -511,8 +467,6 @@ const SearchHub = ({ searchParams, onBook, onSimulate }) => {
             providers={providers}
             activeProviderId={activeProviderId}
             onSelectProvider={setActiveProviderId}
-            userCoords={userCoords}
-            onUpdateUserCoords={setUserCoords}
           />
         </div>
 

@@ -1,16 +1,21 @@
-import React, { useState } from 'react';
-import { Home as HomeIcon, FileText, ClipboardList, MessageCircle, HeartPulse, CheckCircle, Clock, Calendar, Pill } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Home as HomeIcon, FileText, MessageCircle, HeartPulse, CheckCircle, Clock, Calendar, Pill, ClipboardList, Shield } from 'lucide-react';
 import Home from './pages/Home';
 import SearchHub from './pages/SearchHub';
 import ReportAnalyzer from './pages/ReportAnalyzer';
 import PrescriptionAnalyzer from './pages/PrescriptionAnalyzer';
-import LifestyleConsole from './pages/LifestyleConsole';
 import ChatDrawer from './components/ChatDrawer';
 import AuthModal from './components/AuthModal';
-import LiveSimulation from './pages/LiveSimulation';
+
+// Telehealth & Portals Pages
+import BookingStepPage from './components/BookingStepPage';
+import PatientDashboard from './pages/PatientDashboard';
+import DoctorDashboard from './pages/DoctorDashboard';
+import TelehealthRoom from './pages/TelehealthRoom';
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
-  const [activePage, setActivePage] = useState('home'); // 'home' | 'search' | 'reports' | 'prescription' | 'lifestyle' | 'confirmation'
+  const [activePage, setActivePage] = useState('home'); 
   const [searchParams, setSearchParams] = useState(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   
@@ -26,19 +31,58 @@ function App() {
   });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-  // Booking confirmation states
-  const [bookingDetails, setBookingDetails] = useState(null);
+  // Booking details
   const [selectedProvider, setSelectedProvider] = useState(null);
-  const [bookingDate, setBookingDate] = useState('2026-05-25');
-  const [bookingSlot, setBookingSlot] = useState('10:30 AM');
+  const [activeAppointmentId, setActiveAppointmentId] = useState(null);
 
-  // Journey simulation states
-  const [simulationParams, setSimulationParams] = useState(null);
-
-  const handleSimulateTrigger = (params) => {
-    setSimulationParams(params);
-    setActivePage('simulate-journey');
-  };
+  // 1. Stripe redirect success handler
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const payment = params.get('payment');
+    const sessionId = params.get('session_id');
+    const appointmentId = params.get('appointmentId');
+    
+    if (payment === 'success' && sessionId && appointmentId) {
+      const verifyPayment = async () => {
+        try {
+          const res = await fetch('/api/payments/verify-checkout-session', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token || localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ sessionId, appointmentId })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            alert('Appointment successfully confirmed!');
+            // Clear URL search params
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            // Check roles and redirect
+            const currentUser = user || JSON.parse(localStorage.getItem('user'));
+            if (currentUser && currentUser.role === 'doctor') {
+              setActivePage('doctor-dashboard');
+            } else {
+              setActivePage('patient-dashboard');
+            }
+          } else {
+            alert(data.message || 'Payment verification failed.');
+            window.history.replaceState({}, document.title, window.location.pathname);
+            setActivePage('home');
+          }
+        } catch (err) {
+          console.error(err);
+          alert('Network verification failure.');
+        }
+      };
+      verifyPayment();
+    } else if (payment === 'cancel') {
+      alert('Payment cancelled.');
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setActivePage('home');
+    }
+  }, [token, user]);
 
   // Handle Authentication Callbacks
   const handleAuthSuccess = (data) => {
@@ -47,6 +91,15 @@ function App() {
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
     setIsAuthModalOpen(false);
+
+    // Redirect to correct dashboard based on role
+    if (data.user.role === 'admin') {
+      setActivePage('admin-dashboard');
+    } else if (data.user.role === 'doctor') {
+      setActivePage('doctor-dashboard');
+    } else {
+      setActivePage('patient-dashboard');
+    }
   };
 
   const handleLogout = () => {
@@ -57,69 +110,33 @@ function App() {
     setActivePage('home');
   };
 
-  // Trigger search from Home Search Console
   const handleSearchTrigger = (params) => {
     setSearchParams(params);
     setActivePage('search');
   };
 
-  // Trigger search dynamically from AI Triage Assistant
   const handleSearchSpecialtyFromAI = (specialist) => {
     setSearchParams({
       type: 'doctors',
-      query: specialist,
-      location: 'Koramangala, Bengaluru'
+      query: specialist
     });
     setActivePage('search');
   };
 
-  // Handle Dynamic Appointment Booking
   const handleBookTrigger = (provider) => {
     setSelectedProvider(provider);
     setActivePage('booking-step');
   };
 
-  const executeBooking = async () => {
-    if (!token) {
-      setIsAuthModalOpen(true);
-      return;
-    }
-    try {
-      const payload = {
-        patientId: user.id || user._id, // Real authenticated User ID
-        providerId: selectedProvider.labId || selectedProvider.doctorId,
-        type: selectedProvider.price ? 'lab' : 'doctor',
-        date: bookingDate,
-        slotTime: bookingSlot,
-        testsSelected: selectedProvider.price ? [{ testId: searchParams.query, testName: searchParams.query.toUpperCase(), price: selectedProvider.price }] : []
-      };
-
-      const response = await fetch('/api/appointments', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        setBookingDetails(data);
-        setActivePage('confirmation');
-      } else {
-        alert(data.message || 'Booking failed.');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Internal Server Error scheduling appointment.');
-    }
+  const handleStartConsultation = (apptId) => {
+    setActiveAppointmentId(apptId);
+    setActivePage('telehealth-room');
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       
-      {/* 🧭 Skyscanner Glassmorphic Navigation Bar */}
+      {/* 🧭 Navigation Bar */}
       <nav 
         className="glass-panel"
         style={{
@@ -158,6 +175,7 @@ function App() {
             <HomeIcon size={16} />
             Search
           </button>
+          
           <button 
             onClick={() => setActivePage('reports')}
             style={{
@@ -168,6 +186,7 @@ function App() {
             <FileText size={16} />
             Report Locker
           </button>
+          
           <button 
             onClick={() => setActivePage('prescription')}
             style={{
@@ -176,23 +195,55 @@ function App() {
             }}
           >
             <Pill size={16} />
-            Prescription Analyzer
+            Prescription
           </button>
-          <button 
-            onClick={() => setActivePage('lifestyle')}
-            style={{
-              background: 'none', border: 'none', color: activePage === 'lifestyle' ? 'var(--primary-neon)' : 'var(--text-muted)',
-              fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
-            }}
-          >
-            <ClipboardList size={16} />
-            Lifestyle Console
-          </button>
+
+          {/* Role-Specific Portal Redirect Buttons */}
+          {user && (
+            user.role === 'admin' ? (
+              <button 
+                onClick={() => setActivePage('admin-dashboard')}
+                style={{
+                  background: 'none', border: 'none', color: activePage === 'admin-dashboard' ? '#f43f5e' : 'var(--text-muted)',
+                  fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
+                }}
+              >
+                <Shield size={16} style={{ color: '#f43f5e' }} />
+                Admin Dashboard
+              </button>
+            ) : user.role === 'doctor' ? (
+              <button 
+                onClick={() => setActivePage('doctor-dashboard')}
+                style={{
+                  background: 'none', border: 'none', color: activePage === 'doctor-dashboard' ? 'var(--secondary-neon)' : 'var(--text-muted)',
+                  fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
+                }}
+              >
+                <Shield size={16} style={{ color: 'var(--secondary-neon)' }} />
+                Doctor Dashboard
+              </button>
+            ) : (
+              <button 
+                onClick={() => setActivePage('patient-dashboard')}
+                style={{
+                  background: 'none', border: 'none', color: activePage === 'patient-dashboard' ? 'var(--primary-neon)' : 'var(--text-muted)',
+                  fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
+                }}
+              >
+                <ClipboardList size={16} />
+                My Dashboard
+              </button>
+            )
+          )}
 
           {user ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ fontSize: '0.82rem', color: 'var(--primary-neon)', fontWeight: 600 }}>
-                👤 {user.name}
+              <span style={{ 
+                fontSize: '0.82rem', 
+                color: user.role === 'admin' ? '#f43f5e' : (user.role === 'doctor' ? 'var(--secondary-neon)' : 'var(--primary-neon)'), 
+                fontWeight: 600 
+              }}>
+                {user.role === 'admin' ? '🛡️' : (user.role === 'doctor' ? '🩺' : '👤')} {user.name}
               </span>
               <button 
                 onClick={handleLogout}
@@ -204,8 +255,7 @@ function App() {
                   fontSize: '0.78rem',
                   fontWeight: 600,
                   padding: '6px 12px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
+                  cursor: 'pointer'
                 }}
               >
                 Logout
@@ -234,16 +284,13 @@ function App() {
 
       {/* 🚀 Main Page router view */}
       <main style={{ flex: 1, paddingBottom: '80px' }}>
+        
         {activePage === 'home' && (
           <Home onSearch={handleSearchTrigger} />
         )}
         
         {activePage === 'search' && searchParams && (
-          <SearchHub searchParams={searchParams} onBook={handleBookTrigger} onSimulate={handleSimulateTrigger} />
-        )}
-
-        {activePage === 'simulate-journey' && simulationParams && (
-          <LiveSimulation params={simulationParams} onBack={() => setActivePage('search')} />
+          <SearchHub searchParams={searchParams} onBook={handleBookTrigger} />
         )}
         
         {activePage === 'reports' && (
@@ -253,163 +300,87 @@ function App() {
         {activePage === 'prescription' && (
           <PrescriptionAnalyzer token={token} onOpenAuth={() => setIsAuthModalOpen(true)} />
         )}
-        
-        {activePage === 'lifestyle' && (
-          <LifestyleConsole token={token} onOpenAuth={() => setIsAuthModalOpen(true)} />
-        )}
 
-        {/* 📅 Step 1: Select Appointment Slot Panel */}
+        {/* 📅 Slot Selection & Booking Page */}
         {activePage === 'booking-step' && selectedProvider && (
-          <div style={{ maxWidth: '600px', margin: '40px auto', padding: '0 24px' }}>
-            <div className="glass-panel" style={{ padding: '30px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <h3 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 700 }}>Choose Consultation Slot</h3>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                Confirming booking details for: <strong>{selectedProvider.labName || selectedProvider.name}</strong>
-              </p>
-              
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '6px' }}>Select Date</label>
-                  <input 
-                    type="date" 
-                    value={bookingDate}
-                    onChange={(e) => setBookingDate(e.target.value)}
-                    style={{ width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '10px', color: '#fff', fontSize: '0.85rem' }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '6px' }}>Preferred Time Slot</label>
-                  <select 
-                    value={bookingSlot}
-                    onChange={(e) => setBookingSlot(e.target.value)}
-                    style={{ width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '10px', color: '#fff', fontSize: '0.85rem', outline: 'none' }}
-                  >
-                    <option value="09:00 AM">09:00 AM (Morning)</option>
-                    <option value="10:30 AM">10:30 AM (Morning)</option>
-                    <option value="02:30 PM">02:30 PM (Noon)</option>
-                    <option value="05:30 PM">05:30 PM (Evening)</option>
-                    <option value="07:00 PM">07:00 PM (Late slot)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
-                <button 
-                  onClick={() => setActivePage('search')}
-                  style={{ flex: 1, background: 'none', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '12px', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={executeBooking}
-                  style={{ flex: 1, background: 'var(--secondary-neon)', border: 'none', borderRadius: '8px', padding: '12px', color: '#fff', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700, boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)' }}
-                >
-                  Confirm & Check Queue
-                </button>
-              </div>
-            </div>
-          </div>
+          <BookingStepPage
+            provider={selectedProvider}
+            token={token}
+            onCancel={() => setActivePage('search')}
+            onOpenAuth={() => setIsAuthModalOpen(true)}
+          />
         )}
 
-        {/* 🟢 Step 2: Skyscanner Booking Confirmation Renders */}
-        {activePage === 'confirmation' && bookingDetails && (
-          <div style={{ maxWidth: '650px', margin: '60px auto', padding: '0 24px' }}>
-            <div className="glass-panel" style={{ padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px', textAlign: 'center' }}>
-              <div style={{ background: 'rgba(16, 185, 129, 0.1)', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyCenter: 'center', padding: '16px' }}>
-                <CheckCircle style={{ color: 'var(--secondary-neon)' }} size={32} />
-              </div>
-              
-              <div>
-                <h2 style={{ fontSize: '1.6rem', color: '#fff', fontWeight: 800 }}>Appointment Successfully Confirmed!</h2>
-                <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginTop: '6px' }}>
-                  Your spatial booking deal has been locked into the local MERN registry.
-                </p>
-              </div>
+        {/* 👤 Patient Portal Page */}
+        {activePage === 'patient-dashboard' && (
+          <PatientDashboard
+            token={token}
+            onOpenAuth={() => setIsAuthModalOpen(true)}
+            onStartConsultation={handleStartConsultation}
+          />
+        )}
 
-              {/* Real-time Queue Tracking Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', width: '100%', background: 'rgba(0,0,0,0.15)', padding: '20px', borderRadius: '12px', border: '1px solid var(--card-border)' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', borderRight: '1px solid var(--card-border)' }}>
-                  <Clock style={{ color: 'var(--primary-neon)' }} size={20} />
-                  <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>ESTIMATED WAIT</span>
-                  <strong style={{ fontSize: '1.25rem', color: '#fff' }}>{bookingDetails.estimatedWaitMinutes} mins</strong>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                  <ClipboardList style={{ color: 'var(--secondary-neon)' }} size={20} />
-                  <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>QUEUE POSITION</span>
-                  <strong style={{ fontSize: '1.25rem', color: 'var(--secondary-neon)' }}>#{bookingDetails.queueNumber} in Line</strong>
-                </div>
-              </div>
+        {/* 🩺 Doctor Portal Dashboard Page */}
+        {activePage === 'doctor-dashboard' && (
+          <DoctorDashboard
+            token={token}
+            onStartConsultation={handleStartConsultation}
+          />
+        )}
 
-              {/* Detailed Summary ticket card */}
-              <div style={{ width: '100%', borderTop: '1px dashed var(--card-border)', paddingTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.82rem', textAlign: 'left' }}>
-                <div style={{ display: 'flex', justifyBetween: 'space-between', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Provider:</span>
-                  <strong style={{ color: '#fff' }}>{selectedProvider.labName || selectedProvider.name}</strong>
-                </div>
-                <div style={{ display: 'flex', justifyBetween: 'space-between', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Schedule Time:</span>
-                  <strong style={{ color: '#fff' }}>{bookingSlot} on {bookingDate}</strong>
-                </div>
-                <div style={{ display: 'flex', justifyBetween: 'space-between', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Patient ID:</span>
-                  <span style={{ color: 'var(--text-muted)' }}>{user ? (user.id || user._id) : 'Guest'}</span>
-                </div>
-              </div>
+        {/* 🛡️ Admin Dashboard Page */}
+        {activePage === 'admin-dashboard' && (
+          <AdminDashboard
+            token={token}
+          />
+        )}
 
-              <button 
-                onClick={() => {
-                  setSearchParams(null);
-                  setActivePage('home');
-                }}
-                style={{
-                  background: 'var(--primary-neon)',
-                  color: '#000',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '12px 24px',
-                  fontSize: '0.82rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  width: '100%',
-                  marginTop: '10px',
-                  boxShadow: '0 4px 15px rgba(6, 182, 212, 0.2)'
-                }}
-              >
-                Return to Search Hub
-              </button>
-
-            </div>
-          </div>
+        {/* 💬 WebRTC Consultation Chat Room */}
+        {activePage === 'telehealth-room' && activeAppointmentId && (
+          <TelehealthRoom
+            appointmentId={activeAppointmentId}
+            token={token}
+            user={user}
+            onBack={() => {
+              if (user && user.role === 'doctor') {
+                setActivePage('doctor-dashboard');
+              } else {
+                setActivePage('patient-dashboard');
+              }
+            }}
+          />
         )}
 
       </main>
 
-      {/* 🤖 Floating Action AI Stethoscope Assistant Trigger */}
-      <button 
-        onClick={() => setIsChatOpen(true)}
-        style={{
-          position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          width: '56px',
-          height: '56px',
-          borderRadius: '50%',
-          background: 'linear-gradient(135deg, var(--primary-neon) 0%, #0891b2 100%)',
-          border: 'none',
-          boxShadow: '0 4px 20px rgba(6, 182, 212, 0.4)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#fff',
-          cursor: 'pointer',
-          zIndex: 999,
-          transition: 'transform 0.2s'
-        }}
-        onMouseEnter={(e) => e.target.style.transform = 'scale(1.08)'}
-        onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-      >
-        <MessageCircle size={24} />
-      </button>
+      {/* 🤖 Floating Action AI Assistant Trigger */}
+      {activePage === 'home' && (
+        <button 
+          onClick={() => setIsChatOpen(true)}
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '24px',
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, var(--primary-neon) 0%, #0891b2 100%)',
+            border: 'none',
+            boxShadow: '0 4px 20px rgba(6, 182, 212, 0.4)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#fff',
+            cursor: 'pointer',
+            zIndex: 999,
+            transition: 'transform 0.2s'
+          }}
+          onMouseEnter={(e) => e.target.style.transform = 'scale(1.08)'}
+          onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+        >
+          <MessageCircle size={24} />
+        </button>
+      )}
 
       {/* Floating Chat Drawer Triage Assistant */}
       <ChatDrawer 
@@ -418,7 +389,6 @@ function App() {
         onSearchSpecialty={handleSearchSpecialtyFromAI}
         onBook={handleBookTrigger}
       />
-
 
       {/* Authentication and Registration Modal */}
       <AuthModal 

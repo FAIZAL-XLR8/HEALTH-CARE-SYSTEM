@@ -1,14 +1,57 @@
 import React, { useState } from 'react';
 import { X, Phone, Key, Mail, User, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { z } from 'zod';
+
+// Zod Validation Schemas
+const patientLoginSchema = z.object({
+  phone: z.string().regex(/^\d{10}$/, '10-digit mobile number is required.'),
+  password: z.string().min(1, 'Password is required.'),
+});
+
+const doctorAdminLoginSchema = z.object({
+  email: z.string().min(1, 'Email is required.').email('Invalid email address.'),
+  password: z.string().min(1, 'Password is required.'),
+});
+
+const patientSignupSchema = z.object({
+  name: z.string().trim().min(1, 'Full name is required.'),
+  email: z.string().trim().min(1, 'Email is required.').email('Invalid email address.'),
+  phone: z.string().regex(/^\d{10}$/, 'Valid 10-digit phone number is required.'),
+  password: z.string().min(6, 'Password must be at least 6 characters.'),
+  confirmPassword: z.string().min(1, 'Confirm password is required.'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'Passwords do not match.',
+  path: ['confirmPassword'],
+});
+
+const doctorSignupSchema = z.object({
+  name: z.string().trim().min(1, 'Full name is required.'),
+  email: z.string().trim().min(1, 'Email is required.').email('Invalid email address.'),
+  phone: z.string().regex(/^\d{10}$/, 'Valid 10-digit phone number is required.'),
+  password: z.string().min(6, 'Password must be at least 6 characters.'),
+  confirmPassword: z.string().min(1, 'Confirm password is required.'),
+  experience: z.string().refine(val => val !== '' && !isNaN(val) && Number(val) >= 0, 'Experience must be a positive number.'),
+  fee: z.string().refine(val => val !== '' && !isNaN(val) && Number(val) >= 0, 'Fee must be a positive number.'),
+  clinicName: z.string().trim().min(1, 'Clinic name is required.'),
+  activeHours: z.string().trim().min(1, 'Daily available hours are required.'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'Passwords do not match.',
+  path: ['confirmPassword'],
+});
 
 const AuthModal = ({ isOpen, onClose, onSuccess }) => {
   const [mode, setMode] = useState('login'); // 'login' | 'signup'
   const [role, setRole] = useState('patient'); // 'patient' | 'doctor' | 'admin'
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+  // Validation errors
+  const [errors, setErrors] = useState({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   // Doctor Registration fields
   const [specialty, setSpecialty] = useState('General Physician');
@@ -39,8 +82,55 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
     setRole(newRole);
     setErrorMsg('');
     setSuccessMsg('');
+    setErrors({});
+    setIsSubmitted(false);
     if (newRole === 'admin') {
       setMode('login');
+    }
+  };
+
+  const handleFieldChange = (field, setter, value) => {
+    setter(value);
+    
+    if (isSubmitted) {
+      const currentData = {
+        name: field === 'name' ? value : name,
+        email: field === 'email' ? value : email,
+        phone: field === 'phone' ? value : phone,
+        password: field === 'password' ? value : password,
+        confirmPassword: field === 'confirmPassword' ? value : confirmPassword,
+        experience: field === 'experience' ? value : experience,
+        fee: field === 'fee' ? value : fee,
+        clinicName: field === 'clinicName' ? value : clinicName,
+        activeHours: field === 'activeHours' ? value : activeHours,
+      };
+
+      let schema;
+      if (mode === 'login') {
+        schema = role === 'patient' ? patientLoginSchema : doctorAdminLoginSchema;
+      } else {
+        schema = role === 'patient' ? patientSignupSchema : doctorSignupSchema;
+      }
+
+      const parseResult = schema.safeParse(currentData);
+      if (parseResult.success) {
+        setErrors({});
+      } else {
+        const fieldErrors = {};
+        (parseResult.error.errors || parseResult.error.issues || []).forEach((err) => {
+          const path = err.path[0];
+          if (!fieldErrors[path]) {
+            fieldErrors[path] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+      }
+    } else {
+      setErrors(prev => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
     }
   };
 
@@ -48,21 +138,30 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
+    setIsSubmitted(true);
 
     const body = { role, password };
     if (role === 'doctor' || role === 'admin') {
-      if (!email.trim()) {
-        setErrorMsg('Email address is required.');
-        return;
-      }
       body.email = email.trim();
     } else {
-      if (!phone.trim() || phone.length < 10) {
-        setErrorMsg('10-digit mobile number is required.');
-        return;
-      }
       body.phone = phone.trim();
     }
+
+    const schema = role === 'patient' ? patientLoginSchema : doctorAdminLoginSchema;
+    const parseResult = schema.safeParse(body);
+    if (!parseResult.success) {
+      const fieldErrors = {};
+      (parseResult.error.errors || parseResult.error.issues || []).forEach((err) => {
+        const path = err.path[0];
+        if (!fieldErrors[path]) {
+          fieldErrors[path] = err.message;
+        }
+      });
+      setErrors(fieldErrors);
+      setErrorMsg('Please correct the validation errors below.');
+      return;
+    }
+    setErrors({});
 
     setIsLoading(true);
     try {
@@ -84,7 +183,18 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
         if (data.rejectionReason) {
           setErrorMsg(`Login failed: ${data.message} Reason: "${data.rejectionReason}"`);
         } else {
-          setErrorMsg(data.message || 'Login failed. Please check credentials.');
+          const msg = data.message || 'Login failed. Please check credentials.';
+          setErrorMsg(msg);
+          
+          const lowerMsg = msg.toLowerCase();
+          if (lowerMsg.includes('credentials') || lowerMsg.includes('password') || lowerMsg.includes('invalid email')) {
+            setErrors(prev => ({
+              ...prev,
+              password: 'Check your credentials.',
+              email: role !== 'patient' ? 'Check your credentials.' : undefined,
+              phone: role === 'patient' ? 'Check your credentials.' : undefined
+            }));
+          }
         }
       }
     } catch (err) {
@@ -99,60 +209,62 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
+    setIsSubmitted(true);
 
-    if (!name.trim() || !password.trim()) {
-      setErrorMsg('Name and password are required.');
-      return;
-    }
-
-    if (role === 'patient') {
-      if (!phone.trim() || phone.length < 10) {
-        setErrorMsg('Valid 10-digit phone number is required.');
-        return;
-      }
-      if (!email.trim()) {
-        setErrorMsg('Email address is required.');
-        return;
-      }
-    }
+    const payload = {
+      name: name.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      password: password,
+      confirmPassword: confirmPassword,
+    };
 
     if (role === 'doctor') {
-      if (!phone.trim() || phone.length < 10) {
-        setErrorMsg('Valid 10-digit phone number is required.');
-        return;
-      }
-      if (!email.trim()) {
-        setErrorMsg('Email address is required.');
-        return;
-      }
-      if (!experience || !fee || !clinicName.trim()) {
-        setErrorMsg('Please fill in all professional credentials.');
-        return;
-      }
+      payload.specialty = specialty;
+      payload.experience = experience.toString().trim();
+      payload.fee = fee.toString().trim();
+      payload.clinicName = clinicName.trim();
+      payload.activeHours = activeHours.trim();
+    }
+
+    const schema = role === 'patient' ? patientSignupSchema : doctorSignupSchema;
+    const parseResult = schema.safeParse(payload);
+    if (!parseResult.success) {
+      const fieldErrors = {};
+      (parseResult.error.errors || parseResult.error.issues || []).forEach((err) => {
+        const path = err.path[0];
+        if (!fieldErrors[path]) {
+          fieldErrors[path] = err.message;
+        }
+      });
+      setErrors(fieldErrors);
+      setErrorMsg('Please correct the validation errors below.');
+      return;
+    }
+    setErrors({});
+
+    const backendPayload = {
+      name: name.trim(),
+      password: password,
+      email: email.trim(),
+      role,
+      phone: phone.trim(),
+    };
+
+    if (role === 'doctor') {
+      backendPayload.specialty = specialty;
+      backendPayload.experience = Number(experience);
+      backendPayload.fee = Number(fee);
+      backendPayload.clinicName = clinicName.trim();
+      backendPayload.activeHours = activeHours.trim();
     }
 
     setIsLoading(true);
     try {
-      const payload = {
-        name: name.trim(),
-        password: password,
-        email: email.trim(),
-        role,
-        phone: phone.trim(),
-      };
-
-      if (role === 'doctor') {
-        payload.specialty = specialty;
-        payload.experience = Number(experience);
-        payload.fee = Number(fee);
-        payload.clinicName = clinicName.trim();
-        payload.activeHours = activeHours.trim();
-      }
-
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(backendPayload),
       });
       const data = await res.json();
 
@@ -170,7 +282,23 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
           }, 1000);
         }
       } else {
-        setErrorMsg(data.message || 'Registration failed.');
+        const msg = data.message || 'Registration failed.';
+        setErrorMsg(msg);
+        
+        const lowerMsg = msg.toLowerCase();
+        if (lowerMsg.includes('already exists') || lowerMsg.includes('registered')) {
+          if (lowerMsg.includes('email')) {
+            setErrors(prev => ({ ...prev, email: 'Email is already registered.' }));
+          } else if (lowerMsg.includes('phone')) {
+            setErrors(prev => ({ ...prev, phone: 'Phone number is already registered.' }));
+          } else {
+            setErrors(prev => ({
+              ...prev,
+              email: role !== 'patient' ? 'Already registered.' : undefined,
+              phone: role === 'patient' ? 'Already registered.' : undefined
+            }));
+          }
+        }
       }
     } catch (err) {
       console.error(err);
@@ -301,6 +429,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
   const resetForm = () => {
     setPhone('');
     setPassword('');
+    setConfirmPassword('');
     setName('');
     setEmail('');
     setRole('patient');
@@ -322,6 +451,8 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
     setSelectedFile(null);
     setIdUploaded(false);
     setIsUploading(false);
+    setErrors({});
+    setIsSubmitted(false);
   };
 
   const doctorSpecialties = [
@@ -331,18 +462,6 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
   ];
 
   const isFormValid = () => {
-    if (!password.trim()) return false;
-    if (mode === 'signup' && !name.trim()) return false;
-    
-    if (role === 'doctor') {
-      if (!email.trim() || phone.length < 10) return false;
-      if (mode === 'signup' && (!experience || !fee || !clinicName.trim())) return false;
-    } else if (role === 'admin') {
-      if (!email.trim()) return false;
-    } else {
-      if (phone.length < 10) return false;
-      if (mode === 'signup' && !email.trim()) return false;
-    }
     return true;
   };
 
@@ -541,106 +660,165 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
             
             {/* Sign Up Fields: Full Name */}
             {mode === 'signup' && (
-              <div style={{ position: 'relative' }}>
-                <User style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255, 255, 255, 0.3)' }} size={16} />
-                <input 
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter Full Name *"
-                  style={{
-                    width: '100%',
-                    background: 'rgba(0,0,0,0.3)',
-                    border: '1px solid var(--card-border)',
-                    borderRadius: '8px',
-                    padding: '12px 14px 12px 38px',
-                    color: '#fff',
-                    fontSize: '0.82rem',
-                    outline: 'none'
-                  }}
-                />
+              <div>
+                <div style={{ position: 'relative' }}>
+                  <User style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255, 255, 255, 0.3)' }} size={16} />
+                  <input 
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => handleFieldChange('name', setName, e.target.value)}
+                    placeholder="Enter Full Name *"
+                    style={{
+                      width: '100%',
+                      background: 'rgba(0,0,0,0.3)',
+                      border: errors.name ? '1px solid var(--accent-alert)' : '1px solid var(--card-border)',
+                      borderRadius: '8px',
+                      padding: '12px 14px 12px 38px',
+                      color: '#fff',
+                      fontSize: '0.82rem',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+                {errors.name && (
+                  <span style={{ color: 'var(--accent-alert)', fontSize: '0.72rem', marginTop: '4px', display: 'block', textAlign: 'left' }}>
+                    {errors.name}
+                  </span>
+                )}
               </div>
             )}
 
             {/* Email Input: Required for doctor, admin, and patient on signup */}
             {(role === 'doctor' || role === 'admin' || (role === 'patient' && mode === 'signup')) && (
-              <div style={{ position: 'relative' }}>
-                <Mail style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255, 255, 255, 0.3)' }} size={16} />
-                <input 
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email Address *"
-                  style={{
-                    width: '100%',
-                    background: 'rgba(0,0,0,0.3)',
-                    border: '1px solid var(--card-border)',
-                    borderRadius: '8px',
-                    padding: '12px 14px 12px 38px',
-                    color: '#fff',
-                    fontSize: '0.82rem',
-                    outline: 'none'
-                  }}
-                />
+              <div>
+                <div style={{ position: 'relative' }}>
+                  <Mail style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255, 255, 255, 0.3)' }} size={16} />
+                  <input 
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => handleFieldChange('email', setEmail, e.target.value)}
+                    placeholder="Email Address *"
+                    style={{
+                      width: '100%',
+                      background: 'rgba(0,0,0,0.3)',
+                      border: errors.email ? '1px solid var(--accent-alert)' : '1px solid var(--card-border)',
+                      borderRadius: '8px',
+                      padding: '12px 14px 12px 38px',
+                      color: '#fff',
+                      fontSize: '0.82rem',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+                {errors.email && (
+                  <span style={{ color: 'var(--accent-alert)', fontSize: '0.72rem', marginTop: '4px', display: 'block', textAlign: 'left' }}>
+                    {errors.email}
+                  </span>
+                )}
               </div>
             )}
 
             {/* Mobile Number Input: Required for patients login/signup, and doctor signup */}
             {(role === 'patient' || (role === 'doctor' && mode === 'signup')) && (
-              <div style={{ position: 'relative' }}>
-                <Phone style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255, 255, 255, 0.3)' }} size={16} />
-                <input 
-                  type="tel"
-                  required
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ''))}
-                  placeholder="10-digit Mobile Number *"
-                  maxLength="10"
-                  style={{
-                    width: '100%',
-                    background: 'rgba(0,0,0,0.3)',
-                    border: '1px solid var(--card-border)',
-                    borderRadius: '8px',
-                    padding: '12px 14px 12px 38px',
-                    color: '#fff',
-                    fontSize: '0.85rem',
-                    outline: 'none',
-                    letterSpacing: '0.05em'
-                  }}
-                />
+              <div>
+                <div style={{ position: 'relative' }}>
+                  <Phone style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255, 255, 255, 0.3)' }} size={16} />
+                  <input 
+                    type="tel"
+                    required
+                    value={phone}
+                    onChange={(e) => handleFieldChange('phone', setPhone, e.target.value.replace(/[^0-9]/g, ''))}
+                    placeholder="10-digit Mobile Number *"
+                    maxLength="10"
+                    style={{
+                      width: '100%',
+                      background: 'rgba(0,0,0,0.3)',
+                      border: errors.phone ? '1px solid var(--accent-alert)' : '1px solid var(--card-border)',
+                      borderRadius: '8px',
+                      padding: '12px 14px 12px 38px',
+                      color: '#fff',
+                      fontSize: '0.85rem',
+                      outline: 'none',
+                      letterSpacing: '0.05em'
+                    }}
+                  />
+                </div>
+                {errors.phone && (
+                  <span style={{ color: 'var(--accent-alert)', fontSize: '0.72rem', marginTop: '4px', display: 'block', textAlign: 'left' }}>
+                    {errors.phone}
+                  </span>
+                )}
               </div>
             )}
 
             {/* Common Field: Password */}
-            <div style={{ position: 'relative' }}>
-              <Key style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255, 255, 255, 0.3)' }} size={16} />
-              <input 
-                type={showPassword ? "text" : "password"}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password *"
-                style={{
-                  width: '100%',
-                  background: 'rgba(0,0,0,0.3)',
-                  border: '1px solid var(--card-border)',
-                  borderRadius: '8px',
-                  padding: '12px 40px 12px 38px',
-                  color: '#fff',
-                  fontSize: '0.85rem',
-                  outline: 'none'
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255, 255, 255, 0.4)', padding: 0 }}
-              >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
+            <div>
+              <div style={{ position: 'relative' }}>
+                <Key style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255, 255, 255, 0.3)' }} size={16} />
+                <input 
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => handleFieldChange('password', setPassword, e.target.value)}
+                  placeholder={mode === 'signup' ? "Password (min 6 characters) *" : "Password *"}
+                  style={{
+                    width: '100%',
+                    background: 'rgba(0,0,0,0.3)',
+                    border: errors.password ? '1px solid var(--accent-alert)' : '1px solid var(--card-border)',
+                    borderRadius: '8px',
+                    padding: '12px 40px 12px 38px',
+                    color: '#fff',
+                    fontSize: '0.85rem',
+                    outline: 'none'
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255, 255, 255, 0.4)', padding: 0 }}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              {errors.password && (
+                <span style={{ color: 'var(--accent-alert)', fontSize: '0.72rem', marginTop: '4px', display: 'block', textAlign: 'left' }}>
+                  {errors.password}
+                </span>
+              )}
             </div>
+
+            {/* Confirm Password Field (Signup only) */}
+            {mode === 'signup' && (
+              <div>
+                <div style={{ position: 'relative' }}>
+                  <Key style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255, 255, 255, 0.3)' }} size={16} />
+                  <input 
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => handleFieldChange('confirmPassword', setConfirmPassword, e.target.value)}
+                    placeholder="Confirm Password *"
+                    style={{
+                      width: '100%',
+                      background: 'rgba(0,0,0,0.3)',
+                      border: errors.confirmPassword ? '1px solid var(--accent-alert)' : '1px solid var(--card-border)',
+                      borderRadius: '8px',
+                      padding: '12px 40px 12px 38px',
+                      color: '#fff',
+                      fontSize: '0.85rem',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+                {errors.confirmPassword && (
+                  <span style={{ color: 'var(--accent-alert)', fontSize: '0.72rem', marginTop: '4px', display: 'block', textAlign: 'left' }}>
+                    {errors.confirmPassword}
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* Sign Up Fields: Doctor Specific Fields */}
             {mode === 'signup' && role === 'doctor' && (
@@ -667,9 +845,23 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
                       required
                       value={experience}
                       placeholder="e.g. 10"
-                      onChange={(e) => setExperience(e.target.value)}
-                      style={{ width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '10px', color: '#fff', fontSize: '0.8rem', outline: 'none' }}
+                      onChange={(e) => handleFieldChange('experience', setExperience, e.target.value)}
+                      style={{
+                        width: '100%',
+                        background: 'rgba(0,0,0,0.3)',
+                        border: errors.experience ? '1px solid var(--accent-alert)' : '1px solid var(--card-border)',
+                        borderRadius: '8px',
+                        padding: '10px',
+                        color: '#fff',
+                        fontSize: '0.8rem',
+                        outline: 'none'
+                      }}
                     />
+                    {errors.experience && (
+                      <span style={{ color: 'var(--accent-alert)', fontSize: '0.68rem', marginTop: '4px', display: 'block', textAlign: 'left' }}>
+                        {errors.experience}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -681,9 +873,23 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
                       required
                       value={fee}
                       placeholder="e.g. 500"
-                      onChange={(e) => setFee(e.target.value)}
-                      style={{ width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '10px', color: '#fff', fontSize: '0.8rem', outline: 'none' }}
+                      onChange={(e) => handleFieldChange('fee', setFee, e.target.value)}
+                      style={{
+                        width: '100%',
+                        background: 'rgba(0,0,0,0.3)',
+                        border: errors.fee ? '1px solid var(--accent-alert)' : '1px solid var(--card-border)',
+                        borderRadius: '8px',
+                        padding: '10px',
+                        color: '#fff',
+                        fontSize: '0.8rem',
+                        outline: 'none'
+                      }}
                     />
+                    {errors.fee && (
+                      <span style={{ color: 'var(--accent-alert)', fontSize: '0.68rem', marginTop: '4px', display: 'block', textAlign: 'left' }}>
+                        {errors.fee}
+                      </span>
+                    )}
                   </div>
                   <div>
                     <label style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Clinic Name *</label>
@@ -692,9 +898,23 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
                       required
                       value={clinicName}
                       placeholder="e.g. City Dental Care"
-                      onChange={(e) => setClinicName(e.target.value)}
-                      style={{ width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '10px', color: '#fff', fontSize: '0.8rem', outline: 'none' }}
+                      onChange={(e) => handleFieldChange('clinicName', setClinicName, e.target.value)}
+                      style={{
+                        width: '100%',
+                        background: 'rgba(0,0,0,0.3)',
+                        border: errors.clinicName ? '1px solid var(--accent-alert)' : '1px solid var(--card-border)',
+                        borderRadius: '8px',
+                        padding: '10px',
+                        color: '#fff',
+                        fontSize: '0.8rem',
+                        outline: 'none'
+                      }}
                     />
+                    {errors.clinicName && (
+                      <span style={{ color: 'var(--accent-alert)', fontSize: '0.68rem', marginTop: '4px', display: 'block', textAlign: 'left' }}>
+                        {errors.clinicName}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -705,9 +925,23 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
                     required
                     value={activeHours}
                     placeholder="e.g. 09:00 AM - 05:00 PM"
-                    onChange={(e) => setActiveHours(e.target.value)}
-                    style={{ width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '10px', color: '#fff', fontSize: '0.8rem', outline: 'none' }}
+                    onChange={(e) => handleFieldChange('activeHours', setActiveHours, e.target.value)}
+                    style={{
+                      width: '100%',
+                      background: 'rgba(0,0,0,0.3)',
+                      border: errors.activeHours ? '1px solid var(--accent-alert)' : '1px solid var(--card-border)',
+                      borderRadius: '8px',
+                      padding: '10px',
+                      color: '#fff',
+                      fontSize: '0.8rem',
+                      outline: 'none'
+                    }}
                   />
+                  {errors.activeHours && (
+                    <span style={{ color: 'var(--accent-alert)', fontSize: '0.68rem', marginTop: '4px', display: 'block', textAlign: 'left' }}>
+                      {errors.activeHours}
+                    </span>
+                  )}
                 </div>
               </div>
             )}
@@ -715,12 +949,12 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
             {/* Submit Button */}
             <button 
               type="submit"
-              disabled={isLoading || !isFormValid()}
+              disabled={isLoading}
               style={{
-                background: isFormValid() && !isLoading
+                background: !isLoading
                   ? (role === 'doctor' ? 'var(--secondary-neon)' : (role === 'admin' ? '#f43f5e' : 'var(--primary-neon)')) 
                   : 'rgba(255,255,255,0.05)',
-                color: isFormValid() && !isLoading
+                color: !isLoading
                   ? (role === 'patient' ? '#000' : '#fff') 
                   : 'var(--text-muted)',
                 border: 'none',
@@ -728,7 +962,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
                 padding: '12px',
                 fontSize: '0.85rem',
                 fontWeight: 700,
-                cursor: isFormValid() ? 'pointer' : 'default',
+                cursor: !isLoading ? 'pointer' : 'default',
                 transition: 'all 0.2s',
                 marginTop: '8px'
               }}

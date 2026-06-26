@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
 import { 
   Phone, Video, VideoOff, Mic, MicOff, Send, Paperclip, X, Download, 
-  FileText, ArrowLeft, Monitor, PhoneOff, Check, CheckCheck 
+  FileText, ArrowLeft, Monitor, PhoneOff, Check, CheckCheck, Trash2 
 } from 'lucide-react';
 
 const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
@@ -125,6 +125,10 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
     socket.on('receive-message', (message) => {
       setMessages(prev => [...prev, message]);
       socket.emit('mark-seen', { appointmentId });
+    });
+
+    socket.on('message-deleted', ({ messageId }) => {
+      setMessages(prev => prev.filter(m => m._id !== messageId));
     });
 
     socket.on('messages-marked-seen', () => {
@@ -562,6 +566,28 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
     setIsTyping(false);
   };
 
+  const handleDeleteMessage = async (messageId) => {
+    if (isExpired) return;
+    if (!window.confirm("Are you sure you want to delete this message?")) return;
+
+    try {
+      const res = await fetch(`/api/messages/${messageId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setMessages(prev => prev.filter(m => m._id !== messageId));
+        socketRef.current?.emit('delete-message', { appointmentId, messageId });
+      } else {
+        const data = await res.json();
+        alert(data.message || 'Failed to delete message.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error deleting message.');
+    }
+  };
+
   const handleTyping = (e) => {
     setMessageText(e.target.value);
     
@@ -580,10 +606,14 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
     const file = e.target.files[0];
     if (!file || isExpired) return;
 
-    const fileType = file.type;
-    let msgType = 'image';
+    const fileType = file.type || '';
+    let msgType = 'file';
     if (fileType.includes('pdf')) {
       msgType = 'pdf';
+    } else if (fileType.includes('image')) {
+      msgType = 'image';
+    } else if (fileType.includes('video')) {
+      msgType = 'video';
     }
 
     const formData = new FormData();
@@ -716,9 +746,39 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
                     </div>
                   )}
 
+                  {m.messageType === 'video' && (
+                    <div style={{ marginBottom: '6px' }}>
+                      <video 
+                        src={m.fileUrl} 
+                        controls
+                        style={{ maxWidth: '100%', borderRadius: '8px', maxHeight: '240px', background: '#000' }}
+                      />
+                    </div>
+                  )}
+
                   {m.messageType === 'pdf' && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(0,0,0,0.2)', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--card-border)', marginBottom: '6px' }}>
                       <FileText size={20} style={{ color: 'var(--accent-alert)' }} />
+                      <div style={{ overflow: 'hidden' }}>
+                        <span style={{ fontSize: '0.78rem', display: 'block', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '120px' }}>
+                          {m.content}
+                        </span>
+                      </div>
+                      <a 
+                        href={m.fileUrl} 
+                        download 
+                        target="_blank" 
+                        rel="noreferrer"
+                        style={{ color: 'var(--primary-neon)', display: 'flex', padding: '4px' }}
+                      >
+                        <Download size={14} />
+                      </a>
+                    </div>
+                  )}
+
+                  {(m.messageType === 'file' || m.messageType === 'raw') && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(0,0,0,0.2)', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--card-border)', marginBottom: '6px' }}>
+                      <FileText size={20} style={{ color: 'var(--primary-neon)' }} />
                       <div style={{ overflow: 'hidden' }}>
                         <span style={{ fontSize: '0.78rem', display: 'block', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '120px' }}>
                           {m.content}
@@ -741,7 +801,27 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
                   )}
 
                   {/* Message Bottom row: Timestamp + seen status check ticks */}
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '6px', marginTop: '4px', fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px', marginTop: '4px', fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                    {isOwnMessage && !isExpired && (
+                      <button
+                        onClick={() => handleDeleteMessage(m._id)}
+                        title="Delete Message"
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: 'rgba(244, 63, 94, 0.6)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '0 4px',
+                          transition: 'color 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.target.style.color = 'var(--accent-alert)'}
+                        onMouseLeave={(e) => e.target.style.color = 'rgba(244, 63, 94, 0.6)'}
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    )}
                     <span>{new Date(m.createdAt || m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     {isOwnMessage && (
                       m.isSeen ? (
@@ -774,7 +854,7 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
                 type="file" 
                 ref={fileInputRef}
                 style={{ display: 'none' }}
-                accept=".png,.jpg,.jpeg,.pdf"
+                accept=".png,.jpg,.jpeg,.pdf,.mp4,.webm,.mov,.avi"
                 onChange={handleAttachmentUpload}
               />
               

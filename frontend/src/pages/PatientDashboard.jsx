@@ -46,15 +46,69 @@ const PatientDashboard = ({ token, onOpenAuth, onStartConsultation }) => {
         body: JSON.stringify({ appointmentId: apptId })
       });
       const data = await res.json();
-      if (res.ok && data.url) {
-        window.location.href = data.url;
+      if (res.ok && data.orderId) {
+        // Open Razorpay Checkout modal
+        const options = {
+          key: data.key,
+          amount: data.amount,
+          currency: data.currency,
+          name: "Telehealth Consultation",
+          description: "Consultation Payment",
+          order_id: data.orderId,
+          handler: async function (response) {
+            setLoading(true);
+            try {
+              const verifyRes = await fetch('/api/payments/verify-checkout-session', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                  appointmentId: apptId
+                })
+              });
+              const verifyData = await verifyRes.json();
+              if (verifyRes.ok) {
+                alert('Payment verified and appointment confirmed successfully!');
+                fetchAppointments();
+              } else {
+                alert(verifyData.message || 'Payment verification failed.');
+              }
+            } catch (err) {
+              console.error(err);
+              alert('Verification error. Please contact support.');
+            } finally {
+              setLoading(false);
+            }
+          },
+          prefill: {
+            name: data.patient?.name || '',
+            email: data.patient?.email || '',
+            contact: data.patient?.phone || ''
+          },
+          theme: {
+            color: '#10b981'
+          },
+          modal: {
+            ondismiss: function () {
+              setLoading(false);
+            }
+          }
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.open();
       } else {
         alert(data.message || 'Payment initiation failed.');
+        setLoading(false);
       }
     } catch (err) {
       console.error(err);
-      alert('Stripe connection error.');
-    } finally {
+      alert('Razorpay connection error.');
       setLoading(false);
     }
   };

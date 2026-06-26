@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, CreditCard, Shield, AlertTriangle } from 'lucide-react';
+import { Calendar, Clock, CreditCard, Shield, AlertTriangle, Ban } from 'lucide-react';
+
+const getLocalDateString = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
   const [selectedDate, setSelectedDate] = useState(() => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
+    return getLocalDateString();
   });
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -17,6 +23,32 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
 
   const providerId = provider.labId || provider.doctorId || provider._id;
   const isDoctor = !provider.price;
+
+  const isSlotPassed = (slotStr) => {
+    const todayStr = getLocalDateString();
+    if (selectedDate !== todayStr) {
+      return false; // Not today
+    }
+
+    const match = slotStr.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/i);
+    if (!match) return false;
+
+    let [_, hoursStr, minutesStr, ampm] = match;
+    let hours = parseInt(hoursStr, 10);
+    const minutes = minutesStr ? parseInt(minutesStr, 10) : 0;
+
+    if (ampm.toUpperCase() === 'PM' && hours !== 12) {
+      hours += 12;
+    } else if (ampm.toUpperCase() === 'AM' && hours === 12) {
+      hours = 0;
+    }
+
+    const todayLocal = new Date();
+    const slotTimeToday = new Date(todayLocal);
+    slotTimeToday.setHours(hours, minutes, 0, 0);
+
+    return todayLocal > slotTimeToday;
+  };
 
   const fetchSlots = async () => {
     if (!isDoctor) return; // Lab bookings don't use doctor daily slots
@@ -119,16 +151,69 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
         })
       });
       const data = await res.json();
-      if (res.ok && data.url) {
-        // Redirect to Stripe checkout page
-        window.location.href = data.url;
+      if (res.ok && data.orderId) {
+        // Open Razorpay Checkout modal
+        const options = {
+          key: data.key,
+          amount: data.amount,
+          currency: data.currency,
+          name: "Telehealth Consultation",
+          description: `Appointment with ${provider.name}`,
+          order_id: data.orderId,
+          handler: async function (response) {
+            setLoading(true);
+            try {
+              const verifyRes = await fetch('/api/payments/verify-checkout-session', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                  appointmentId: reservedAppt._id
+                })
+              });
+              const verifyData = await verifyRes.json();
+              if (verifyRes.ok) {
+                alert('Payment verified and appointment confirmed successfully!');
+                window.location.reload();
+              } else {
+                setError(verifyData.message || 'Payment verification failed.');
+              }
+            } catch (err) {
+              console.error(err);
+              setError('Verification error. Please contact support.');
+            } finally {
+              setLoading(false);
+            }
+          },
+          prefill: {
+            name: data.patient?.name || '',
+            email: data.patient?.email || '',
+            contact: data.patient?.phone || ''
+          },
+          theme: {
+            color: '#10b981'
+          },
+          modal: {
+            ondismiss: function () {
+              setLoading(false);
+            }
+          }
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.open();
       } else {
         setError(data.message || 'Failed to initialize payment.');
+        setLoading(false);
       }
     } catch (err) {
       console.error(err);
-      setError('Stripe connection failed.');
-    } finally {
+      setError('Razorpay connection failed.');
       setLoading(false);
     }
   };
@@ -154,19 +239,9 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
         </div>
 
         {error && (
-          <div style={{ background: 'rgba(244, 63, 94, 0.1)', border: '1px solid var(--accent-alert)', borderRadius: '8px', padding: '12px', color: 'var(--accent-alert)', fontSize: '0.82rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <AlertTriangle size={16} />
-              <span>{error}</span>
-            </div>
-            {reservedAppt && (
-              <a 
-                href={`/api/payments/simulate-checkout?appointmentId=${reservedAppt._id}`}
-                style={{ color: 'var(--primary-neon)', fontWeight: 600, textDecoration: 'underline', cursor: 'pointer', fontSize: '0.8rem', marginLeft: '24px' }}
-              >
-                Click here to launch the local Sandbox Payment Simulator instead
-              </a>
-            )}
+          <div style={{ background: 'rgba(244, 63, 94, 0.1)', border: '1px solid var(--accent-alert)', borderRadius: '8px', padding: '12px', color: 'var(--accent-alert)', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <AlertTriangle size={16} />
+            <span>{error}</span>
           </div>
         )}
 
@@ -179,7 +254,7 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
             <input 
               type="date" 
               value={selectedDate}
-              min={new Date().toISOString().split('T')[0]}
+              min={getLocalDateString()}
               onChange={(e) => setSelectedDate(e.target.value)}
               style={{
                 width: '100%',
@@ -210,13 +285,16 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
                   {slots.map(s => {
                     const isSelected = selectedSlot === s.slot;
+                    const passed = isSlotPassed(s.slot);
+                    const available = s.isAvailable && !passed;
+
                     return (
                       <button
                         key={s.slot}
-                        disabled={!s.isAvailable}
+                        disabled={!available}
                         onClick={() => setSelectedSlot(s.slot)}
                         style={{
-                          background: !s.isAvailable 
+                          background: !available 
                             ? 'rgba(255, 255, 255, 0.02)' 
                             : isSelected 
                               ? 'var(--primary-neon)' 
@@ -225,7 +303,7 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
                             ? '1px solid var(--primary-neon)' 
                             : '1px solid var(--card-border)',
                           borderRadius: '8px',
-                          color: !s.isAvailable 
+                          color: !available 
                             ? 'var(--text-muted)' 
                             : isSelected 
                               ? '#000' 
@@ -233,20 +311,24 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
                           padding: '12px 8px',
                           fontSize: '0.8rem',
                           fontWeight: 700,
-                          cursor: s.isAvailable ? 'pointer' : 'not-allowed',
+                          cursor: available ? 'pointer' : 'not-allowed',
                           display: 'flex',
                           flexDirection: 'column',
                           alignItems: 'center',
                           gap: '4px',
-                          opacity: s.isAvailable ? 1 : 0.4,
+                          opacity: available ? 1 : 0.4,
                           transition: 'all 0.2s'
                         }}
                       >
-                        <Clock size={14} />
+                        {available ? (
+                          <Clock size={14} />
+                        ) : (
+                          <Ban size={14} style={{ color: 'var(--accent-alert)' }} />
+                        )}
                         <span>{s.slot}</span>
-                        {!s.isAvailable && (
+                        {!available && (
                           <span style={{ fontSize: '0.62rem', color: 'var(--accent-alert)', fontWeight: 600 }}>
-                            {s.reason === 'reserved' ? 'Holding' : 'Booked'}
+                            {passed ? 'Passed' : (s.reason === 'reserved' ? 'Holding' : 'Booked')}
                           </span>
                         )}
                       </button>
@@ -320,7 +402,7 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
               }}
             >
               <CreditCard size={16} />
-              Pay with Stripe
+              Pay with Razorpay
             </button>
           ) : (
             <button 

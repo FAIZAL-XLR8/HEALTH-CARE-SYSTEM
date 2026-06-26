@@ -35,54 +35,7 @@ function App() {
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [activeAppointmentId, setActiveAppointmentId] = useState(null);
 
-  // 1. Stripe redirect success handler
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const payment = params.get('payment');
-    const sessionId = params.get('session_id');
-    const appointmentId = params.get('appointmentId');
-    
-    if (payment === 'success' && sessionId && appointmentId) {
-      const verifyPayment = async () => {
-        try {
-          const res = await fetch('/api/payments/verify-checkout-session', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token || localStorage.getItem('token')}`
-            },
-            body: JSON.stringify({ sessionId, appointmentId })
-          });
-          const data = await res.json();
-          if (res.ok) {
-            alert('Appointment successfully confirmed!');
-            // Clear URL search params
-            window.history.replaceState({}, document.title, window.location.pathname);
-            
-            // Check roles and redirect
-            const currentUser = user || JSON.parse(localStorage.getItem('user'));
-            if (currentUser && currentUser.role === 'doctor') {
-              setActivePage('doctor-dashboard');
-            } else {
-              setActivePage('patient-dashboard');
-            }
-          } else {
-            alert(data.message || 'Payment verification failed.');
-            window.history.replaceState({}, document.title, window.location.pathname);
-            setActivePage('home');
-          }
-        } catch (err) {
-          console.error(err);
-          alert('Network verification failure.');
-        }
-      };
-      verifyPayment();
-    } else if (payment === 'cancel') {
-      alert('Payment cancelled.');
-      window.history.replaceState({}, document.title, window.location.pathname);
-      setActivePage('home');
-    }
-  }, [token, user]);
+
 
   // Handle Authentication Callbacks
   const handleAuthSuccess = (data) => {

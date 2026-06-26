@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, CheckCircle, XCircle, AlertTriangle, FileText, Phone, Mail, User, Briefcase, DollarSign, Clock } from 'lucide-react';
+import { Shield, CheckCircle, XCircle, AlertTriangle, FileText, Phone, Mail, User, Briefcase, IndianRupee, Clock } from 'lucide-react';
 
 const AdminDashboard = ({ token }) => {
   const [doctors, setDoctors] = useState([]);
@@ -310,7 +310,7 @@ const DoctorCard = ({ doc, onApprove, onRejectSubmit, rejectionReason, setReject
           <span><strong>Experience:</strong> {doc.experienceYears} Years</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <DollarSign size={16} style={{ color: 'var(--text-muted)' }} />
+          <IndianRupee size={16} style={{ color: 'var(--text-muted)' }} />
           <span><strong>Fee:</strong> ₹{doc.consultationFee} INR</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

@@ -4,12 +4,9 @@ import { Calendar, Clock, MessageSquare, Users, CheckCircle, RefreshCw, AlertCir
 const DoctorDashboard = ({ token, onStartConsultation }) => {
   const [appointments, setAppointments] = useState([]);
   const [doctorProfile, setDoctorProfile] = useState(null);
-  const [activeTab, setActiveTab] = useState('todays'); // 'todays' | 'upcoming' | 'active-chats' | 'past' | 'patients' | 'stripe-setup'
+  const [activeTab, setActiveTab] = useState('todays'); // 'todays' | 'upcoming' | 'active-chats' | 'past' | 'patients'
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [stripeLoading, setStripeLoading] = useState(false);
-  const [stripeError, setStripeError] = useState('');
-  const [stripeSuccess, setStripeSuccess] = useState('');
 
   const fetchDashboardData = async () => {
     if (!token) return;
@@ -40,82 +37,6 @@ const DoctorDashboard = ({ token, onStartConsultation }) => {
     fetchDashboardData();
   }, [token]);
 
-  const handleStripeOnboard = async () => {
-    setStripeLoading(true);
-    setStripeError('');
-    setStripeSuccess('');
-    try {
-      const res = await fetch('/api/payments/onboard-doctor', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const data = await res.json();
-      if (res.ok && data.url) {
-        window.location.href = data.url;
-      } else {
-        setStripeError(data.message || 'Failed to initiate Stripe onboarding.');
-      }
-    } catch (err) {
-      setStripeError('Network error starting onboarding.');
-    } finally {
-      setStripeLoading(false);
-    }
-  };
-
-  const handleCheckStripeStatus = async () => {
-    setStripeLoading(true);
-    setStripeError('');
-    setStripeSuccess('');
-    try {
-      const res = await fetch('/api/payments/onboard-status', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const data = await res.json();
-      if (res.ok) {
-        if (data.stripeOnboardingCompleted) {
-          setStripeSuccess('Stripe onboarding completed successfully!');
-          fetchDashboardData();
-        } else {
-          setStripeError('Stripe onboarding is still incomplete. Please complete all verification steps.');
-        }
-      } else {
-        setStripeError(data.message || 'Failed to check onboarding status.');
-      }
-    } catch (err) {
-      setStripeError('Network error checking status.');
-    } finally {
-      setStripeLoading(false);
-    }
-  };
-
-  const handleSubscribe = async () => {
-    setStripeLoading(true);
-    setStripeError('');
-    setStripeSuccess('');
-    try {
-      const res = await fetch('/api/payments/create-platform-subscription', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setStripeSuccess('Platform subscription activated successfully!');
-        fetchDashboardData();
-      } else {
-        setStripeError(data.message || 'Failed to activate platform subscription.');
-      }
-    } catch (err) {
-      setStripeError('Network error activating subscription.');
-    } finally {
-      setStripeLoading(false);
-    }
-  };
 
   const now = new Date();
   
@@ -208,32 +129,7 @@ const DoctorDashboard = ({ token, onStartConsultation }) => {
         </button>
       </div>
 
-      {doctorProfile && (!doctorProfile.stripeOnboardingCompleted || !doctorProfile.stripeSubscriptionActive) && (
-        <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid #fbbf24', borderRadius: '12px', padding: '16px', color: '#fbbf24', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <AlertTriangle size={18} />
-            <span style={{ fontSize: '0.88rem', fontWeight: 600 }}>
-              Action Required: Complete your Stripe Payments setup and subscribe to start accepting consults.
-            </span>
-          </div>
-          <button
-            onClick={() => setActiveTab('stripe-setup')}
-            style={{
-              background: '#fbbf24',
-              color: '#05060c',
-              border: 'none',
-              borderRadius: '6px',
-              padding: '6px 12px',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-          >
-            Setup Payments
-          </button>
-        </div>
-      )}
+
 
       {error && (
         <div style={{ background: 'rgba(244, 63, 94, 0.1)', border: '1px solid var(--accent-alert)', borderRadius: '8px', padding: '16px', color: 'var(--accent-alert)', marginBottom: '20px', display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -249,8 +145,7 @@ const DoctorDashboard = ({ token, onStartConsultation }) => {
           { id: 'upcoming', label: `Upcoming (${upcomingAppointments.length})` },
           { id: 'active-chats', label: `Active Chats (${activeChats.length})` },
           { id: 'past', label: `Past Consultations (${pastConsultations.length})` },
-          { id: 'patients', label: `Patient List (${patientsList.length})` },
-          { id: 'stripe-setup', label: 'Payments & Subscription' }
+          { id: 'patients', label: `Patient List (${patientsList.length})` }
         ].map(tab => (
           <button
             key={tab.id}
@@ -273,133 +168,7 @@ const DoctorDashboard = ({ token, onStartConsultation }) => {
       </div>
 
       {/* Tab Render Views */}
-      {activeTab === 'stripe-setup' ? (
-        <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <h3 style={{ fontSize: '1.2rem', color: '#fff', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <CreditCard size={18} style={{ color: 'var(--primary-neon)' }} />
-            Stripe Connected Payments & Platform Subscriptions
-          </h3>
-
-          {stripeError && (
-            <div style={{ background: 'rgba(244, 63, 94, 0.1)', border: '1px solid var(--accent-alert)', borderRadius: '8px', padding: '12px', color: 'var(--accent-alert)', fontSize: '0.82rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <AlertTriangle size={16} />
-                <span>{stripeError}</span>
-              </div>
-              <a 
-                href={`/api/payments/simulate-onboarding?doctorId=${doctorProfile?._id}`}
-                style={{ color: 'var(--primary-neon)', fontWeight: 600, textDecoration: 'underline', cursor: 'pointer', fontSize: '0.8rem', marginLeft: '24px' }}
-              >
-                Click here to launch the local Sandbox Onboarding Simulator instead
-              </a>
-            </div>
-          )}
-
-          {stripeSuccess && (
-            <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid var(--secondary-neon)', borderRadius: '8px', padding: '12px', color: 'var(--secondary-neon)', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <CheckCircle size={16} />
-              <span>{stripeSuccess}</span>
-            </div>
-          )}
-
-          {/* Onboarding Box */}
-          <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '20px' }}>
-            <h4 style={{ color: '#fff', fontSize: '1.05rem', fontWeight: 700, margin: '0 0 10px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Shield size={16} style={{ color: 'var(--primary-neon)' }} />
-              Step 1: Stripe Merchant Onboarding
-            </h4>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: '0 0 16px 0', lineHeight: 1.5 }}>
-              Enable your medical practice to securely accept card payments from patients. We use Stripe Accounts v2 to route consultations directly to your account.
-            </p>
-            {doctorProfile?.stripeOnboardingCompleted ? (
-              <div style={{ color: 'var(--secondary-neon)', fontWeight: 600, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <CheckCircle size={16} />
-                Connected Stripe Account Setup Complete (ID: {doctorProfile.stripeAccountId})
-              </div>
-            ) : (
-              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                <button
-                  onClick={handleStripeOnboard}
-                  disabled={stripeLoading}
-                  style={{
-                    background: 'var(--primary-neon)',
-                    border: 'none',
-                    color: '#000',
-                    padding: '10px 20px',
-                    borderRadius: '8px',
-                    fontWeight: 700,
-                    fontSize: '0.8rem',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(6, 182, 212, 0.25)',
-                    opacity: stripeLoading ? 0.6 : 1
-                  }}
-                >
-                  {stripeLoading ? 'Connecting...' : doctorProfile?.stripeAccountId ? 'Continue Stripe Setup' : 'Configure Stripe Payments'}
-                </button>
-                {doctorProfile?.stripeAccountId && (
-                  <button
-                    onClick={handleCheckStripeStatus}
-                    disabled={stripeLoading}
-                    style={{
-                      background: 'none',
-                      border: '1px solid var(--card-border)',
-                      color: '#fff',
-                      padding: '10px 20px',
-                      borderRadius: '8px',
-                      fontWeight: 600,
-                      fontSize: '0.8rem',
-                      cursor: 'pointer',
-                      opacity: stripeLoading ? 0.6 : 1
-                    }}
-                  >
-                    Check Onboarding Status
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Subscription Box */}
-          <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '20px' }}>
-            <h4 style={{ color: '#fff', fontSize: '1.05rem', fontWeight: 700, margin: '0 0 10px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <CreditCard size={16} style={{ color: 'var(--primary-neon)' }} />
-              Step 2: Platform Subscription
-            </h4>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: '0 0 16px 0', lineHeight: 1.5 }}>
-              Subscribe to the AeroHealth monthly practitioner plan (₹1000/month) using your Stripe balance to unlock patient chat and consultations.
-            </p>
-            {!doctorProfile?.stripeOnboardingCompleted ? (
-              <div style={{ color: 'var(--accent-alert)', fontSize: '0.82rem', fontWeight: 600 }}>
-                Please complete Step 1 (Stripe Onboarding) first to enable subscriptions.
-              </div>
-            ) : doctorProfile?.stripeSubscriptionActive ? (
-              <div style={{ color: 'var(--secondary-neon)', fontWeight: 600, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <CheckCircle size={16} />
-                Platform Subscription is Active (ID: {doctorProfile.stripeSubscriptionId})
-              </div>
-            ) : (
-              <button
-                onClick={handleSubscribe}
-                disabled={stripeLoading}
-                style={{
-                  background: 'var(--secondary-neon)',
-                  border: 'none',
-                  color: '#fff',
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  fontWeight: 700,
-                  fontSize: '0.8rem',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)',
-                  opacity: stripeLoading ? 0.6 : 1
-                }}
-              >
-                {stripeLoading ? 'Activating...' : 'Activate Monthly Subscription'}
-              </button>
-            )}
-          </div>
-        </div>
-      ) : activeTab === 'patients' ? (
+      {activeTab === 'patients' ? (
         <div className="glass-panel" style={{ padding: '24px' }}>
           <h3 style={{ fontSize: '1.2rem', color: '#fff', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Users size={18} style={{ color: 'var(--primary-neon)' }} />

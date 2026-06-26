@@ -411,7 +411,7 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: '6px' }}>
                           <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--secondary-neon)' }}>
-                            Fee: ₹{doc.fee}
+                            Fee: ${doc.fee}
                           </span>
                           <button
                             onClick={() => {

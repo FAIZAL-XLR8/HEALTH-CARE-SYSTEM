@@ -6,7 +6,6 @@ const http = require('http');
 const { Server } = require('socket.io');
 const connectDB = require('./config/db');
 const initializeSocket = require('./config/socket');
-
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -16,7 +15,7 @@ const io = new Server(server, {
   },
 });
 
-// Connect to local MongoDB instance
+// Connect to Mongo DB
 connectDB();
 
 // Initialize socket listeners
@@ -28,12 +27,13 @@ app.use(helmet({
 }));
 app.use(cors());
 
-// Stripe Webhook Endpoint needs Raw Buffer body BEFORE express.json() is applied
+// Razorpay Webhook Endpoint needs Raw Buffer body BEFORE express.json() is applied
 const paymentController = require('./controllers/paymentController');
 app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), paymentController.handleWebhook);
 
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // API Routes Configuration
 const apiRoutes = require('./routes/api');

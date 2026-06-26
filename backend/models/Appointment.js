@@ -73,6 +73,9 @@ const appointmentSchema = new mongoose.Schema({
   stripeSessionId: {
     type: String,
   },
+  razorpayOrderId: {
+    type: String,
+  },
 }, {
   timestamps: true,
 });

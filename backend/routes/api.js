@@ -46,16 +46,10 @@ router.get('/appointments/doctor/dashboard', protect, appointmentController.getD
 router.get('/appointments/patient/:patientId', protect, appointmentController.getPatientAppointments);
 
 // ==========================================
-// 💳 Payment Gateways (Stripe)
+// 💳 Payment Gateways (Razorpay)
 // ==========================================
 router.post('/payments/create-checkout-session', protect, paymentController.createCheckoutSession);
 router.post('/payments/verify-checkout-session', protect, paymentController.verifyCheckoutSession);
-router.get('/payments/simulate-checkout', paymentController.simulateCheckoutPage);
-router.post('/payments/onboard-doctor', protect, paymentController.onboardDoctor);
-router.get('/payments/onboard-status', protect, paymentController.checkOnboardingStatus);
-router.post('/payments/create-platform-subscription', protect, paymentController.createPlatformSubscription);
-router.get('/payments/simulate-onboarding', paymentController.simulateOnboardingPage);
-router.post('/payments/complete-simulate-onboarding', paymentController.completeSimulateOnboarding);
 
 
 // ==========================================

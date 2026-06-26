@@ -69,7 +69,7 @@ exports.getAvailableSlots = async (req, res) => {
       return res.status(404).json({ message: 'Doctor not found or profile is not approved/verified.' });
     }
 
-    const defaultSlots = ['10:00 AM', '11:00 AM', '12:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM'];
+    const defaultSlots = ['10:00 AM', '11:00 AM', '12:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM', '06:00 PM', '07:00 PM', '08:00 PM', '09:00 PM', '10:00 PM', '11:00 PM', '12:00 AM'];
 
     const targetDate = new Date(date);
     const startOfDay = new Date(targetDate.setHours(0, 0, 0, 0));
@@ -145,7 +145,7 @@ exports.reserveSlot = async (req, res) => {
       availability = new DoctorAvailability({
         doctorId,
         date: startOfDay,
-        slots: ['10:00 AM', '11:00 AM', '12:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM'].map(time => ({ time, isBooked: false }))
+        slots: ['10:00 AM', '11:00 AM', '12:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM', '06:00 PM', '07:00 PM', '08:00 PM', '09:00 PM', '10:00 PM', '11:00 PM', '12:00 AM'].map(time => ({ time, isBooked: false }))
       });
       await availability.save();
     }

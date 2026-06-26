@@ -144,6 +144,10 @@ const initializeSocket = (io) => {
       }
     });
 
+    socket.on('delete-message', ({ appointmentId, messageId }) => {
+      io.to(`appointment:${appointmentId}`).emit('message-deleted', { messageId });
+    });
+
     // 4. Typing Indicators
     socket.on('typing', ({ appointmentId }) => {
       socket.to(`appointment:${appointmentId}`).emit('typing', {

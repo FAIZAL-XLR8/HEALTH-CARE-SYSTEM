@@ -1,66 +1,21 @@
 const User = require('../models/User');
 const Doctor = require('../models/Doctor');
+const PendingDoctor = require('../models/PendingDoctor');
 const jwt = require('jsonwebtoken');
-const cloudinary = require('cloudinary').v2;
-const streamifier = require('streamifier');
 const FileType = require('file-type');
-
-// Configure Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
-});
+const { sendOtpToEmail } = require('../services/emailServices');
+const twilioService = require('../services/twilioService');
+const { uploadFromBuffer } = require('../services/cloudinaryService');
 
 // Helper to generate JWT Token
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET || 'supersecretkeyforextrasecurehealthauth12345', {
+  return jwt.sign({ id }, process.env.JWT_SECRET , {
     expiresIn: '30d',
   });
 };
 
 const generateOtp = () => {
   return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
-};
-
-const sendSmsOtp = async (phone, otp) => {
-  console.log(`[SMS OTP MOCK] Send to ${phone}: ${otp}`);
-  
-  if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_PHONE_NUMBER) {
-    try {
-      const twilio = require('twilio');
-      const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-      await client.messages.create({
-        body: `Your AeroHealth verification code is: ${otp}. Valid for 10 minutes.`,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: phone,
-      });
-      console.log(`[Twilio SMS] Real SMS sent to ${phone}`);
-    } catch (err) {
-      console.error('[Twilio SMS Error] Failed to send real Twilio SMS:', err.message);
-    }
-  }
-};
-
-const uploadFromBuffer = (fileBuffer, originalName) => {
-  return new Promise((resolve, reject) => {
-    const cleanName = originalName.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
-    const options = {
-      folder: 'telemedicine_verification_docs',
-      resource_type: 'auto',
-      public_id: `${cleanName}_${Date.now()}`,
-    };
-
-    const uploadStream = cloudinary.uploader.upload_stream(options, (error, result) => {
-      if (error) {
-        console.error('Cloudinary stream upload error:', error);
-        return reject(error);
-      }
-      resolve(result);
-    });
-
-    streamifier.createReadStream(fileBuffer).pipe(uploadStream);
-  });
 };
 
 // @desc    Register a new user or doctor
@@ -83,13 +38,15 @@ const register = async (req, res) => {
       }
 
       // Check if email already registered as doctor
-      const emailExists = await Doctor.findOne({ email: email.toLowerCase().trim() });
+      const emailExists = await Doctor.findOne({ email: email.toLowerCase().trim() }) ||
+                          await PendingDoctor.findOne({ email: email.toLowerCase().trim() });
       if (emailExists) {
         return res.status(400).json({ message: 'Email address is already registered as a doctor.' });
       }
 
       // Check if phone already registered as doctor
-      const phoneExists = await Doctor.findOne({ phone: phone.trim() });
+      const phoneExists = await Doctor.findOne({ phone: phone.trim() }) ||
+                         await PendingDoctor.findOne({ phone: phone.trim() });
       if (phoneExists) {
         return res.status(400).json({ message: 'Phone number is already registered.' });
       }
@@ -98,7 +55,7 @@ const register = async (req, res) => {
       const phoneOtp = generateOtp();
       const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-      const doctor = await Doctor.create({
+      const doctor = await PendingDoctor.create({
         name,
         email: email.toLowerCase().trim(),
         password,
@@ -127,7 +84,12 @@ SMS OTP sent to ${doctor.phone}: ${phoneOtp}
 ======================================================================
       `);
 
-      await sendSmsOtp(doctor.phone, phoneOtp);
+      // Send real verification email
+      await sendOtpToEmail(doctor.email, emailOtp);
+
+      // Send real verification SMS using twilioService
+      const formattedPhone = doctor.phone.startsWith('+') ? doctor.phone : `+91${doctor.phone}`;
+      await twilioService.sendOtpToPhoneNumber(formattedPhone);
 
       return res.status(201).json({
         message: 'Doctor account created. Please verify your Email and Phone OTPs.',
@@ -232,9 +194,12 @@ const login = async (req, res) => {
         return res.status(400).json({ message: 'Email is required for doctor login.' });
       }
 
-      const doctor = await Doctor.findOne({ email: email.toLowerCase().trim() }).select('+password');
+      let doctor = await Doctor.findOne({ email: email.toLowerCase().trim() }).select('+password');
       if (!doctor) {
-        return res.status(401).json({ message: 'Invalid credentials.' });
+        doctor = await PendingDoctor.findOne({ email: email.toLowerCase().trim() }).select('+password');
+        if (!doctor) {
+          return res.status(401).json({ message: 'Invalid credentials.' });
+        }
       }
 
       const isMatch = await doctor.matchPassword(password);
@@ -327,7 +292,10 @@ const verifyEmailOtp = async (req, res) => {
       return res.status(400).json({ message: 'OTP code is required.' });
     }
 
-    const doctor = await Doctor.findById(req.user.id);
+    let doctor = await PendingDoctor.findById(req.user.id);
+    if (!doctor) {
+      doctor = await Doctor.findById(req.user.id);
+    }
     if (!doctor) {
       return res.status(404).json({ message: 'Doctor profile not found.' });
     }
@@ -348,9 +316,6 @@ const verifyEmailOtp = async (req, res) => {
   }
 };
 
-// @desc    Verify Doctor Phone OTP
-// @route   POST /api/auth/verify-phone-otp
-// @access  Private (Doctor only)
 const verifyPhoneOtp = async (req, res) => {
   try {
     const { otp } = req.body;
@@ -358,13 +323,34 @@ const verifyPhoneOtp = async (req, res) => {
       return res.status(400).json({ message: 'OTP code is required.' });
     }
 
-    const doctor = await Doctor.findById(req.user.id);
+    let doctor = await PendingDoctor.findById(req.user.id);
+    if (!doctor) {
+      doctor = await Doctor.findById(req.user.id);
+    }
     if (!doctor) {
       return res.status(404).json({ message: 'Doctor profile not found.' });
     }
 
-    if (doctor.phoneOtp !== otp || new Date() > doctor.phoneOtpExpires) {
-      return res.status(400).json({ message: 'Invalid or expired Phone OTP code.' });
+    let verified = false;
+
+    // 1. Check if it matches the locally logged/simulated phone OTP in the database
+    if (doctor.phoneOtp && doctor.phoneOtp === otp && new Date() < doctor.phoneOtpExpires) {
+      verified = true;
+    } else {
+      // 2. Otherwise fall back to the live Twilio Verify check
+      try {
+        const formattedPhone = doctor.phone.startsWith('+') ? doctor.phone : `+91${doctor.phone}`;
+        const verificationResult = await twilioService.verifyOtp(formattedPhone, otp);
+        if (verificationResult && verificationResult.status === 'approved') {
+          verified = true;
+        }
+      } catch (twilioErr) {
+        console.error('Twilio Verify API call failed, using local fallback:', twilioErr.message);
+      }
+    }
+
+    if (!verified) {
+      return res.status(400).json({ message: 'Invalid or expired Phone OTP verification code.' });
     }
 
     doctor.phoneVerified = true;
@@ -399,7 +385,10 @@ const uploadGovernmentId = async (req, res) => {
       });
     }
 
-    const doctor = await Doctor.findById(req.user.id);
+    let doctor = await PendingDoctor.findById(req.user.id);
+    if (!doctor) {
+      doctor = await Doctor.findById(req.user.id);
+    }
     if (!doctor) {
       return res.status(404).json({ message: 'Doctor profile not found.' });
     }
@@ -424,7 +413,10 @@ const uploadGovernmentId = async (req, res) => {
 // @access  Private (Doctor only)
 const submitDoctorApplication = async (req, res) => {
   try {
-    const doctor = await Doctor.findById(req.user.id);
+    let doctor = await PendingDoctor.findById(req.user.id);
+    if (!doctor) {
+      doctor = await Doctor.findById(req.user.id);
+    }
     if (!doctor) {
       return res.status(404).json({ message: 'Doctor profile not found.' });
     }

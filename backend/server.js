@@ -32,6 +32,7 @@ app.use(cors());
 const paymentController = require('./controllers/paymentController');
 app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), paymentController.handleWebhook);
 
+
 app.use(express.json());
 
 // API Routes Configuration

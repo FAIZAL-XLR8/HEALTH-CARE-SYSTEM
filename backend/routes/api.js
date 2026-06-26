@@ -11,11 +11,12 @@ const prescriptionController = require('../controllers/prescriptionController');
 const { registerSSEClient } = require('../services/scraperService');
 const { protect, isAdmin } = require('../middleware/authMiddleware');
 const adminController = require('../controllers/adminController');
+const videoController = require('../controllers/videoController');
 
 // Multer memory-storage configuration to handle medical report uploads safely
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 }, // Max 5MB file sizes
+  limits: { fileSize: 50 * 1024 * 1024 }, // Max 50MB file sizes
 });
 
 // ==========================================
@@ -56,11 +57,16 @@ router.post('/payments/create-platform-subscription', protect, paymentController
 router.get('/payments/simulate-onboarding', paymentController.simulateOnboardingPage);
 router.post('/payments/complete-simulate-onboarding', paymentController.completeSimulateOnboarding);
 
+
 // ==========================================
 // 💬 Telehealth Consultation Chat & Messaging
 // ==========================================
 router.get('/messages/:appointmentId', protect, messageController.getChatHistory);
 router.post('/messages/upload', protect, upload.single('media'), messageController.uploadMediaMessage);
+router.delete('/messages/:messageId', protect, messageController.deleteMessage);
+router.get('/videos/signature/:appointmentId', protect, videoController.generateUploadSignature);
+router.post('/videos/metadata', protect, videoController.saveVideoMetadata);
+router.delete('/videos/:appointmentId', protect, videoController.deleteVideo);
 
 // ==========================================
 // 🤖 AI Multimodal, Wizard & Chatbot Routes

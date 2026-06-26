@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Doctor = require('../models/Doctor');
+const PendingDoctor = require('../models/PendingDoctor');
 
 const protect = async (req, res, next) => {
   let token;
@@ -12,7 +13,7 @@ const protect = async (req, res, next) => {
     try {
       token = req.headers.authorization.split(' ')[1];
 
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecretkeyforextrasecurehealthauth12345');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET );
 
       // Check User (Patient) collection first
       let account = await User.findById(decoded.id).select('-password');
@@ -23,6 +24,12 @@ const protect = async (req, res, next) => {
         if (account) {
           // Add role field dynamically to maintain backward compat
           account = { ...account.toObject(), role: 'doctor', id: account._id };
+        } else {
+          // If not found in Doctor, check PendingDoctor (for staging/onboarding)
+          account = await PendingDoctor.findById(decoded.id).select('-password');
+          if (account) {
+            account = { ...account.toObject(), role: 'doctor', id: account._id };
+          }
         }
       } else {
         account = { ...account.toObject(), role: account.role || 'patient', id: account._id };

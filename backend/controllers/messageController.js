@@ -1,37 +1,8 @@
-const cloudinary = require('cloudinary').v2;
-const streamifier = require('streamifier');
 const Message = require('../models/Message');
 const Appointment = require('../models/Appointment');
 const Doctor = require('../models/Doctor');
+const { cloudinary, uploadFromBuffer } = require('../services/cloudinaryService');
 
-// Configure Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
-});
-
-// Helper: upload buffer directly to Cloudinary
-const uploadFromBuffer = (fileBuffer, originalName) => {
-  return new Promise((resolve, reject) => {
-    const cleanName = originalName.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
-    const options = {
-      folder: 'telemedicine_consultations',
-      resource_type: 'auto',
-      public_id: `${cleanName}_${Date.now()}`,
-    };
-
-    const uploadStream = cloudinary.uploader.upload_stream(options, (error, result) => {
-      if (error) {
-        console.error('Cloudinary stream upload error:', error);
-        return reject(error);
-      }
-      resolve(result);
-    });
-
-    streamifier.createReadStream(fileBuffer).pipe(uploadStream);
-  });
-};
 
 // GET /api/messages/:appointmentId
 exports.getChatHistory = async (req, res) => {
@@ -94,7 +65,7 @@ exports.uploadMediaMessage = async (req, res) => {
     }
 
     // Direct buffer upload to Cloudinary (no local disk writes)
-    const result = await uploadFromBuffer(req.file.buffer, req.file.originalname);
+    const result = await uploadFromBuffer(req.file.buffer, req.file.originalname, 'telemedicine_consultations');
 
     res.status(200).json({
       message: 'File uploaded successfully to Cloudinary.',
@@ -104,5 +75,57 @@ exports.uploadMediaMessage = async (req, res) => {
   } catch (error) {
     console.error('Error in uploadMediaMessage:', error);
     res.status(500).json({ message: 'Cloudinary upload failed.', error: error.message });
+  }
+};
+
+const getPublicIdFromUrl = (url) => {
+  const parts = url.split('/');
+  const uploadIndex = parts.indexOf('upload');
+  if (uploadIndex === -1) return null;
+  const publicIdParts = parts.slice(uploadIndex + 2);
+  const publicIdWithExt = publicIdParts.join('/');
+  const lastDot = publicIdWithExt.lastIndexOf('.');
+  if (lastDot === -1) return publicIdWithExt;
+  return publicIdWithExt.substring(0, lastDot);
+};
+
+exports.deleteMessage = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const userId = req.user.id;
+
+    const message = await Message.findById(messageId);
+    if (!message) {
+      return res.status(404).json({ message: 'Message not found.' });
+    }
+
+    if (message.senderId.toString() !== userId.toString()) {
+      return res.status(403).json({ message: 'Access denied: You can only delete your own messages.' });
+    }
+
+    if (message.fileUrl) {
+      const publicId = getPublicIdFromUrl(message.fileUrl);
+      if (publicId) {
+        let resourceType = 'image';
+        if (message.messageType === 'video') resourceType = 'video';
+        else if (message.messageType === 'pdf') resourceType = 'raw';
+
+        try {
+          await cloudinary.uploader.destroy(publicId, {
+            resource_type: resourceType,
+            invalidate: true,
+          });
+          console.log(`[Cloudinary Delete] Purged file: ${publicId} of type: ${resourceType}`);
+        } catch (cloudinaryErr) {
+          console.error('Failed to destroy Cloudinary asset:', cloudinaryErr.message);
+        }
+      }
+    }
+
+    await Message.findByIdAndDelete(messageId);
+    res.status(200).json({ message: 'Message deleted successfully.', messageId });
+  } catch (error) {
+    console.error('Error in deleteMessage:', error);
+    res.status(500).json({ message: 'Failed to delete message.' });
   }
 };

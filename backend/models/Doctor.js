@@ -153,7 +153,7 @@ const doctorSchema = new mongoose.Schema({
 
 // Pre-save hook to hash password before storing in database
 doctorSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
+  if (!this.isModified('password') || (this.password && this.password.startsWith('$2') && this.password.length === 60)) {
     return next();
   }
   try {

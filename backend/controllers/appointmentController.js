@@ -5,11 +5,52 @@ const DoctorAvailability = require('../models/DoctorAvailability');
 
 // HELPER: Convert slot time to minutes
 const parseTimeToMinutes = (timeStr) => {
-  const [time, modifier] = timeStr.split(' ');
-  let [hours, minutes] = time.split(':').map(Number);
+  const match = timeStr.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/i);
+  if (!match) return 0;
+  let [_, hoursStr, minutesStr, ampm] = match;
+  let hours = parseInt(hoursStr, 10);
+  const minutes = minutesStr ? parseInt(minutesStr, 10) : 0;
   if (hours === 12) hours = 0;
-  if (modifier === 'PM') hours += 12;
+  if (ampm.toUpperCase() === 'PM') hours += 12;
   return hours * 60 + minutes;
+};
+
+// HELPER: Check if a slot time on a given date is in the past
+const isSlotPassed = (dateInput, slotStr) => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const todayStr = `${year}-${month}-${day}`;
+
+  let targetStr = '';
+  if (dateInput instanceof Date) {
+    const y = dateInput.getFullYear();
+    const m = String(dateInput.getMonth() + 1).padStart(2, '0');
+    const d = String(dateInput.getDate()).padStart(2, '0');
+    targetStr = `${y}-${m}-${d}`;
+  } else if (typeof dateInput === 'string') {
+    targetStr = dateInput.split('T')[0];
+  } else {
+    const dObj = new Date(dateInput);
+    const y = dObj.getFullYear();
+    const m = String(dObj.getMonth() + 1).padStart(2, '0');
+    const d = String(dObj.getDate()).padStart(2, '0');
+    targetStr = `${y}-${m}-${d}`;
+  }
+
+  if (targetStr < todayStr) {
+    return true; // Past date
+  }
+  if (targetStr > todayStr) {
+    return false; // Future date
+  }
+
+  // Same day: compare slot minutes to current minutes
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const slotMinutes = parseTimeToMinutes(slotStr);
+
+  return currentMinutes > slotMinutes;
 };
 
 // GET /api/appointments/slots/:doctorId
@@ -55,12 +96,13 @@ exports.getAvailableSlots = async (req, res) => {
 
     const slotDetails = availability.slots.map(s => {
       const isReserved = activeReservations.some(r => r.slotTime === s.time);
-      const isAvailable = !s.isBooked && !isReserved;
+      const passed = isSlotPassed(date, s.time);
+      const isAvailable = !s.isBooked && !isReserved && !passed;
 
       return {
         slot: s.time,
         isAvailable,
-        reason: s.isBooked ? 'booked' : (isReserved ? 'reserved' : null),
+        reason: s.isBooked ? 'booked' : (isReserved ? 'reserved' : (passed ? 'passed' : null)),
         expiresInSeconds: isReserved
           ? Math.max(0, Math.floor((activeReservations.find(r => r.slotTime === s.time).reservedUntil.getTime() - now.getTime()) / 1000))
           : null
@@ -83,6 +125,10 @@ exports.reserveSlot = async (req, res) => {
 
     if (!doctorId || !date || !slotTime) {
       return res.status(400).json({ message: 'Doctor, date, and slot time are required.' });
+    }
+
+    if (isSlotPassed(date, slotTime)) {
+      return res.status(400).json({ message: 'This slot time has already passed.' });
     }
 
         const doctor = await Doctor.findOne({ _id: doctorId, status: 'approved', isVerified: true });

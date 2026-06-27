@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, MessageSquare, Users, CheckCircle, RefreshCw, AlertCircle, FileText, CreditCard, Shield, AlertTriangle } from 'lucide-react';
 
+const calculateAge = (dateOfBirth) => {
+  if (!dateOfBirth) return 'N/A';
+  const birthDate = new Date(dateOfBirth);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return `${age} yrs`;
+};
+
 const DoctorDashboard = ({ token, onStartConsultation }) => {
   const [appointments, setAppointments] = useState([]);
   const [doctorProfile, setDoctorProfile] = useState(null);
@@ -57,12 +69,12 @@ const DoctorDashboard = ({ token, onStartConsultation }) => {
   });
 
   const activeChats = appointments.filter(appt => {
-    const isExpired = appt.chatEnabledUntil && new Date() >= new Date(appt.chatEnabledUntil);
+    const isExpired = appt.remainingValidity === 'Expired' || (appt.chatEnabledUntil && new Date() >= new Date(appt.chatEnabledUntil));
     return appt.paymentStatus === 'paid' && !isExpired;
   });
 
   const pastConsultations = appointments.filter(appt => {
-    const isExpired = appt.chatEnabledUntil && new Date() >= new Date(appt.chatEnabledUntil);
+    const isExpired = appt.remainingValidity === 'Expired' || (appt.chatEnabledUntil && new Date() >= new Date(appt.chatEnabledUntil));
     return isExpired || appt.status === 'completed' || appt.status === 'cancelled';
   });
 
@@ -213,7 +225,7 @@ const DoctorDashboard = ({ token, onStartConsultation }) => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {getActiveList().map(appt => {
                 const patient = appt.userId || {};
-                const isExpired = appt.chatEnabledUntil && new Date() >= new Date(appt.chatEnabledUntil);
+                const isExpired = appt.remainingValidity === 'Expired' || (appt.chatEnabledUntil && new Date() >= new Date(appt.chatEnabledUntil));
 
                 return (
                   <div key={appt._id} className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
@@ -221,17 +233,18 @@ const DoctorDashboard = ({ token, onStartConsultation }) => {
                     {/* Patient detail */}
                     <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                       <img
-                        src={patient.profilePhoto || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop'}
-                        alt={patient.name}
+                        src={patient.profilePhoto || patient.profileImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop'}
+                        alt={appt.patientName || patient.name}
                         style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover', background: 'rgba(255,255,255,0.05)' }}
                       />
                       <div>
                         <h4 style={{ fontSize: '1.05rem', color: '#fff', fontWeight: 700 }}>
-                          {patient.name || 'Seeded Patient'}
+                          {appt.patientName || patient.name || 'Seeded Patient'}
                         </h4>
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '4px', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
                           <span>📞 {patient.phone || 'N/A'}</span>
-                          <span style={{ color: 'var(--primary-neon)' }}>ID: {patient._id ? patient._id.toString().substring(0, 8) : 'N/A'}</span>
+                          <span>Age: {appt.patientAge ? `${appt.patientAge} yrs` : calculateAge(patient.dateOfBirth)}</span>
+                          <span>Gender: {appt.patientGender || patient.gender || 'N/A'}</span>
                         </div>
                       </div>
                     </div>
@@ -241,7 +254,7 @@ const DoctorDashboard = ({ token, onStartConsultation }) => {
                       <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '4px' }}>TIMESLOT</span>
                       <span style={{ fontSize: '0.82rem', color: '#fff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Calendar size={12} style={{ color: 'var(--primary-neon)' }} />
-                        {new Date(appt.date).toLocaleDateString()}
+                        {new Date(appt.appointmentDate || appt.date).toLocaleDateString('en-GB')}
                       </span>
                       <span style={{ fontSize: '0.82rem', color: '#fff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
                         <Clock size={12} style={{ color: 'var(--primary-neon)' }} />
@@ -249,12 +262,39 @@ const DoctorDashboard = ({ token, onStartConsultation }) => {
                       </span>
                     </div>
 
+                    {/* Booking Date & Time */}
+                    <div>
+                      <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '4px' }}>BOOKED ON</span>
+                      <span style={{ fontSize: '0.82rem', color: '#fff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Calendar size={12} style={{ color: 'var(--primary-neon)' }} />
+                        {appt.bookingTime ? new Date(appt.bookingTime).toLocaleDateString('en-GB') : 'N/A'}
+                      </span>
+                      <span style={{ fontSize: '0.82rem', color: '#fff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                        <Clock size={12} style={{ color: 'var(--primary-neon)' }} />
+                        {appt.bookingTime ? new Date(appt.bookingTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                      </span>
+                    </div>
+
                     {/* Payment details */}
                     <div>
                       <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '4px' }}>PAYMENT STATUS</span>
                       <strong style={{ fontSize: '0.82rem', color: 'var(--secondary-neon)' }}>
-                        PAID (₹{appt.amount})
+                        PAID (₹{appt.amountPaid || appt.amount})
                       </strong>
+                    </div>
+
+                    {/* Consultation Validity */}
+                    <div>
+                      <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '4px' }}>VALIDITY</span>
+                      {isExpired ? (
+                        <span style={{ fontSize: '0.72rem', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--text-muted)', color: 'var(--text-muted)', padding: '4px 8px', borderRadius: '6px', fontWeight: 600 }}>
+                          Expired
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: '0.72rem', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid var(--secondary-neon)', color: 'var(--secondary-neon)', padding: '4px 8px', borderRadius: '6px', fontWeight: 600 }}>
+                          {appt.remainingValidity || 'Active'}
+                        </span>
+                      )}
                     </div>
 
                     {/* Actions */}

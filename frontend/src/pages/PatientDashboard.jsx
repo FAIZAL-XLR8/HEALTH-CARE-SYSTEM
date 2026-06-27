@@ -114,7 +114,7 @@ const PatientDashboard = ({ token, onOpenAuth, onStartConsultation }) => {
   };
 
   const getStatusBadge = (appt) => {
-    const isExpired = new Date() >= new Date(appt.chatEnabledUntil);
+    const isExpired = appt.remainingValidity === 'Expired' || new Date() >= new Date(appt.chatEnabledUntil);
     
     if (appt.paymentStatus === 'pending') {
       return (
@@ -132,7 +132,7 @@ const PatientDashboard = ({ token, onOpenAuth, onStartConsultation }) => {
     }
     return (
       <span style={{ fontSize: '0.72rem', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid var(--secondary-neon)', color: 'var(--secondary-neon)', padding: '4px 8px', borderRadius: '6px', fontWeight: 600 }}>
-        Active
+        {appt.remainingValidity || 'Active'}
       </span>
     );
   };
@@ -195,7 +195,7 @@ const PatientDashboard = ({ token, onOpenAuth, onStartConsultation }) => {
           {appointments.map(appt => {
             const doc = appt.doctorId || appt.doctor || {};
             const isPaid = appt.paymentStatus === 'paid';
-            const isExpired = appt.chatEnabledUntil && new Date() >= new Date(appt.chatEnabledUntil);
+            const isExpired = appt.remainingValidity === 'Expired' || (appt.chatEnabledUntil && new Date() >= new Date(appt.chatEnabledUntil));
             
             return (
               <div key={appt._id} className="glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
@@ -215,7 +215,7 @@ const PatientDashboard = ({ token, onOpenAuth, onStartConsultation }) => {
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '6px', color: 'var(--text-muted)', fontSize: '0.78rem' }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <Calendar size={12} />
-                        {new Date(appt.appointmentDate || appt.date).toLocaleDateString()}
+                        {new Date(appt.appointmentDate || appt.date).toLocaleDateString('en-GB')}
                       </span>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <Clock size={12} />

@@ -16,6 +16,9 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedSlot, setSelectedSlot] = useState(null);
+  const [patientName, setPatientName] = useState('');
+  const [patientAge, setPatientAge] = useState('');
+  const [patientGender, setPatientGender] = useState('Male');
   
   // Reservation states
   const [reservedAppt, setReservedAppt] = useState(null);
@@ -104,6 +107,14 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
       setError('Please select a time slot.');
       return;
     }
+    if (!patientName.trim()) {
+      setError('Please enter patient name.');
+      return;
+    }
+    if (!patientAge.trim()) {
+      setError('Please enter patient age.');
+      return;
+    }
 
     setLoading(true);
     setError('');
@@ -117,7 +128,10 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
         body: JSON.stringify({
           doctorId: providerId,
           date: selectedDate,
-          slotTime: selectedSlot
+          slotTime: selectedSlot,
+          patientName: patientName.trim(),
+          patientAge: patientAge.trim(),
+          patientGender
         })
       });
       const data = await res.json();
@@ -245,29 +259,104 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
           </div>
         )}
 
-        {/* Date Selector */}
+        {/* Date Selector & Manual Patient Info */}
         {!reservedAppt && (
-          <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600 }}>
-              SELECT DATE
-            </label>
-            <input 
-              type="date" 
-              value={selectedDate}
-              min={getLocalDateString()}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              style={{
-                width: '100%',
-                background: 'rgba(0,0,0,0.3)',
-                border: '1px solid var(--card-border)',
-                borderRadius: '8px',
-                padding: '12px',
-                color: '#fff',
-                fontSize: '0.9rem',
-                outline: 'none',
-                fontFamily: 'inherit'
-              }}
-            />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600 }}>
+                SELECT DATE
+              </label>
+              <input 
+                type="date" 
+                value={selectedDate}
+                min={getLocalDateString()}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                style={{
+                  width: '100%',
+                  background: 'rgba(0,0,0,0.3)',
+                  border: '1px solid var(--card-border)',
+                  borderRadius: '8px',
+                  padding: '12px',
+                  color: '#fff',
+                  fontSize: '0.9rem',
+                  outline: 'none',
+                  fontFamily: 'inherit'
+                }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600 }}>
+                PATIENT NAME
+              </label>
+              <input 
+                type="text" 
+                placeholder="Enter patient full name"
+                value={patientName}
+                onChange={(e) => setPatientName(e.target.value)}
+                style={{
+                  width: '100%',
+                  background: 'rgba(0,0,0,0.3)',
+                  border: '1px solid var(--card-border)',
+                  borderRadius: '8px',
+                  padding: '12px',
+                  color: '#fff',
+                  fontSize: '0.9rem',
+                  outline: 'none',
+                  fontFamily: 'inherit'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600 }}>
+                  PATIENT AGE
+                </label>
+                <input 
+                  type="text" 
+                  placeholder="e.g., 28"
+                  value={patientAge}
+                  onChange={(e) => setPatientAge(e.target.value)}
+                  style={{
+                    width: '100%',
+                    background: 'rgba(0,0,0,0.3)',
+                    border: '1px solid var(--card-border)',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    color: '#fff',
+                    fontSize: '0.9rem',
+                    outline: 'none',
+                    fontFamily: 'inherit'
+                  }}
+                />
+              </div>
+
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600 }}>
+                  PATIENT GENDER
+                </label>
+                <select 
+                  value={patientGender}
+                  onChange={(e) => setPatientGender(e.target.value)}
+                  style={{
+                    width: '100%',
+                    background: 'rgba(0,0,0,0.3)',
+                    border: '1px solid var(--card-border)',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    color: '#fff',
+                    fontSize: '0.9rem',
+                    outline: 'none',
+                    fontFamily: 'inherit'
+                  }}
+                >
+                  <option value="Male" style={{ background: '#0b0f19' }}>Male</option>
+                  <option value="Female" style={{ background: '#0b0f19' }}>Female</option>
+                  <option value="Other" style={{ background: '#0b0f19' }}>Other</option>
+                </select>
+              </div>
+            </div>
           </div>
         )}
 

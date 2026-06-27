@@ -1,4 +1,5 @@
 const Appointment = require('../models/Appointment');
+const Payment = require('../models/Payment');
 const Doctor = require('../models/Doctor');
 const Lab = require('../models/Lab');
 const DoctorAvailability = require('../models/DoctorAvailability');
@@ -120,7 +121,7 @@ exports.getAvailableSlots = async (req, res) => {
 // Body: doctorId, date, slotTime
 exports.reserveSlot = async (req, res) => {
   try {
-    const { doctorId, date, slotTime } = req.body;
+    const { doctorId, date, slotTime, patientName, patientAge, patientGender } = req.body;
     const userId = req.user.id;
 
     if (!doctorId || !date || !slotTime) {
@@ -131,7 +132,7 @@ exports.reserveSlot = async (req, res) => {
       return res.status(400).json({ message: 'This slot time has already passed.' });
     }
 
-        const doctor = await Doctor.findOne({ _id: doctorId, status: 'approved', isVerified: true });
+    const doctor = await Doctor.findOne({ _id: doctorId, status: 'approved', isVerified: true });
     if (!doctor) {
       return res.status(404).json({ message: 'Doctor not found or profile is not approved/verified.' });
     }
@@ -174,6 +175,9 @@ exports.reserveSlot = async (req, res) => {
       if (activeReservation.patientId.toString() === userId.toString()) {
         // Refresh hold
         activeReservation.reservedUntil = new Date(Date.now() + 10 * 60 * 1000);
+        if (patientName) activeReservation.patientName = patientName;
+        if (patientAge) activeReservation.patientAge = patientAge;
+        if (patientGender) activeReservation.patientGender = patientGender;
         await activeReservation.save();
         return res.status(200).json({
           message: 'Reservation refreshed.',
@@ -213,7 +217,10 @@ exports.reserveSlot = async (req, res) => {
       paymentStatus: 'pending',
       appointmentStatus: 'pending',
       reservedUntil: new Date(Date.now() + 10 * 60 * 1000),
-      queueNumber
+      queueNumber,
+      patientName,
+      patientAge,
+      patientGender
     });
 
     await appointment.save();
@@ -227,6 +234,53 @@ exports.reserveSlot = async (req, res) => {
     console.error('Error in reserveSlot:', error);
     res.status(500).json({ message: 'Error reserving slot.' });
   }
+};
+
+// Helper to format appointments with dynamic validity derived from Payment createdAt
+const formatAppointmentsWithValidity = async (appointments) => {
+  const paidApptIds = appointments
+    .filter(a => a.paymentStatus === 'paid')
+    .map(a => a._id);
+
+  const payments = await Payment.find({ appointmentId: { $in: paidApptIds }, paymentStatus: 'paid' });
+  
+  const paymentsMap = {};
+  payments.forEach(p => {
+    paymentsMap[p.appointmentId.toString()] = p;
+  });
+
+  return appointments.map(appt => {
+    const apptObj = appt.toObject();
+    
+    // Default start is appointment createdAt, but override with payment createdAt if paid
+    let start = appt.createdAt;
+    if (appt.paymentStatus === 'paid') {
+      const payment = paymentsMap[appt._id.toString()];
+      if (payment) {
+        start = payment.createdAt;
+      }
+    }
+    
+    const expiresAt = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000);
+    apptObj.chatEnabledUntil = expiresAt;
+
+    const msRemaining = expiresAt.getTime() - Date.now();
+    let remainingValidity = 'Expired';
+    if (msRemaining > 0) {
+      const dateStr = expiresAt.toLocaleDateString('en-GB'); // DD/MM/YYYY format
+      remainingValidity = `Expires on ${dateStr}`;
+    } else {
+      remainingValidity = 'Expired';
+    }
+
+    apptObj.remainingValidity = remainingValidity;
+    apptObj.bookingTime = start;
+    
+    // Alias patientId/patient as userId for Doctor Dashboard frontend compatibility
+    apptObj.userId = apptObj.patientId || apptObj.patient;
+
+    return apptObj;
+  });
 };
 
 // GET /api/appointments/patient/dashboard
@@ -253,7 +307,8 @@ exports.getPatientDashboard = async (req, res) => {
       })
       .sort({ appointmentDate: 1, slotTime: 1 });
 
-    res.status(200).json(appointments);
+    const formatted = await formatAppointmentsWithValidity(appointments);
+    res.status(200).json(formatted);
   } catch (error) {
     console.error('Error in getPatientDashboard:', error);
     res.status(500).json({ message: 'Error retrieving patient dashboard.' });
@@ -274,13 +329,15 @@ exports.getDoctorDashboard = async (req, res) => {
       doctorId,
       paymentStatus: 'paid'
     })
-      .populate('patientId', 'name email phone profileImage isOnline lastSeen')
-      .populate('patient', 'name email phone profileImage isOnline lastSeen')
+      .populate('patientId', 'name email phone profileImage isOnline lastSeen dateOfBirth gender')
+      .populate('patient', 'name email phone profileImage isOnline lastSeen dateOfBirth gender')
       .sort({ appointmentDate: 1, slotTime: 1 });
+
+    const formatted = await formatAppointmentsWithValidity(appointments);
 
     res.status(200).json({
       doctorProfile,
-      appointments
+      appointments: formatted
     });
   } catch (error) {
     console.error('Error in getDoctorDashboard:', error);

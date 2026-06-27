@@ -70,6 +70,15 @@ const appointmentSchema = new mongoose.Schema({
   reservedUntil: {
     type: Date,
   },
+  patientName: {
+    type: String,
+  },
+  patientAge: {
+    type: String,
+  },
+  patientGender: {
+    type: String,
+  },
   stripeSessionId: {
     type: String,
   },

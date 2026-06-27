@@ -1,6 +1,7 @@
 const { cloudinary } = require('../services/cloudinaryService');
 const Video = require('../models/Video');
 const Appointment = require('../models/Appointment');
+const Payment = require('../models/Payment');
 
 const generateUploadSignature = async (req, res) => {
   try {
@@ -10,6 +11,13 @@ const generateUploadSignature = async (req, res) => {
     const appointment = await Appointment.findById(appointmentId);
     if (!appointment) {
       return res.status(404).json({ error: 'Appointment not found' });
+    }
+
+    const payment = await Payment.findOne({ appointmentId, paymentStatus: 'paid' });
+    const start = payment ? payment.createdAt : appointment.createdAt;
+    const expiresAt = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000);
+    if (new Date() >= expiresAt) {
+      return res.status(403).json({ error: 'Consultation Period Expired' });
     }
 
     // Generate unique public_id for the video

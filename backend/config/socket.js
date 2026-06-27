@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Doctor = require('../models/Doctor');
 const Appointment = require('../models/Appointment');
+const Payment = require('../models/Payment');
 const Message = require('../models/Message');
 
 const initializeSocket = (io) => {
@@ -92,7 +93,11 @@ const initializeSocket = (io) => {
         }
 
         // Expiry check
-        if (new Date() >= appointment.chatEnabledUntil) {
+        const payment = await Payment.findOne({ appointmentId: appointment._id, paymentStatus: 'paid' });
+        const start = payment ? payment.createdAt : appointment.createdAt;
+        const expiresAt = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+        if (new Date() >= expiresAt) {
           return socket.emit('consultation-expired', { appointmentId });
         }
 
@@ -135,7 +140,11 @@ const initializeSocket = (io) => {
         const appointment = await Appointment.findById(appointmentId);
         if (!appointment) return socket.emit('error', 'Appointment not found.');
 
-        if (new Date() >= appointment.chatEnabledUntil) {
+        const payment = await Payment.findOne({ appointmentId: appointment._id, paymentStatus: 'paid' });
+        const start = payment ? payment.createdAt : appointment.createdAt;
+        const expiresAt = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+        if (new Date() >= expiresAt) {
           socket.emit('consultation-expired', { appointmentId });
           socket.leave(`appointment:${appointmentId}`);
           return;

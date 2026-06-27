@@ -1,5 +1,6 @@
 const Message = require('../models/Message');
 const Appointment = require('../models/Appointment');
+const Payment = require('../models/Payment');
 const Doctor = require('../models/Doctor');
 const { cloudinary, uploadFromBuffer } = require('../services/cloudinaryService');
 
@@ -56,7 +57,11 @@ exports.uploadMediaMessage = async (req, res) => {
       return res.status(404).json({ message: 'Appointment not found.' });
     }
 
-    if (new Date() >= appointment.chatEnabledUntil) {
+    const payment = await Payment.findOne({ appointmentId: appointment._id, paymentStatus: 'paid' });
+    const start = payment ? payment.createdAt : appointment.createdAt;
+    const expiresAt = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    if (new Date() >= expiresAt) {
       return res.status(403).json({ message: 'Consultation Period Expired.' });
     }
 

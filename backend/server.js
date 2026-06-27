@@ -35,6 +35,12 @@ app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), pay
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.post('/api/client-log', (req, res) => {
+  const fs = require('fs');
+  fs.appendFileSync('socket_debug.log', `[Client Log] ${req.body.message}\n`);
+  res.sendStatus(200);
+});
+
 // API Routes Configuration
 const apiRoutes = require('./routes/api');
 const authRoutes = require('./routes/auth');

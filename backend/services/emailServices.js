@@ -78,5 +78,30 @@ const sendApprovalEmail = async (email, name) => {
   });
 };
 
-module.exports = { sendOtpToEmail, sendApprovalEmail };
+const sendSuspensionEmail = async (email, name, reason) => {
+  if (!validator.isEmail(email)) return;
+  const html = `
+    <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+      <h2 style="color: #ef4444;">⚠️ AeroHealth Account Suspended</h2>
+      <p>Dear Dr. ${name},</p>
+      <p>We regret to inform you that your doctor account on AeroHealth has been suspended by the administrator.</p>
+      <p><strong>Reason for suspension:</strong></p>
+      <blockquote style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 12px; margin: 16px 0; border-radius: 4px; color: #7f1d1d; font-style: italic;">
+        "${reason || 'No specific reason provided.'}"
+      </blockquote>
+      <p>If you believe this is a mistake or wish to appeal this decision, please contact our support team.</p>
+      <p>Thanks & Regards,<br/>AeroHealth Admin Team</p>
+      <hr style="margin: 30px 0;" />
+      <small style="color: #777;">This is an automated message. Please do not reply.</small>
+    </div>
+  `;
+  await transporter.sendMail({
+    from: `"AeroHealth" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: "⚠️ AeroHealth Account Suspended",
+    html: html
+  });
+};
+
+module.exports = { sendOtpToEmail, sendApprovalEmail, sendSuspensionEmail };
 

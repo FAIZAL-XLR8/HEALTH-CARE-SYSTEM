@@ -18,11 +18,7 @@ exports.getChatHistory = async (req, res) => {
     // Verify user is either the patient or the doctor of the appointment
     const isPatient = appointment.patientId.toString() === userId.toString();
     
-    let isDoctor = false;
-    const doctorProfile = await Doctor.findOne({ userId });
-    if (doctorProfile && appointment.doctorId.toString() === doctorProfile._id.toString()) {
-      isDoctor = true;
-    }
+    const isDoctor = appointment.doctorId.toString() === userId.toString();
 
     if (!isPatient && !isDoctor) {
       return res.status(403).json({ message: 'Access denied: You are not a participant in this consultation.' });

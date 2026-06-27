@@ -25,7 +25,8 @@ const register = async (req, res) => {
   try {
     const { 
       name, phone, password, email, role = 'patient', 
-      specialty, experience, fee, clinicName, activeHours 
+      specialty, experience, fee, clinicName, activeHours,
+      profileImage, bio
     } = req.body;
 
     if (!name || !password || !email) {
@@ -37,10 +38,28 @@ const register = async (req, res) => {
         return res.status(400).json({ message: 'Phone, specialization, fee, and clinic details are required.' });
       }
 
-      // Check if email already registered as doctor
-      const emailExists = await Doctor.findOne({ email: email.toLowerCase().trim() }) ||
-                          await PendingDoctor.findOne({ email: email.toLowerCase().trim() });
-      if (emailExists) {
+      // Check if email already registered and if it is suspended
+      const docRecord = await Doctor.findOne({ email: email.toLowerCase().trim() });
+      const pendingRecord = await PendingDoctor.findOne({ email: email.toLowerCase().trim() });
+
+      if (docRecord) {
+        if (docRecord.status === 'suspended') {
+          return res.status(400).json({ 
+            message: 'Email address is suspended.', 
+            isSuspended: true, 
+            email: docRecord.email
+          });
+        }
+        return res.status(400).json({ message: 'Email address is already registered as a doctor.' });
+      }
+      if (pendingRecord) {
+        if (pendingRecord.status === 'suspended') {
+          return res.status(400).json({ 
+            message: 'Email address is suspended.', 
+            isSuspended: true, 
+            email: pendingRecord.email
+          });
+        }
         return res.status(400).json({ message: 'Email address is already registered as a doctor.' });
       }
 
@@ -65,6 +84,8 @@ const register = async (req, res) => {
         clinicName,
         consultationFee: Number(fee),
         activeHours: activeHours || '09:00 AM - 05:00 PM',
+        profileImage: profileImage || '',
+        bio: bio || '',
         emailOtp,
         emailOtpExpires: otpExpires,
         phoneOtp,
@@ -218,7 +239,11 @@ const login = async (req, res) => {
         });
       }
       if (doctor.status === 'suspended') {
-        return res.status(403).json({ message: 'Your account has been suspended.' });
+        return res.status(403).json({ 
+          message: 'Your account has been suspended.',
+          isSuspended: true,
+          email: doctor.email
+        });
       }
 
       return res.status(200).json({
@@ -443,6 +468,154 @@ const submitDoctorApplication = async (req, res) => {
   }
 };
 
+// @desc    Get Suspension Details HTML Page
+// @route   GET /api/auth/suspension-details/:email
+// @access  Public
+const getSuspensionDetails = async (req, res) => {
+  try {
+    const { email } = req.params;
+    const doctor = await Doctor.findOne({ email: email.toLowerCase().trim() }) ||
+                   await PendingDoctor.findOne({ email: email.toLowerCase().trim() });
+
+    if (!doctor || doctor.status !== 'suspended') {
+      return res.status(404).send('<h1>Suspension details not found for this account.</h1>');
+    }
+
+    const suspensionDate = doctor.updatedAt ? new Date(doctor.updatedAt) : new Date();
+    const formattedDate = suspensionDate.toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' });
+    const formattedTime = suspensionDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    const html = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>AeroHealth Account Suspension Details</title>
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+        <style>
+          body {
+            background-color: #0b0f19;
+            color: #ffffff;
+            font-family: 'Outfit', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 24px;
+            box-sizing: border-box;
+          }
+          .card {
+            background: linear-gradient(135deg, rgba(13, 17, 29, 0.85) 0%, rgba(22, 28, 45, 0.85) 100%);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+          }
+          .icon-container {
+            width: 64px;
+            height: 64px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px auto;
+            color: #ef4444;
+            font-size: 2rem;
+            font-weight: bold;
+          }
+          h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin: 0 0 12px 0;
+            color: #ffffff;
+          }
+          .doctor-name {
+            font-size: 1.1rem;
+            color: #94a3b8;
+            margin-bottom: 24px;
+          }
+          .meta-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            text-align: left;
+            font-size: 0.9rem;
+          }
+          .meta-label {
+            color: #64748b;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+          }
+          .meta-value {
+            font-weight: 600;
+            color: #f1f5f9;
+          }
+          .reason-box {
+            background: rgba(239, 68, 68, 0.03);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+            text-align: left;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #fca5a5;
+          }
+          .reason-label {
+            color: #ef4444;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <div class="icon-container">⚠️</div>
+          <h1>Account Suspended</h1>
+          <div class="doctor-name">Dr. ${doctor.name}</div>
+          
+          <div class="meta-item">
+            <div class="meta-label">Suspension Date & Time</div>
+            <div class="meta-value">${formattedDate} at ${formattedTime}</div>
+          </div>
+
+          <div class="meta-item">
+            <div class="meta-label">Account Email</div>
+            <div class="meta-value">${doctor.email}</div>
+          </div>
+
+          <div class="reason-box">
+            <div class="reason-label">Reasons for Suspension</div>
+            <div>${doctor.rejectionReason || 'No specific reasons provided by the administrator.'}</div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    res.setHeader('Content-Type', 'text/html');
+    res.send(html);
+  } catch (error) {
+    console.error('Error fetching suspension details:', error);
+    res.status(500).send('<h1>Server Error: Could not load suspension details.</h1>');
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -451,4 +624,5 @@ module.exports = {
   verifyPhoneOtp,
   uploadGovernmentId,
   submitDoctorApplication,
+  getSuspensionDetails,
 };

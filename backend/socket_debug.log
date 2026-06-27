@@ -1,0 +1,256 @@
+[Join Room Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: true, isDoctor: false
+[Connection Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Join Room Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: true, isDoctor: false
+[Connection Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Join Room Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: true, isDoctor: false
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Connection Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Join Room Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: true, isDoctor: false
+[Connection Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Join Room Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: true, isDoctor: false
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Client Log] test from powershell
+[Disconnect Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Disconnect Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Client Log] [User: Faizal (patient)] useEffect starting socket init. appointmentId=6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: Faizal (patient)] socket.connected is false, registering connect event listener
+[Client Log] [User: Faizal (patient)] Socket instance created. connected status=false
+[Client Log] [User: Faizal (patient)] useEffect starting socket init. appointmentId=6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: Faizal (patient)] Socket instance created. connected status=false
+[Client Log] [User: Faizal (patient)] socket.connected is false, registering connect event listener
+[Connection Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Client Log] [User: Faizal (patient)] handleConnect triggered. Emitting join-appointment-room
+[Join Room Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: true, isDoctor: false
+[Send Message Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: okay bro
+[Client Log] [User: ali (doctor)] useEffect starting socket init. appointmentId=6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: ali (doctor)] Socket instance created. connected status=false
+[Client Log] [User: ali (doctor)] socket.connected is false, registering connect event listener
+[Client Log] [User: ali (doctor)] useEffect starting socket init. appointmentId=6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: ali (doctor)] Socket instance created. connected status=false
+[Client Log] [User: ali (doctor)] socket.connected is false, registering connect event listener
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Client Log] [User: ali (doctor)] handleConnect triggered. Emitting join-appointment-room
+[Send Message Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: haa abto aa rha
+[Send Message Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: yes bro
+[Disconnect Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Client Log] [User: ali (doctor)] useEffect starting socket init. appointmentId=6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: ali (doctor)] Socket instance created. connected status=false
+[Client Log] [User: ali (doctor)] socket.connected is false, registering connect event listener
+[Client Log] [User: ali (doctor)] Socket instance created. connected status=false
+[Client Log] [User: ali (doctor)] useEffect starting socket init. appointmentId=6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: ali (doctor)] socket.connected is false, registering connect event listener
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Client Log] [User: ali (doctor)] handleConnect triggered. Emitting join-appointment-room
+[Send Message Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: okay
+[Send Message Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: yes
+[Disconnect Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Client Log] [User: ali (doctor)] useEffect starting socket init. appointmentId=6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: ali (doctor)] socket.connected is false, registering connect event listener
+[Client Log] [User: ali (doctor)] Socket instance created. connected status=false
+[Client Log] [User: ali (doctor)] useEffect starting socket init. appointmentId=6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: ali (doctor)] Socket instance created. connected status=false
+[Client Log] [User: ali (doctor)] socket.connected is false, registering connect event listener
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Client Log] [User: ali (doctor)] handleConnect triggered. Emitting join-appointment-room
+[Disconnect Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Client Log] [User: ali (doctor)] useEffect starting socket init. appointmentId=6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: ali (doctor)] Socket instance created. connected status=false
+[Client Log] [User: ali (doctor)] socket.connected is false, registering connect event listener
+[Client Log] [User: ali (doctor)] useEffect starting socket init. appointmentId=6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: ali (doctor)] Socket instance created. connected status=false
+[Client Log] [User: ali (doctor)] socket.connected is false, registering connect event listener
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Client Log] [User: ali (doctor)] handleConnect triggered. Emitting join-appointment-room
+[Send Message Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: yes
+[Disconnect Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Client Log] [User: ali (doctor)] useEffect starting socket init. appointmentId=6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: ali (doctor)] Socket instance created. connected status=false
+[Client Log] [User: ali (doctor)] socket.connected is false, registering connect event listener
+[Client Log] [User: ali (doctor)] Socket instance created. connected status=false
+[Client Log] [User: ali (doctor)] useEffect starting socket init. appointmentId=6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: ali (doctor)] socket.connected is false, registering connect event listener
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Client Log] [User: ali (doctor)] handleConnect triggered. Emitting join-appointment-room
+[Disconnect Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Disconnect Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Client Log] [User: ali (doctor)] useEffect starting socket init. appointmentId=6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: ali (doctor)] Socket instance created. connected status=false
+[Client Log] [User: ali (doctor)] socket.connected is false, registering connect event listener
+[Client Log] [User: ali (doctor)] useEffect starting socket init. appointmentId=6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: ali (doctor)] Socket instance created. connected status=false
+[Client Log] [User: ali (doctor)] socket.connected is false, registering connect event listener
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Client Log] [User: ali (doctor)] handleConnect triggered. Emitting join-appointment-room
+[Client Log] [User: Faizal (patient)] useEffect starting socket init. appointmentId=6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: Faizal (patient)] Socket instance created. connected status=false
+[Client Log] [User: Faizal (patient)] socket.connected is false, registering connect event listener
+[Client Log] [User: Faizal (patient)] useEffect starting socket init. appointmentId=6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: Faizal (patient)] Socket instance created. connected status=false
+[Client Log] [User: Faizal (patient)] socket.connected is false, registering connect event listener
+[Connection Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Client Log] [User: Faizal (patient)] handleConnect triggered. Emitting join-appointment-room
+[Join Room Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: true, isDoctor: false
+[Send Message Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: hii, good morning
+[Send Message Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: hey there Doc
+[Connection Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Join Room Start] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: Faizal (patient)] handleConnect triggered. Emitting join-appointment-room
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Client Log] [User: ali (doctor)] handleConnect triggered. Emitting join-appointment-room
+[Join Room Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: true, isDoctor: false
+[Connection Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Join Room Start] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: Faizal (patient)] handleConnect triggered. Emitting join-appointment-room
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Join Room Start] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: ali (doctor)] handleConnect triggered. Emitting join-appointment-room
+[Join Room Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: true, isDoctor: false
+[Join Room Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: false, isDoctor: true
+[Disconnect Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Disconnect Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Client Log] [User: ali (doctor)] useEffect starting socket init. appointmentId=6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: ali (doctor)] Socket instance created. connected status=false
+[Client Log] [User: ali (doctor)] socket.connected is false, registering connect event listener
+[Client Log] [User: ali (doctor)] useEffect starting socket init. appointmentId=6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: ali (doctor)] Socket instance created. connected status=false
+[Client Log] [User: ali (doctor)] socket.connected is false, registering connect event listener
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Join Room Start] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: ali (doctor)] handleConnect triggered. Emitting join-appointment-room
+[Join Room Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: false, isDoctor: true
+[Client Log] [User: Faizal (patient)] useEffect starting socket init. appointmentId=6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: Faizal (patient)] Socket instance created. connected status=false
+[Client Log] [User: Faizal (patient)] socket.connected is false, registering connect event listener
+[Client Log] [User: Faizal (patient)] useEffect starting socket init. appointmentId=6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: Faizal (patient)] Socket instance created. connected status=false
+[Client Log] [User: Faizal (patient)] socket.connected is false, registering connect event listener
+[Connection Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Join Room Start] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: Faizal (patient)] handleConnect triggered. Emitting join-appointment-room
+[Join Room Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: true, isDoctor: false
+[Send Message Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: yes my man
+[Send Message Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: now i can see
+[Send Message Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: the issue is isTyping is not being reflected
+[Send Message Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: Screenshot (1110).png
+[Disconnect Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Disconnect Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Client Log] [User: Faizal (patient)] useEffect starting socket init. appointmentId=6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: ali (doctor)] useEffect starting socket init. appointmentId=6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: ali (doctor)] Socket instance created. connected status=false
+[Client Log] [User: Faizal (patient)] Socket instance created. connected status=false
+[Client Log] [User: ali (doctor)] socket.connected is false, registering connect event listener
+[Client Log] [User: Faizal (patient)] socket.connected is false, registering connect event listener
+[Connection Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Join Room Start] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: Faizal (patient)] handleConnect triggered. Emitting join-appointment-room
+[Join Room Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: true, isDoctor: false
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Join Room Start] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Client Log] [User: ali (doctor)] handleConnect triggered. Emitting join-appointment-room
+[Join Room Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: false, isDoctor: true
+[Disconnect Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Disconnect Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Connection Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Join Room Start] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Join Room Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: true, isDoctor: false
+[Join Room Start] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Join Room Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: false, isDoctor: true
+[Disconnect Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Disconnect Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Join Room Start] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Join Room Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: false, isDoctor: true
+[Connection Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Join Room Start] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Join Room Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: true, isDoctor: false
+[Send Message Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: 😒😪🤤
+[Send Message Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: Screenshot (1111).png
+[Send Message Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: yess bro uh are right
+[Send Message Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: its working fine now
+[Disconnect Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Connection Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Join Room Start] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Join Room Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: true, isDoctor: false
+[Disconnect Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Send Message Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: haa
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Join Room Start] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Join Room Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: false, isDoctor: true
+[Disconnect Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Join Room Start] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Join Room Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: false, isDoctor: true
+[Send Message Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: wtf
+[Send Message Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: firse issue
+[Send Message Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: ni thuk hai
+[Disconnect Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Join Room Start] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Join Room Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: false, isDoctor: true
+[Disconnect Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Join Room Start] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Join Room Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: false, isDoctor: true
+[Send Message Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: again offline online logic mismatch
+[Send Message Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: yea u r right
+[Disconnect Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Disconnect Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Join Room Start] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Join Room Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: false, isDoctor: true
+[Connection Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Join Room Start] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Join Room Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: true, isDoctor: false
+[Disconnect Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Connection Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Join Room Start] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Join Room Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: true, isDoctor: false
+[Disconnect Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Disconnect Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Connection Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Join Room Start] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Join Room Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: true, isDoctor: false
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Join Room Start] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Join Room Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: false, isDoctor: true
+[Send Message Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: yes my boy
+[Send Message Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: From KlickPin CF Zero Noise Trading Course _ Stock trading Technical trading Finance books.mp4
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Join Room Start] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Join Room Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: false, isDoctor: true
+[Connection Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Join Room Start] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Join Room Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: true, isDoctor: false
+[Send Message Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: From KlickPin CF Zero Noise Trading Course _ Stock trading Technical trading Finance books.mp4
+[Send Message Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5, content: From KlickPin CF Zero Noise Trading Course _ Stock trading Technical trading Finance books.mp4
+[Disconnect Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Connection Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Join Room Start] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3f69bac2ec03c6eef5171a
+[Join Room Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3d02bcc109a33034689318, isPatient: true, isDoctor: false
+[Connection Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Join Room Start] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3f69bac2ec03c6eef5171a
+[Join Room Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3d02bcc109a33034689318, isPatient: true, isDoctor: false
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Join Room Start] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Join Room Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: false, isDoctor: true
+[Connection Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Join Room Start] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3f69bac2ec03c6eef5171a
+[Join Room Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3d02bcc109a33034689318, isPatient: true, isDoctor: false
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Join Room Start] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Join Room Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: false, isDoctor: true
+[Connection Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Join Room Start] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3f69bac2ec03c6eef5171a
+[Join Room Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3d02bcc109a33034689318, isPatient: true, isDoctor: false
+[Connection Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Join Room Start] userId: 6a3e14df3bab9e274914c67d, role: doctor, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Join Room Try] userId: 6a3e14df3bab9e274914c67d, role: doctor, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: false, isDoctor: true
+[Disconnect Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Connection Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Join Room Start] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3e670f36e5a8cfb3ce5ac5
+[Join Room Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3e14df3bab9e274914c67d, isPatient: true, isDoctor: false
+[Disconnect Debug] userId: 6a3e14df3bab9e274914c67d, role: doctor
+[Disconnect Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient

@@ -34,6 +34,8 @@ const doctorSignupSchema = z.object({
   fee: z.string().refine(val => val !== '' && !isNaN(val) && Number(val) >= 0, 'Fee must be a positive number.'),
   clinicName: z.string().trim().min(1, 'Clinic name is required.'),
   activeHours: z.string().trim().min(1, 'Daily available hours are required.'),
+  profileImage: z.string().optional(),
+  bio: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Passwords do not match.',
   path: ['confirmPassword'],
@@ -59,6 +61,9 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
   const [fee, setFee] = useState('');
   const [clinicName, setClinicName] = useState('');
   const [activeHours, setActiveHours] = useState('09:00 AM - 05:00 PM');
+  const [profileImage, setProfileImage] = useState('');
+  const [bio, setBio] = useState('');
+  const [isSuspended, setIsSuspended] = useState(false);
 
   // Doctor Verification Wizard states
   const [wizardStep, setWizardStep] = useState(1); // 1 = form, 2 = OTP verification, 3 = ID Upload, 4 = Pending HUD
@@ -92,6 +97,10 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
   const handleFieldChange = (field, setter, value) => {
     setter(value);
     
+    if (field === 'email') {
+      setIsSuspended(false);
+    }
+    
     if (isSubmitted) {
       const currentData = {
         name: field === 'name' ? value : name,
@@ -103,6 +112,8 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
         fee: field === 'fee' ? value : fee,
         clinicName: field === 'clinicName' ? value : clinicName,
         activeHours: field === 'activeHours' ? value : activeHours,
+        profileImage: field === 'profileImage' ? value : profileImage,
+        bio: field === 'bio' ? value : bio,
       };
 
       let schema;
@@ -180,7 +191,11 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
           resetForm();
         }, 1000);
       } else {
-        if (data.rejectionReason) {
+        if (data.isSuspended) {
+          setIsSuspended(true);
+          setErrorMsg(data.message);
+          setErrors(prev => ({ ...prev, email: 'Email address is suspended.' }));
+        } else if (data.rejectionReason) {
           setErrorMsg(`Login failed: ${data.message} Reason: "${data.rejectionReason}"`);
         } else {
           const msg = data.message || 'Login failed. Please check credentials.';
@@ -225,6 +240,8 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
       payload.fee = fee.toString().trim();
       payload.clinicName = clinicName.trim();
       payload.activeHours = activeHours.trim();
+      payload.profileImage = profileImage.trim();
+      payload.bio = bio.trim();
     }
 
     const schema = role === 'patient' ? patientSignupSchema : doctorSignupSchema;
@@ -257,6 +274,8 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
       backendPayload.fee = Number(fee);
       backendPayload.clinicName = clinicName.trim();
       backendPayload.activeHours = activeHours.trim();
+      backendPayload.profileImage = profileImage.trim();
+      backendPayload.bio = bio.trim();
     }
 
     setIsLoading(true);
@@ -286,9 +305,12 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
         setErrorMsg(msg);
         
         const lowerMsg = msg.toLowerCase();
-        if (lowerMsg.includes('already exists') || lowerMsg.includes('registered')) {
-          if (lowerMsg.includes('email')) {
-            setErrors(prev => ({ ...prev, email: 'Email is already registered.' }));
+        if (lowerMsg.includes('already exists') || lowerMsg.includes('registered') || data.isSuspended) {
+          if (lowerMsg.includes('email') || data.isSuspended) {
+            setErrors(prev => ({ ...prev, email: data.isSuspended ? 'Email address is suspended.' : 'Email is already registered.' }));
+            if (data.isSuspended) {
+              setIsSuspended(true);
+            }
           } else if (lowerMsg.includes('phone')) {
             setErrors(prev => ({ ...prev, phone: 'Phone number is already registered.' }));
           } else {
@@ -439,6 +461,9 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
     setFee('');
     setClinicName('');
     setActiveHours('09:00 AM - 05:00 PM');
+    setProfileImage('');
+    setBio('');
+    setIsSuspended(false);
     setErrorMsg('');
     setSuccessMsg('');
     setShowPassword(false);
@@ -715,6 +740,14 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
                 {errors.email && (
                   <span style={{ color: 'var(--accent-alert)', fontSize: '0.72rem', marginTop: '4px', display: 'block', textAlign: 'left' }}>
                     {errors.email}
+                    {isSuspended && (
+                      <span 
+                        style={{ color: '#f87171', textDecoration: 'underline', cursor: 'pointer', marginLeft: '5px', fontWeight: 'bold' }}
+                        onClick={() => window.open(`/api/auth/suspension-details/${email.toLowerCase().trim()}`, '_blank')}
+                      >
+                        See reasons for suspension
+                      </span>
+                    )}
                   </span>
                 )}
               </div>
@@ -940,6 +973,58 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
                   {errors.activeHours && (
                     <span style={{ color: 'var(--accent-alert)', fontSize: '0.68rem', marginTop: '4px', display: 'block', textAlign: 'left' }}>
                       {errors.activeHours}
+                    </span>
+                  )}
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Profile Picture URL</label>
+                  <input
+                    type="url"
+                    value={profileImage}
+                    placeholder="e.g. https://api.dicebear.com/7.x/adventurer/svg?seed=doctor"
+                    onChange={(e) => handleFieldChange('profileImage', setProfileImage, e.target.value)}
+                    style={{
+                      width: '100%',
+                      background: 'rgba(0,0,0,0.3)',
+                      border: errors.profileImage ? '1px solid var(--accent-alert)' : '1px solid var(--card-border)',
+                      borderRadius: '8px',
+                      padding: '10px',
+                      color: '#fff',
+                      fontSize: '0.8rem',
+                      outline: 'none'
+                    }}
+                  />
+                  {errors.profileImage && (
+                    <span style={{ color: 'var(--accent-alert)', fontSize: '0.68rem', marginTop: '4px', display: 'block', textAlign: 'left' }}>
+                      {errors.profileImage}
+                    </span>
+                  )}
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Professional Bio</label>
+                  <textarea
+                    value={bio}
+                    placeholder="Describe your medical background, specialization details, clinic philosophy..."
+                    onChange={(e) => handleFieldChange('bio', setBio, e.target.value)}
+                    rows={3}
+                    style={{
+                      width: '100%',
+                      background: 'rgba(0,0,0,0.3)',
+                      border: errors.bio ? '1px solid var(--accent-alert)' : '1px solid var(--card-border)',
+                      borderRadius: '8px',
+                      padding: '10px',
+                      color: '#fff',
+                      fontSize: '0.8rem',
+                      outline: 'none',
+                      fontFamily: 'inherit',
+                      resize: 'vertical'
+                    }}
+                  />
+                  {errors.bio && (
+                    <span style={{ color: 'var(--accent-alert)', fontSize: '0.68rem', marginTop: '4px', display: 'block', textAlign: 'left' }}>
+                      {errors.bio}
                     </span>
                   )}
                 </div>

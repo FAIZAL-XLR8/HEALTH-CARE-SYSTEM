@@ -9,6 +9,7 @@ const {
   verifyPhoneOtp,
   uploadGovernmentId,
   submitDoctorApplication,
+  getSuspensionDetails,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -20,6 +21,7 @@ const upload = multer({
 // Public authentication routes
 router.post('/register', register);
 router.post('/login', login);
+router.get('/suspension-details/:email', getSuspensionDetails);
 
 // Protected routes (requires JWT validation)
 router.get('/me', protect, getMe);

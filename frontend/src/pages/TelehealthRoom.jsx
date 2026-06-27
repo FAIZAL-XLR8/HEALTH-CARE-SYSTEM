@@ -2,50 +2,86 @@ import React, { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
 import { 
   Phone, Video, VideoOff, Mic, MicOff, Send, Paperclip, X, Download, 
-  FileText, ArrowLeft, Monitor, PhoneOff, Check, CheckCheck, Trash2 
+  FileText, ArrowLeft, Monitor, PhoneOff, Check, CheckCheck, Trash2, Smile 
 } from 'lucide-react';
+import EmojiPicker from 'emoji-picker-react';
+import { useTelehealthCall } from '../hooks/useTelehealthCall';
+import { useTelehealthChat } from '../hooks/useTelehealthChat';
+
+const formatLastSeen = (dateString) => {
+  if (!dateString) return 'Offline';
+  const date = new Date(dateString);
+  const now = new Date();
+  
+  const isToday = date.toDateString() === now.toDateString();
+  
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = date.toDateString() === yesterday.toDateString();
+  
+  const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  
+  if (isToday) {
+    return `Last seen today at ${timeStr}`;
+  } else if (isYesterday) {
+    return `Last seen yesterday at ${timeStr}`;
+  } else {
+    const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+    return `Last seen on ${dateStr} at ${timeStr}`;
+  }
+};
 
 const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
-  const [appointment, setAppointment] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [messageText, setMessageText] = useState('');
-  const [counterpartPresence, setCounterpartPresence] = useState({ online: false, lastSeen: null });
-  const [isTyping, setIsTyping] = useState(false);
-  const [counterpartTyping, setCounterpartTyping] = useState(false);
-  const [isExpired, setIsExpired] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [socket, setSocket] = useState(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-  // WebRTC & Call states
-  const [callState, setCallState] = useState('idle'); // 'idle' | 'calling' | 'incoming' | 'connected'
-  const [callType, setCallType] = useState('video'); // 'voice' | 'video'
-  const [callId, setCallId] = useState(null);
-  const [incomingCallData, setIncomingCallData] = useState(null);
-  const [localStream, setLocalStream] = useState(null);
-  const [remoteStream, setRemoteStream] = useState(null);
-  const [micMuted, setMicMuted] = useState(false);
-  const [camOff, setCamOff] = useState(false);
-  const [isScreenSharing, setIsScreenSharing] = useState(false);
-  const [callDuration, setCallDuration] = useState(0);
-
-  const socketRef = useRef(null);
-  const messagesEndRef = useRef(null);
-  const fileInputRef = useRef(null);
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
-  const pcRef = useRef(null);
-  const timerRef = useRef(null);
-  const screenTrackRef = useRef(null);
-  const localStreamRef = useRef(null);
+  const messagesEndRef = useRef(null);
 
   const role = user.role; // 'patient' or 'doctor'
 
-  // Counterpart ID (recipient / sender)
-  const counterpartId = appointment
-    ? (role === 'doctor' 
-        ? (appointment.patientId?._id || appointment.patientId || appointment.patient?._id || appointment.patient) 
-        : (appointment.doctorId?._id || appointment.doctorId || appointment.doctor?._id || appointment.doctor)
-      )
-    : null;
+  // Initialize socket instance
+  useEffect(() => {
+    if (!token) return;
+    const socketInstance = io('http://localhost:5000', {
+      auth: { token }
+    });
+    setSocket(socketInstance);
+    return () => {
+      socketInstance.disconnect();
+    };
+  }, [token, appointmentId]);
+
+  // Consume Chat Hook
+  const {
+    appointment,
+    messages,
+    messageText,
+    setMessageText,
+    counterpartPresence,
+    isTyping,
+    counterpartTyping,
+    isExpired,
+    uploading,
+    selectedFile,
+    filePreviewUrl,
+    fullscreenImageUrl,
+    setFullscreenImageUrl,
+    fileInputRef,
+    handleClearSelectedFile,
+    handleSendMessage,
+    handleDeleteMessage,
+    handleTyping,
+    handleAttachmentUpload,
+    counterpartId
+  } = useTelehealthChat({
+    socket,
+    user,
+    appointmentId,
+    token,
+    role
+  });
 
   const counterpartName = appointment 
     ? (role === 'doctor' ? (appointment.userId?.name || appointment.patientId?.name || 'Patient') : (appointment.doctor?.name || 'Doctor'))
@@ -55,596 +91,71 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
     ? (role === 'doctor' ? (appointment.userId?.profileImage || appointment.patientId?.profileImage) : (appointment.doctor?.profileImage))
     : null;
 
-  // 1. Fetch Chat History & Appointment details
-  const fetchRoomData = async () => {
-    try {
-      // Fetch appointment details
-      const apptRes = await fetch(`/api/appointments/patient/dashboard`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const apptData = await apptRes.json();
-      if (apptRes.ok) {
-        let targetAppt = apptData.find(a => a._id === appointmentId);
-        if (!targetAppt) {
-          const docRes = await fetch(`/api/appointments/doctor/dashboard`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          const docData = await docRes.json();
-          if (docRes.ok) {
-            targetAppt = docData.appointments.find(a => a._id === appointmentId);
-          }
-        }
-        
-        if (targetAppt) {
-          setAppointment(targetAppt);
-          if (new Date() >= new Date(targetAppt.chatEnabledUntil)) {
-            setIsExpired(true);
-          }
-        }
-      }
-
-      // Fetch chat messages
-      const msgRes = await fetch(`/api/messages/${appointmentId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const msgData = await msgRes.json();
-      if (msgRes.ok) {
-        setMessages(msgData);
-      }
-    } catch (err) {
-      console.error('Error fetching room details:', err);
-    }
-  };
-
-  useEffect(() => {
-    fetchRoomData();
-  }, [appointmentId]);
-
-  // 2. Configure Socket.IO & Calling Listeners
-  useEffect(() => {
-    if (!appointmentId || !token) return;
-
-    socketRef.current = io('http://localhost:5000', {
-      auth: { token }
-    });
-
-    const socket = socketRef.current;
-
-    socket.on('connect', () => {
-      console.log('🔌 Socket connected to signalling server');
-      socket.emit('join-appointment-room', { appointmentId });
-      socket.emit('mark-seen', { appointmentId });
-    });
-
-    socket.on('participant-joined', ({ userId }) => {
-      if (userId !== user.id && userId !== user._id) {
-        setCounterpartPresence({ online: true, lastSeen: null });
-      }
-    });
-
-    socket.on('receive-message', (message) => {
-      setMessages(prev => [...prev, message]);
-      socket.emit('mark-seen', { appointmentId });
-    });
-
-    socket.on('message-deleted', ({ messageId }) => {
-      setMessages(prev => prev.filter(m => m._id !== messageId));
-    });
-
-    socket.on('messages-marked-seen', () => {
-      setMessages(prev => prev.map(m => m.senderId !== user.id && m.senderId !== user._id ? { ...m, seen: true } : m));
-    });
-
-    socket.on('doctor-presence-update', ({ doctorId, isOnline, lastSeen }) => {
-      if (appointment && counterpartId === doctorId) {
-        setCounterpartPresence({ online: isOnline, lastSeen });
-      }
-    });
-
-    socket.on('typing', ({ senderRole }) => {
-      if (senderRole !== role) {
-        setCounterpartTyping(true);
-      }
-    });
-
-    socket.on('stop-typing', ({ senderRole }) => {
-      if (senderRole !== role) {
-        setCounterpartTyping(false);
-      }
-    });
-
-    socket.on('consultation-expired', () => {
-      setIsExpired(true);
-      cleanupCall();
-    });
-
-    // ==========================================
-    // 📞 WebRTC CALL SIGNALING (WHATSAPP SIGNALS)
-    // ==========================================
-    socket.on("incoming_call", ({ callerId, callerName, callerAvatar, callType, callId }) => {
-      setCallId(callId);
-      setCallType(callType);
-      setIncomingCallData({ callerId, callerName, callerAvatar });
-      setCallState('incoming');
-    });
-
-    socket.on("call_accepted", async ({ callId: acceptedCallId }) => {
-      setCallState('connected');
-      startTimer();
-
-      let stream = localStreamRef.current;
-      if (!stream) {
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({ video: callType === 'video', audio: true });
-          setLocalStream(stream);
-          localStreamRef.current = stream;
-          if (localVideoRef.current) {
-            localVideoRef.current.srcObject = stream;
-          }
-        } catch (err) {
-          console.error("Error accessing media in call_accepted:", err);
-          handleEndCall();
-          return;
-        }
-      }
-
-      const pc = createPeerConnection(acceptedCallId, counterpartId, stream);
-      pcRef.current = pc;
-
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-
-      socket.emit("webrtc_offer", {
-        callId: acceptedCallId,
-        offer,
-        receiverId: counterpartId
-      });
-    });
-
-    socket.on("call_rejected", () => {
-      alert("Call rejected by other user.");
-      cleanupCall();
-    });
-
-    socket.on("call_ended", () => {
-      cleanupCall();
-    });
-
-    socket.on("webrtc_offer", async ({ offer, senderId, callId: incomingCallId }) => {
-      let stream = localStreamRef.current;
-      if (!stream) {
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({ video: callType === 'video', audio: true });
-          setLocalStream(stream);
-          localStreamRef.current = stream;
-          if (localVideoRef.current) {
-            localVideoRef.current.srcObject = stream;
-          }
-        } catch (err) {
-          console.error("Error accessing media in webrtc_offer:", err);
-          return;
-        }
-      }
-
-      const pc = createPeerConnection(incomingCallId, senderId, stream);
-      pcRef.current = pc;
-
-      await pc.setRemoteDescription(new RTCSessionDescription(offer));
-
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-
-      socket.emit("webrtc_answer", {
-        callId: incomingCallId,
-        answer,
-        receiverId: senderId
-      });
-    });
-
-    socket.on("webrtc_answer", async ({ answer }) => {
-      if (pcRef.current) {
-        await pcRef.current.setRemoteDescription(new RTCSessionDescription(answer));
-      }
-    });
-
-    socket.on("webrtc_ice_candidate", async ({ candidate }) => {
-      try {
-        if (pcRef.current) {
-          await pcRef.current.addIceCandidate(new RTCIceCandidate(candidate));
-        }
-      } catch (err) {
-        console.error('Error adding remote ice candidate:', err);
-      }
-    });
-
-    socket.on("remote_toggle_audio", ({ enabled }) => {
-      console.log('Remote toggled audio:', enabled);
-    });
-
-    socket.on("call_failed", ({ reason }) => {
-      alert(`Call failed: ${reason}`);
-      cleanupCall();
-    });
-
-    socket.on("call_disconnected", () => {
-      cleanupCall();
-    });
-
-    return () => {
-      socket.disconnect();
-      cleanupCall();
-    };
-  }, [appointmentId, token, appointment, counterpartId, callType]);
+  // Consume Call Hook
+  const {
+    callState,
+    callType,
+    callId,
+    incomingCallData,
+    localStream,
+    remoteStream,
+    micMuted,
+    camOff,
+    isScreenSharing,
+    callDuration,
+    handleStartCall,
+    handleAcceptCall,
+    handleRejectCall,
+    handleEndCall,
+    toggleMute,
+    toggleCam,
+    handleToggleScreenShare,
+    formatCallTime
+  } = useTelehealthCall({
+    socket,
+    user,
+    counterpartId,
+    counterpartName,
+    counterpartPhoto,
+    isExpired
+  });
 
   // Scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, counterpartTyping]);
 
-  // Call timer interval
-  const startTimer = () => {
-    setCallDuration(0);
-    timerRef.current = setInterval(() => {
-      setCallDuration(prev => prev + 1);
-    }, 1000);
-  };
-
-  const stopTimer = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
+  // Bind WebRTC media streams
+  useEffect(() => {
+    if (localVideoRef.current && localStream) {
+      localVideoRef.current.srcObject = localStream;
     }
-  };
+  }, [localStream]);
 
-  const formatCallTime = (totalSeconds) => {
-    const mins = Math.floor(totalSeconds / 60);
-    const secs = totalSeconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  // 3. WebRTC Media Stream Handlers
-  const stopMedia = () => {
-    if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach(track => track.stop());
-      localStreamRef.current = null;
-      setLocalStream(null);
+  useEffect(() => {
+    if (remoteVideoRef.current && remoteStream) {
+      remoteVideoRef.current.srcObject = remoteStream;
     }
-    if (screenTrackRef.current) {
-      screenTrackRef.current.stop();
-      screenTrackRef.current = null;
-      setIsScreenSharing(false);
-    }
-    setRemoteStream(null);
-  };
+  }, [remoteStream]);
 
-  const createPeerConnection = (cId, targetUserId, stream) => {
-    const pc = new RTCPeerConnection({
-      iceServers: [
-        { urls: "stun:stun.l.google.com:19302" },
-        { urls: "stun:global.stun.twilio.com:3478" },
-      ]
-    });
-
-    pc.onicecandidate = (event) => {
-      if (event.candidate && socketRef.current) {
-        socketRef.current.emit("webrtc_ice_candidate", {
-          callId: cId,
-          candidate: event.candidate,
-          receiverId: targetUserId
-        });
+  // Close emoji picker on outside click
+  const emojiPickerRef = useRef(null);
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(e.target)) {
+        setShowEmojiPicker(false);
       }
     };
-
-    pc.ontrack = (event) => {
-      setRemoteStream(event.streams[0]);
-      if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = event.streams[0];
-      }
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
     };
+  }, []);
 
-    if (stream) {
-      stream.getTracks().forEach(track => {
-        pc.addTrack(track, stream);
-      });
-    }
-
-    return pc;
-  };
-
-  // 4. Call Control Triggers
-  const handleStartCall = async (type) => {
-    if (isExpired || !counterpartId) return;
-    setCallType(type);
-    setCallState('calling');
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: type === 'video', audio: true });
-      setLocalStream(stream);
-      localStreamRef.current = stream;
-      if (localVideoRef.current && type === 'video') {
-        localVideoRef.current.srcObject = stream;
-      }
-
-      const generatedCallId = `${user.id || user._id}-${counterpartId}-${Date.now()}`;
-      setCallId(generatedCallId);
-
-      socketRef.current.emit("initiate_call", {
-        callerId: user.id || user._id,
-        receiverId: counterpartId,
-        callType: type,
-        callerInfo: {
-          username: user.name,
-          profilePicture: user.profileImage || ''
-        }
-      });
-    } catch (err) {
-      console.error(err);
-      alert('Could not start call - failed to access camera/mic.');
-      setCallState('idle');
-    }
-  };
-
-  const handleAcceptCall = async () => {
-    if (isExpired || !incomingCallData || !callId) return;
-    setCallState('connected');
-    startTimer();
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: callType === 'video', audio: true });
-      setLocalStream(stream);
-      localStreamRef.current = stream;
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = stream;
-      }
-
-      socketRef.current.emit("accept_call", {
-        callerId: incomingCallData.callerId,
-        callId: callId,
-        receiverInfo: {
-          username: user.name,
-          profilePicture: user.profileImage || ''
-        }
-      });
-    } catch (err) {
-      console.error(err);
-      cleanupCall();
-    }
-  };
-
-  const handleRejectCall = () => {
-    if (socketRef.current && incomingCallData && callId) {
-      socketRef.current.emit("reject_call", {
-        callId,
-        callerId: incomingCallData.callerId
-      });
-    }
-    setCallState('idle');
-    setIncomingCallData(null);
-    setCallId(null);
-  };
-
-  const handleEndCall = () => {
-    if (socketRef.current && callId && counterpartId) {
-      socketRef.current.emit("end_call", {
-        callId,
-        participantId: counterpartId
-      });
-    }
-    cleanupCall();
-  };
-
-  const cleanupCall = () => {
-    stopTimer();
-    stopMedia();
-    if (pcRef.current) {
-      pcRef.current.close();
-      pcRef.current = null;
-    }
-    setCallState('idle');
-    setIncomingCallData(null);
-    setCallId(null);
-  };
-
-  // Audio mute toggle
-  const toggleMute = () => {
-    if (localStreamRef.current) {
-      const audioTrack = localStreamRef.current.getAudioTracks()[0];
-      if (audioTrack) {
-        const newEnabled = !audioTrack.enabled;
-        audioTrack.enabled = newEnabled;
-        setMicMuted(!newEnabled);
-
-        socketRef.current?.emit("toggle_audio", {
-          callId,
-          receiverId: counterpartId,
-          enabled: newEnabled
-        });
-      }
-    }
-  };
-
-  // Video cam toggle
-  const toggleCam = () => {
-    if (localStreamRef.current && callType === 'video') {
-      const videoTrack = localStreamRef.current.getVideoTracks()[0];
-      if (videoTrack) {
-        const newEnabled = !videoTrack.enabled;
-        videoTrack.enabled = newEnabled;
-        setCamOff(!newEnabled);
-      }
-    }
-  };
-
-  // Screen Sharing Track Replacement
-  const handleToggleScreenShare = async () => {
-    if (isScreenSharing) {
-      // Revert to camera
-      if (screenTrackRef.current) {
-        screenTrackRef.current.stop();
-        screenTrackRef.current = null;
-      }
-
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: callType === 'video', audio: true });
-        const videoTrack = stream.getVideoTracks()[0];
-
-        if (pcRef.current) {
-          const sender = pcRef.current.getSenders().find(s => s.track?.kind === 'video');
-          if (sender && videoTrack) {
-            sender.replaceTrack(videoTrack);
-          }
-        }
-
-        if (localStreamRef.current) {
-          localStreamRef.current.getVideoTracks().forEach(track => track.stop());
-        }
-
-        setLocalStream(stream);
-        localStreamRef.current = stream;
-        if (localVideoRef.current) {
-          localVideoRef.current.srcObject = stream;
-        }
-
-        setIsScreenSharing(false);
-      } catch (err) {
-        console.error("Error reverting screen share to camera:", err);
-      }
-    } else {
-      try {
-        const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-        const screenTrack = screenStream.getVideoTracks()[0];
-        screenTrackRef.current = screenTrack;
-
-        if (pcRef.current) {
-          const sender = pcRef.current.getSenders().find(s => s.track?.kind === 'video');
-          if (sender && screenTrack) {
-            sender.replaceTrack(screenTrack);
-          }
-        }
-
-        const audioTrack = localStreamRef.current?.getAudioTracks()[0];
-        const newStream = new MediaStream([screenTrack]);
-        if (audioTrack) {
-          newStream.addTrack(audioTrack);
-        }
-
-        const camVideoTrack = localStreamRef.current?.getVideoTracks()[0];
-        if (camVideoTrack) {
-          camVideoTrack.stop();
-        }
-
-        setLocalStream(newStream);
-        localStreamRef.current = newStream;
-        if (localVideoRef.current) {
-          localVideoRef.current.srcObject = newStream;
-        }
-
-        screenTrack.onended = () => {
-          handleToggleScreenShare(); // revert when user stops clicking system screen share
-        };
-
-        setIsScreenSharing(true);
-      } catch (err) {
-        console.error("Error starting screen share:", err);
-      }
-    }
-  };
-
-  // 5. WhatsApp-like Chat event emitters
-  const handleSendMessage = (e) => {
-    e?.preventDefault();
-    if (isExpired || !messageText.trim()) return;
-
-    socketRef.current.emit('send-message', {
-      appointmentId,
-      type: 'text',
-      content: messageText.trim()
-    });
-
-    setMessageText('');
-    socketRef.current.emit('stop-typing', { appointmentId });
-    setIsTyping(false);
-  };
-
-  const handleDeleteMessage = async (messageId) => {
-    if (isExpired) return;
-    if (!window.confirm("Are you sure you want to delete this message?")) return;
-
-    try {
-      const res = await fetch(`/api/messages/${messageId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        setMessages(prev => prev.filter(m => m._id !== messageId));
-        socketRef.current?.emit('delete-message', { appointmentId, messageId });
-      } else {
-        const data = await res.json();
-        alert(data.message || 'Failed to delete message.');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Error deleting message.');
-    }
-  };
-
-  const handleTyping = (e) => {
-    setMessageText(e.target.value);
-    
-    if (isExpired || !socketRef.current) return;
-
-    if (!isTyping && e.target.value.trim() !== '') {
-      setIsTyping(true);
-      socketRef.current.emit('typing', { appointmentId });
-    } else if (isTyping && e.target.value.trim() === '') {
-      setIsTyping(false);
-      socketRef.current.emit('stop-typing', { appointmentId });
-    }
-  };
-
-  const handleAttachmentUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file || isExpired) return;
-
-    const fileType = file.type || '';
-    let msgType = 'file';
-    if (fileType.includes('pdf')) {
-      msgType = 'pdf';
-    } else if (fileType.includes('image')) {
-      msgType = 'image';
-    } else if (fileType.includes('video')) {
-      msgType = 'video';
-    }
-
-    const formData = new FormData();
-    formData.append('media', file);
-    formData.append('appointmentId', appointmentId);
-    formData.append('type', msgType);
-
-    setUploading(true);
-    try {
-      const res = await fetch('/api/messages/upload', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: formData
-      });
-      const data = await res.json();
-      if (res.ok) {
-        socketRef.current.emit('send-message', {
-          appointmentId,
-          type: msgType,
-          content: file.name,
-          fileUrl: data.fileUrl
-        });
-      } else {
-        alert(data.message || 'File upload failed.');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Upload failed.');
-    } finally {
-      setUploading(false);
-    }
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    setShowEmojiPicker(false);
+    handleSendMessage(e);
   };
 
   return (
@@ -667,7 +178,9 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
           />
 
           <div>
-            <h4 style={{ color: '#fff', fontSize: '1rem', fontWeight: 700 }}>Dr. {counterpartName.replace('Dr. ', '')}</h4>
+            <h4 style={{ color: '#fff', fontSize: '1rem', fontWeight: 700 }}>
+              {role === 'doctor' ? counterpartName : `Dr. ${counterpartName.replace(/^Dr\.\s*/, '')}`}
+            </h4>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
               {counterpartPresence.online ? (
                 <>
@@ -676,9 +189,7 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
                 </>
               ) : (
                 <span>
-                  {counterpartPresence.lastSeen 
-                    ? `Last seen ${new Date(counterpartPresence.lastSeen).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` 
-                    : 'Offline'}
+                  {formatLastSeen(counterpartPresence.lastSeen)}
                 </span>
               )}
             </div>
@@ -741,18 +252,48 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
                       <img 
                         src={m.fileUrl} 
                         alt="Attachment" 
-                        style={{ maxWidth: '100%', borderRadius: '8px', maxHeight: '200px', objectFit: 'cover' }}
+                        onClick={() => setFullscreenImageUrl(m.fileUrl)}
+                        style={{ maxWidth: '100%', borderRadius: '8px', maxHeight: '200px', objectFit: 'cover', cursor: 'pointer', transition: 'opacity 0.2s' }}
+                        onMouseEnter={(e) => e.target.style.opacity = 0.85}
+                        onMouseLeave={(e) => e.target.style.opacity = 1}
                       />
                     </div>
                   )}
 
                   {m.messageType === 'video' && (
-                    <div style={{ marginBottom: '6px' }}>
+                    <div style={{ marginBottom: '6px', position: 'relative', overflow: 'hidden', borderRadius: '8px' }}>
                       <video 
                         src={m.fileUrl} 
                         controls
-                        style={{ maxWidth: '100%', borderRadius: '8px', maxHeight: '240px', background: '#000' }}
+                        style={{ maxWidth: '100%', borderRadius: '8px', maxHeight: '240px', background: '#000', display: 'block' }}
                       />
+                      <button
+                        type="button"
+                        onClick={() => setFullscreenImageUrl(m.fileUrl)}
+                        title="View Fullscreen"
+                        style={{
+                          position: 'absolute',
+                          top: '8px',
+                          right: '8px',
+                          background: 'rgba(5, 6, 12, 0.75)',
+                          border: '1px solid var(--card-border)',
+                          color: '#fff',
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: '6px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          opacity: 0.8,
+                          transition: 'opacity 0.2s',
+                          zIndex: 5
+                        }}
+                        onMouseEnter={(e) => e.target.style.opacity = 1}
+                        onMouseLeave={(e) => e.target.style.opacity = 0.8}
+                      >
+                        <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>⛶</span>
+                      </button>
                     </div>
                   )}
 
@@ -836,10 +377,27 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
               );
             })}
 
-            {/* Typing status check */}
+            {/* Animating Typing Status Bubble (WhatsApp style) */}
             {counterpartTyping && (
-              <div style={{ alignSelf: 'flex-start', background: 'rgba(255,255,255,0.01)', padding: '8px 14px', borderRadius: '12px', color: 'var(--text-muted)', fontSize: '0.78rem', fontStyle: 'italic' }}>
-                {role === 'doctor' ? 'Patient' : 'Doctor'} is typing...
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', alignSelf: 'flex-start', margin: '4px 0', animation: 'fadeIn 0.2s ease-out' }}>
+                <img 
+                  src={counterpartPhoto || `https://api.dicebear.com/7.x/adventurer/svg?seed=${counterpartName}`} 
+                  alt={counterpartName} 
+                  style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--card-border)' }} 
+                />
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid var(--card-border)',
+                  borderRadius: '16px 16px 16px 4px',
+                  padding: '12px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px'
+                }}>
+                  <span className="dot-blink" style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--text-muted)', display: 'inline-block', animation: 'typingBlink 1.4s infinite both', animationDelay: '0.s' }} />
+                  <span className="dot-blink" style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--text-muted)', display: 'inline-block', animation: 'typingBlink 1.4s infinite both', animationDelay: '0.2s' }} />
+                  <span className="dot-blink" style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--text-muted)', display: 'inline-block', animation: 'typingBlink 1.4s infinite both', animationDelay: '0.4s' }} />
+                </div>
               </div>
             )}
 
@@ -848,62 +406,124 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
 
           {/* Bottom Chat input bar */}
           {!isExpired && (
-            <form onSubmit={handleSendMessage} style={{ background: 'rgba(7, 9, 19, 0.9)', borderTop: '1px solid var(--card-border)', padding: '16px 20px', display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <form onSubmit={handleFormSubmit} style={{ background: 'rgba(7, 9, 19, 0.9)', borderTop: '1px solid var(--card-border)', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               
-              <input 
-                type="file" 
-                ref={fileInputRef}
-                style={{ display: 'none' }}
-                accept=".png,.jpg,.jpeg,.pdf,.mp4,.webm,.mov,.avi"
-                onChange={handleAttachmentUpload}
-              />
-              
-              <button
-                type="button"
-                disabled={uploading}
-                onClick={() => fileInputRef.current?.click()}
-                style={{ background: 'none', border: 'none', color: uploading ? 'var(--secondary-neon)' : 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}
-              >
-                <Paperclip size={20} />
-              </button>
+              {/* Attachment Preview panel */}
+              {selectedFile && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '12px', position: 'relative', animation: 'fadeIn 0.2s ease-out' }}>
+                  {filePreviewUrl ? (
+                    <img src={filePreviewUrl} alt="Preview" style={{ width: '56px', height: '56px', borderRadius: '8px', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ width: '56px', height: '56px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <FileText size={24} style={{ color: 'var(--primary-neon)' }} />
+                    </div>
+                  )}
+                  <div style={{ flex: 1, overflow: 'hidden' }}>
+                    <p style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {selectedFile.name}
+                    </p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
+                      {(selectedFile.size / 1024).toFixed(1)} KB
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleClearSelectedFile}
+                    disabled={uploading}
+                    style={{ background: 'rgba(255,255,255,0.05)', border: 'none', color: 'rgba(255,255,255,0.6)', width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
+                  >
+                    <X size={14} />
+                  </button>
+                  
+                  {uploading && (
+                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(5,6,12,0.85)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                      <div className="spin-anim" style={{ width: '16px', height: '16px', border: '2px solid var(--primary-neon)', borderTopColor: 'transparent', borderRadius: '50%' }} />
+                      <span style={{ fontSize: '0.78rem', color: 'var(--primary-neon)', fontWeight: 600 }}>Uploading file...</span>
+                    </div>
+                  )}
+                </div>
+              )}
 
-              <input
-                type="text"
-                value={messageText}
-                onChange={handleTyping}
-                placeholder="Type your message..."
-                style={{
-                  flex: 1,
-                  background: 'rgba(0,0,0,0.3)',
-                  border: '1px solid var(--card-border)',
-                  borderRadius: '10px',
-                  padding: '12px 16px',
-                  color: '#fff',
-                  fontSize: '0.85rem',
-                  outline: 'none',
-                  fontFamily: 'inherit'
-                }}
-              />
+              {/* Main Inputs row */}
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', width: '100%', position: 'relative' }} ref={emojiPickerRef}>
+                <input 
+                  type="file" 
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                  accept=".png,.jpg,.jpeg,.pdf,.mp4,.webm,.mov,.avi"
+                  onChange={handleAttachmentUpload}
+                />
+                
+                <button
+                  type="button"
+                  disabled={uploading}
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{ background: 'none', border: 'none', color: uploading ? 'var(--secondary-neon)' : 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}
+                >
+                  <Paperclip size={20} />
+                </button>
 
-              <button
-                type="submit"
-                disabled={!messageText.trim()}
-                style={{
-                  background: messageText.trim() ? 'var(--primary-neon)' : 'rgba(255,255,255,0.03)',
-                  border: 'none',
-                  color: messageText.trim() ? '#000' : 'var(--text-muted)',
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '10px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: messageText.trim() ? 'pointer' : 'default',
-                  transition: 'all 0.2s'
-                }}
-              >
-                <Send size={16} />
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  style={{ background: 'none', border: 'none', color: showEmojiPicker ? 'var(--primary-neon)' : 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}
+                >
+                  <Smile size={20} />
+                </button>
+
+                {/* Emoji Picker Popover */}
+                {showEmojiPicker && (
+                  <div style={{ position: 'absolute', bottom: '50px', left: '0', zIndex: 110, boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
+                    <EmojiPicker 
+                      theme="dark"
+                      onEmojiClick={(emojiData) => {
+                        setMessageText(prev => prev + emojiData.emoji);
+                      }}
+                      height={350}
+                      width={320}
+                    />
+                  </div>
+                )}
+
+                <input
+                  type="text"
+                  value={messageText}
+                  onChange={handleTyping}
+                  disabled={uploading}
+                  placeholder={selectedFile ? "Add a caption..." : "Type your message..."}
+                  style={{
+                    flex: 1,
+                    background: 'rgba(0,0,0,0.3)',
+                    border: '1px solid var(--card-border)',
+                    borderRadius: '10px',
+                    padding: '12px 16px',
+                    color: '#fff',
+                    fontSize: '0.85rem',
+                    outline: 'none',
+                    fontFamily: 'inherit'
+                  }}
+                />
+
+                <button
+                  type="submit"
+                  disabled={!messageText.trim() && !selectedFile}
+                  style={{
+                    background: (messageText.trim() || selectedFile) ? 'var(--primary-neon)' : 'rgba(255,255,255,0.03)',
+                    border: 'none',
+                    color: (messageText.trim() || selectedFile) ? '#000' : 'var(--text-muted)',
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: (messageText.trim() || selectedFile) ? 'pointer' : 'default',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <Send size={16} />
+                </button>
+              </div>
 
             </form>
           )}
@@ -939,7 +559,7 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
                 <div>
                   <h3 style={{ fontSize: '1.4rem', color: '#fff', fontWeight: 800 }}>Incoming {callType === 'video' ? 'Video' : 'Voice'} Call</h3>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginTop: '6px' }}>
-                    Dr. {incomingCallData.callerName.replace('Dr. ', '')} is calling...
+                    {role === 'doctor' ? incomingCallData.callerName : `Dr. ${incomingCallData.callerName.replace(/^Dr\.\s*/, '')}`} is calling...
                   </p>
                 </div>
                 
@@ -973,74 +593,71 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
                 <div>
                   <h3 style={{ fontSize: '1.4rem', color: '#fff', fontWeight: 800 }}>Ringing...</h3>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginTop: '6px' }}>
-                    Calling Dr. {counterpartName.replace('Dr. ', '')}
+                    Calling {role === 'doctor' ? counterpartName : `Dr. ${counterpartName.replace(/^Dr\.\s*/, '')}`}
                   </p>
                 </div>
                 <button 
                   onClick={handleEndCall}
-                  style={{ background: 'var(--accent-alert)', border: 'none', color: '#fff', padding: '12px 28px', borderRadius: '30px', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                  style={{ background: 'var(--accent-alert)', border: 'none', color: '#fff', width: '56px', height: '56px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(244, 63, 94, 0.3)' }}
                 >
-                  <PhoneOff size={16} />
-                  Cancel
+                  <PhoneOff size={24} />
                 </button>
               </div>
             )}
 
-            {/* Connected call streaming UI console */}
+            {/* Connected Consult stream active call view overlay */}
             {callState === 'connected' && (
-              <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative' }}>
                 
-                {/* Timer Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#fff', padding: '0 8px' }}>
-                  <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                    ACTIVE CONSULTATION • {callType.toUpperCase()} CALL
-                  </span>
-                  <span style={{ fontSize: '1rem', color: 'var(--accent-alert)', fontWeight: 800, fontFamily: 'Outfit' }}>
-                    {formatCallTime(callDuration)}
-                  </span>
-                </div>
-
-                {/* Video Streams Grid */}
-                <div style={{ flex: 1, display: 'grid', gridTemplateColumns: callType === 'video' ? '1fr 1fr' : '1fr', gap: '16px', position: 'relative' }}>
-                  {callType === 'video' ? (
-                    <>
-                      {/* Local Cam View */}
-                      <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--card-border)', background: '#000' }}>
-                        <video 
-                          ref={localVideoRef} 
-                          autoPlay 
-                          muted 
-                          playsInline 
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
-                        <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(0,0,0,0.5)', padding: '4px 8px', borderRadius: '6px', fontSize: '0.7rem' }}>
-                          You {isScreenSharing ? '(Screen Sharing)' : ''}
-                        </div>
+                {/* Visual Video feeds */}
+                {callType === 'video' ? (
+                  <div style={{ flex: 1, display: 'flex', gap: '16px', minHeight: 0, position: 'relative' }}>
+                    
+                    {/* Remote screen */}
+                    <div style={{ flex: 1, background: '#1c1917', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--card-border)', position: 'relative' }}>
+                      <video 
+                        ref={remoteVideoRef} 
+                        autoPlay 
+                        playsInline 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                      <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(0,0,0,0.5)', padding: '4px 8px', borderRadius: '6px', fontSize: '0.7rem' }}>
+                        {role === 'doctor' ? counterpartName : `Dr. ${counterpartName.replace(/^Dr\.\s*/, '')}`}
                       </div>
-
-                      {/* Remote Cam View */}
-                      <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--card-border)', background: '#000' }}>
-                        <video 
-                          ref={remoteVideoRef} 
-                          autoPlay 
-                          playsInline 
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
-                        <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(0,0,0,0.5)', padding: '4px 8px', borderRadius: '6px', fontSize: '0.7rem' }}>
-                          Dr. {counterpartName.replace('Dr. ', '')}
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    // Voice Call placeholder card
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyValue: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.01)', borderRadius: '12px', border: '1px solid var(--card-border)' }}>
-                      <div style={{ width: '96px', height: '96px', borderRadius: '50%', background: 'rgba(6, 182, 212, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
-                        <Phone size={36} style={{ color: 'var(--primary-neon)' }} />
-                      </div>
-                      <h4 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 700 }}>Dr. {counterpartName.replace('Dr. ', '')}</h4>
-                      <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '6px' }}>Voice streaming active...</p>
                     </div>
-                  )}
+
+                    {/* Local picture-in-picture stream */}
+                    <div style={{ width: '160px', height: '120px', background: '#292524', borderRadius: '12px', overflow: 'hidden', border: '2px solid var(--primary-neon)', position: 'absolute', top: '16px', right: '16px', zIndex: 10 }}>
+                      <video 
+                        ref={localVideoRef} 
+                        autoPlay 
+                        playsInline 
+                        muted 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                      <div style={{ position: 'absolute', bottom: '6px', left: '6px', background: 'rgba(0,0,0,0.5)', padding: '2px 4px', borderRadius: '4px', fontSize: '0.55rem' }}>
+                        You
+                      </div>
+                    </div>
+
+                  </div>
+                ) : (
+                  // Voice Stream UI
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: '96px', height: '96px', borderRadius: '50%', background: 'rgba(6, 182, 212, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                      <Phone size={36} style={{ color: 'var(--primary-neon)' }} />
+                    </div>
+                    <h4 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 700 }}>
+                      {role === 'doctor' ? counterpartName : `Dr. ${counterpartName.replace(/^Dr\.\s*/, '')}`}
+                    </h4>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '6px' }}>Voice streaming active...</p>
+                  </div>
+                )}
+
+                {/* Call Header info: timer duration */}
+                <div style={{ position: 'absolute', top: '16px', left: '16px', background: 'rgba(0,0,0,0.6)', padding: '8px 16px', borderRadius: '20px', border: '1px solid var(--card-border)', display: 'flex', alignItems: 'center', gap: '8px', zIndex: 5 }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-alert)', display: 'inline-block' }} />
+                  <span style={{ fontSize: '0.78rem', color: '#fff', fontWeight: 600 }}>{formatCallTime(callDuration)}</span>
                 </div>
 
                 {/* Stream media control panel buttons */}
@@ -1086,6 +703,86 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
         )}
 
       </div>
+ 
+      {/* 🖼️ Fullscreen Media Lightbox Modal */}
+      {fullscreenImageUrl && (() => {
+        const isVideo = fullscreenImageUrl.includes('/video/') || 
+                        fullscreenImageUrl.endsWith('.mp4') || 
+                        fullscreenImageUrl.endsWith('.webm') || 
+                        fullscreenImageUrl.endsWith('.mov') || 
+                        fullscreenImageUrl.endsWith('.avi');
+        return (
+          <div 
+            onClick={() => setFullscreenImageUrl(null)}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              background: 'rgba(5, 6, 12, 0.95)',
+              zIndex: 1000,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'zoom-out',
+              animation: 'fadeIn 0.25s ease-out'
+            }}
+          >
+            <button
+              onClick={() => setFullscreenImageUrl(null)}
+              style={{
+                position: 'absolute',
+                top: '24px',
+                right: '24px',
+                background: 'rgba(255,255,255,0.1)',
+                border: 'none',
+                color: '#fff',
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                zIndex: 1001
+              }}
+            >
+              <X size={20} />
+            </button>
+            {isVideo ? (
+              <video 
+                src={fullscreenImageUrl} 
+                controls
+                autoPlay
+                style={{
+                  maxWidth: '90%',
+                  maxHeight: '90%',
+                  borderRadius: '8px',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                  cursor: 'default',
+                  background: '#000'
+                }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            ) : (
+              <img 
+                src={fullscreenImageUrl} 
+                alt="Fullscreen Attachment" 
+                style={{
+                  maxWidth: '90%',
+                  maxHeight: '90%',
+                  objectFit: 'contain',
+                  borderRadius: '8px',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                  cursor: 'default'
+                }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            )}
+          </div>
+        );
+      })()}
 
       <style dangerouslySetInnerHTML={{
         __html: `
@@ -1096,6 +793,14 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
         }
         .ring-anim {
           animation: ring 1.5s infinite;
+        }
+        @keyframes typingBlink {
+          0% { opacity: 0.2; transform: scale(1); }
+          20% { opacity: 1; transform: scale(1.2); }
+          100% { opacity: 0.2; transform: scale(1); }
+        }
+        .dot-blink {
+          animation: typingBlink 1.4s infinite both;
         }
       `}} />
     </div>

@@ -244,12 +244,12 @@ exports.getPatientDashboard = async (req, res) => {
     })
       .populate({
         path: 'doctorId',
-        select: 'name specialization consultationFee activeHours profileImage'
+        select: 'name specialization consultationFee activeHours profileImage isOnline lastSeen'
       })
       // Legacy path populate compatibility
       .populate({
         path: 'doctor',
-        select: 'name specialization consultationFee activeHours profileImage'
+        select: 'name specialization consultationFee activeHours profileImage isOnline lastSeen'
       })
       .sort({ appointmentDate: 1, slotTime: 1 });
 
@@ -274,8 +274,8 @@ exports.getDoctorDashboard = async (req, res) => {
       doctorId,
       paymentStatus: 'paid'
     })
-      .populate('patientId', 'name email phone profileImage')
-      .populate('patient', 'name email phone profileImage')
+      .populate('patientId', 'name email phone profileImage isOnline lastSeen')
+      .populate('patient', 'name email phone profileImage isOnline lastSeen')
       .sort({ appointmentDate: 1, slotTime: 1 });
 
     res.status(200).json({

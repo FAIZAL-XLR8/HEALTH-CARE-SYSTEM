@@ -77,6 +77,7 @@ router.get('/admin/doctors', protect, isAdmin, adminController.getPendingDoctors
 router.post('/admin/doctors/:doctorId/approve', protect, isAdmin, adminController.approveDoctor);
 router.post('/admin/doctors/:doctorId/reject', protect, isAdmin, adminController.rejectDoctor);
 router.post('/admin/doctors/:doctorId/suspend', protect, isAdmin, adminController.suspendDoctor);
+router.get('/admin/suspend-form/:doctorId', adminController.getSuspendForm);
 
 module.exports = router;
 

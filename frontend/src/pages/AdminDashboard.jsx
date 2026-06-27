@@ -7,9 +7,21 @@ const AdminDashboard = ({ token }) => {
   const [error, setError] = useState('');
   const [rejectionReasons, setRejectionReasons] = useState({});
   const [showRejectInput, setShowRejectInput] = useState({});
+  const [showSuspendInput, setShowSuspendInput] = useState({});
+  const [suspensionReasons, setSuspensionReasons] = useState({});
 
   useEffect(() => {
     fetchDoctors();
+  }, [token]);
+
+  useEffect(() => {
+    const handleMessage = (e) => {
+      if (e.data === 'doctor-suspended') {
+        fetchDoctors();
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
   }, [token]);
 
   const fetchDoctors = async () => {
@@ -89,7 +101,12 @@ const AdminDashboard = ({ token }) => {
     }
   };
 
-  const handleSuspend = async (doctorId) => {
+  const handleSuspendSubmit = async (doctorId) => {
+    const reason = suspensionReasons[doctorId];
+    if (!reason || !reason.trim()) {
+      alert('Please enter a suspension reason.');
+      return;
+    }
     if (!window.confirm('Are you sure you want to suspend this doctor account? They will lose access immediately.')) return;
     try {
       const res = await fetch(`/api/admin/doctors/${doctorId}/suspend`, {
@@ -97,11 +114,14 @@ const AdminDashboard = ({ token }) => {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({ suspensionReason: reason.trim() })
       });
       const data = await res.json();
       if (res.ok) {
-        alert('Doctor account suspended.');
+        alert('Doctor account suspended and notification email sent.');
+        setSuspensionReasons(prev => ({ ...prev, [doctorId]: '' }));
+        setShowSuspendInput(prev => ({ ...prev, [doctorId]: false }));
         fetchDoctors();
       } else {
         alert(data.message || 'Failed to suspend doctor.');
@@ -194,7 +214,6 @@ const AdminDashboard = ({ token }) => {
                     doc={doc} 
                     onApprove={handleApprove}
                     onRejectSubmit={handleRejectSubmit}
-                    onSuspend={handleSuspend}
                     rejectionReason={rejectionReasons[doc._id] || ''}
                     setRejectionReason={(val) => setRejectionReasons(prev => ({ ...prev, [doc._id]: val }))}
                     showRejectInput={showRejectInput[doc._id]}
@@ -217,7 +236,11 @@ const AdminDashboard = ({ token }) => {
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                 {activeDocs.map(doc => (
-                  <DoctorCardMini key={doc._id} doc={doc} onSuspend={handleSuspend} />
+                  <DoctorCardMini 
+                    key={doc._id} 
+                    doc={doc} 
+                    token={token}
+                  />
                 ))}
               </div>
             )}
@@ -438,7 +461,7 @@ const DoctorCard = ({ doc, onApprove, onRejectSubmit, rejectionReason, setReject
 };
 
 // Mini approved doctor card
-const DoctorCardMini = ({ doc, onSuspend }) => {
+const DoctorCardMini = ({ doc, token }) => {
   return (
     <div className="glass-panel" style={{
       padding: '16px',
@@ -461,7 +484,7 @@ const DoctorCardMini = ({ doc, onSuspend }) => {
         </div>
       </div>
       <button
-        onClick={() => onSuspend(doc._id)}
+        onClick={() => window.open(`/api/admin/suspend-form/${doc._id}?token=${token}`, '_blank', 'width=600,height=550')}
         style={{
           background: 'none',
           border: '1px solid rgba(234, 179, 8, 0.3)',
@@ -513,8 +536,8 @@ const DoctorCardArchive = ({ doc, type, onApprove }) => {
         </button>
       </div>
       <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Specialty: {doc.specialization}</span>
-      {type === 'rejected' && doc.rejectionReason && (
-        <span style={{ fontSize: '0.7rem', color: 'var(--accent-alert)', background: 'rgba(244,63,94,0.05)', padding: '4px 8px', borderRadius: '4px' }}>
+      {doc.rejectionReason && (
+        <span style={{ fontSize: '0.7rem', color: type === 'rejected' ? 'var(--accent-alert)' : '#eab308', background: type === 'rejected' ? 'rgba(244,63,94,0.05)' : 'rgba(234,179,8,0.05)', padding: '4px 8px', borderRadius: '4px' }}>
           <strong>Reason:</strong> "{doc.rejectionReason}"
         </span>
       )}

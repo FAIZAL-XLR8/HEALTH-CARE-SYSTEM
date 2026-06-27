@@ -41,6 +41,14 @@ const userSchema = new mongoose.Schema({
     enum: ['patient', 'admin'],
     default: 'patient',
   },
+  isOnline: {
+    type: Boolean,
+    default: false,
+  },
+  lastSeen: {
+    type: Date,
+    default: Date.now,
+  },
   lifestyleProfile: {
     sleepingHours: { type: Number, default: 7 },
     sleepTime: { type: String, default: "11:00 PM" },

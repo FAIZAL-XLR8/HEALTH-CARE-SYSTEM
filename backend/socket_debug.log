@@ -281,3 +281,11 @@
 [Send Message Try] userId: 6a3e1e34306bc7ab887cf437, role: patient, appointmentId: 6a3fe0a9917d0937ee147a63, content: aman haraami
 [Disconnect Debug] userId: 6a3f8127292951f71fccd4dc, role: doctor
 [Disconnect Debug] userId: 6a3e1e34306bc7ab887cf437, role: patient
+[Connection Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Join Room Start] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a409bdf656b0cbc49d84a7b
+[Join Room Try] userId: 6a4006d19d3d38c4714277c6, role: patient, patientId: 6a4006d19d3d38c4714277c6, doctorId: 6a3d02bbc109a3303468930f, isPatient: true, isDoctor: false
+[Disconnect Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Connection Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Join Room Start] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a409bdf656b0cbc49d84a7b
+[Join Room Try] userId: 6a4006d19d3d38c4714277c6, role: patient, patientId: 6a4006d19d3d38c4714277c6, doctorId: 6a3d02bbc109a3303468930f, isPatient: true, isDoctor: false
+[Disconnect Debug] userId: 6a4006d19d3d38c4714277c6, role: patient

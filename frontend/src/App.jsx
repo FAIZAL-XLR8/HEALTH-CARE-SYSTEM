@@ -306,6 +306,56 @@ function App() {
 
       </main>
 
+      {/* Footer */}
+      <footer style={{ width: '100%', backgroundColor: 'var(--bg-dark)', borderTop: '1px solid rgba(255, 255, 255, 0.05)', padding: '48px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
+        <div style={{ maxWidth: '1100px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '32px', boxSizing: 'border-box' }}>
+          
+          {/* Text Links */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', columnGap: '32px', rowGap: '16px', width: '100%' }}>
+            <a href="#" className="text-sm text-slate-400 hover:text-cyan-400 transition-colors duration-200">About</a>
+            <a href="#" className="text-sm text-slate-400 hover:text-cyan-400 transition-colors duration-200">Blog</a>
+            <a href="#" className="text-sm text-slate-400 hover:text-cyan-400 transition-colors duration-200">Jobs</a>
+            <a href="#" className="text-sm text-slate-400 hover:text-cyan-400 transition-colors duration-200">Press</a>
+            <a href="#" className="text-sm text-slate-400 hover:text-cyan-400 transition-colors duration-200">Accessibility</a>
+            <a href="#" className="text-sm text-slate-400 hover:text-cyan-400 transition-colors duration-200">Partners</a>
+          </div>
+
+          {/* Social Icons */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', width: '100%', alignItems: 'center' }}>
+            <a href="#" className="text-slate-400 hover:text-cyan-400 transition-colors duration-200" aria-label="Facebook">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" />
+              </svg>
+            </a>
+            <a href="#" className="text-slate-400 hover:text-cyan-400 transition-colors duration-200" aria-label="Instagram">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path fillRule="evenodd" d="M12.315 2c2.43 0 2.784.008 3.81.055.97.044 1.5.206 1.85.342.463.18.792.395 1.14.743.347.348.563.677.742 1.14.136.35.298.88.342 1.85.047 1.026.055 1.38.055 3.81s-.008 2.784-.055 3.81c-.044.97-.206 1.5-.342 1.85-.18.463-.395.792-.743 1.14-.348.347-.677.563-1.14.742-.35.136-.88.298-1.85.342-1.026.047-1.38.055-3.81.055s-2.784-.008-3.81-.055c-.97-.044-1.5-.206-1.85-.342-.463-.18-.792-.395-1.14-.743-.347-.348-.563-.677-.742-1.14-.136-.35-.298-.88-.342-1.85C2.008 15.018 2 14.664 2 12.315s.008-2.784.055-3.81c.044-.97.206-1.5.342-1.85.18-.463.395-.792.743-1.14.348-.347.677-.563 1.14-.742.35-.136.88-.298 1.85-.342 1.026-.047 1.38-.055 3.81-.055zM12 7.18a4.82 4.82 0 100 9.64 4.82 4.82 0 000-9.64zm0 2A2.82 2.82 0 1112 14.82 2.82 2.82 0 0112 9.18zM17.806 6.193a.96.96 0 10-1.92 0 .96.96 0 001.92 0z" clipRule="evenodd" />
+              </svg>
+            </a>
+            <a href="#" className="text-slate-400 hover:text-cyan-400 transition-colors duration-200" aria-label="X (formerly Twitter)">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+            </a>
+            <a href="#" className="text-slate-400 hover:text-cyan-400 transition-colors duration-200" aria-label="GitHub">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
+              </svg>
+            </a>
+            <a href="#" className="text-slate-400 hover:text-cyan-400 transition-colors duration-200" aria-label="YouTube">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path fillRule="evenodd" d="M19.812 5.418c.861.23 1.538.907 1.768 1.768C21.998 8.746 22 12 22 12s0 3.255-.42 4.814c-.23.861-.907 1.538-1.768 1.768C18.256 19 12 19 12 19s-6.256 0-7.812-.418c-.861-.23-1.538-.907-1.768-1.768C2 15.254 2 12 2 12s0-3.255.418-4.814c.23-.861.907-1.538 1.768-1.768C5.744 5 12 5 12 5s6.256 0 7.812.418zM9.545 15.568L15 12 9.545 8.432v7.136z" clipRule="evenodd" />
+              </svg>
+            </a>
+          </div>
+
+          {/* Copyright */}
+          <p style={{ fontSize: '0.75rem', color: '#64748b', textAlign: 'center', margin: '8px 0 0 0' }}>
+            &copy; {new Date().getFullYear()} AeroHealth, Inc. All rights reserved.
+          </p>
+        </div>
+      </footer>
+
       {/* 🤖 Floating Action AI Assistant Trigger */}
       {activePage === 'home' && (
         <button 

@@ -129,12 +129,12 @@ const executeCronDailyScrape = async () => {
     const entDoctors = await scrapeLybrateDoctors('Jamshedpur', 'ENT');
     for (const doc of entDoctors) {
       await Doctor.findOneAndUpdate(
-        { name: new RegExp('^' + doc.name + '$', 'i'), specialty: 'ENT' },
+        { name: new RegExp('^' + doc.name + '$', 'i'), specialization: 'ENT' },
         { 
           $set: { 
             scrapedRating: doc.rating, 
-            fee: doc.fee,
-            experience: doc.experience,
+            consultationFee: doc.fee,
+            experienceYears: doc.experience,
             clinicName: doc.clinicName
           } 
         }
@@ -145,12 +145,12 @@ const executeCronDailyScrape = async () => {
     const cardDoctors = await scrapeLybrateDoctors('Bengaluru', 'Cardiologist');
     for (const doc of cardDoctors) {
       await Doctor.findOneAndUpdate(
-        { name: new RegExp('^' + doc.name + '$', 'i'), specialty: 'Cardiologist' },
+        { name: new RegExp('^' + doc.name + '$', 'i'), specialization: 'Cardiologist' },
         { 
           $set: { 
             scrapedRating: doc.rating, 
-            fee: doc.fee,
-            experience: doc.experience,
+            consultationFee: doc.fee,
+            experienceYears: doc.experience,
             clinicName: doc.clinicName
           } 
         }

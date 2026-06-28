@@ -299,7 +299,7 @@ exports.chatTriage = async (req, res) => {
             distanceField: 'distanceInMeters',
             maxDistance: searchRadius,
             spherical: true,
-            query: { specialty: { $regex: new RegExp(specialty, 'i') } },
+            query: { specialization: { $regex: new RegExp(specialty, 'i') } },
           },
         },
       ]);
@@ -311,19 +311,33 @@ exports.chatTriage = async (req, res) => {
 
           if (scrapedDocs && scrapedDocs.length > 0) {
             const insertPromises = scrapedDocs.map(async (doc) => {
-              const exists = await Doctor.findOne({ name: doc.name, specialty: doc.specialty });
+              const exists = await Doctor.findOne({
+                name: { $regex: new RegExp('^' + doc.name.trim() + '$', 'i') },
+                specialization: { $regex: new RegExp('^' + doc.specialty.trim() + '$', 'i') }
+              });
               if (!exists) {
                 const offsetLng = (Math.random() - 0.5) * 0.05;
                 const offsetLat = (Math.random() - 0.5) * 0.05;
+                const uniqueSlug = `${doc.name.toLowerCase().replace(/[^a-z]/g, '')}_${Date.now()}`;
+                const mockPhone = `+919${Math.floor(100000000 + Math.random() * 900000000)}`;
 
                 return Doctor.create({
                   name: doc.name,
-                  specialty: doc.specialty,
-                  experience: doc.experience || 10,
+                  email: `${uniqueSlug}@health.com`,
+                  password: 'default_scraped_password_123',
+                  phone: mockPhone,
+                  specialization: doc.specialty,
+                  experienceYears: doc.experience || 10,
                   clinicName: doc.clinicName || 'Metro Health Clinic',
-                  fee: doc.fee || 500,
+                  consultationFee: doc.fee || 500,
                   googleRating: null,
                   scrapedRating: doc.rating,
+                  isOnline: false,
+                  lastSeen: new Date(),
+                  status: 'approved',
+                  isVerified: true,
+                  emailVerified: true,
+                  phoneVerified: true,
                   location: {
                     type: 'Point',
                     coordinates: [userLng + offsetLng, userLat + offsetLat],
@@ -345,7 +359,7 @@ exports.chatTriage = async (req, res) => {
                   distanceField: 'distanceInMeters',
                   maxDistance: searchRadius,
                   spherical: true,
-                  query: { specialty: { $regex: new RegExp(specialty, 'i') } },
+                  query: { specialization: { $regex: new RegExp(specialty, 'i') } },
                 },
               },
             ]);
@@ -360,10 +374,13 @@ exports.chatTriage = async (req, res) => {
         return {
           doctorId: doc._id,
           name: doc.name,
-          specialty: doc.specialty,
-          experience: doc.experience,
+          specialty: doc.specialization,
+          specialization: doc.specialization,
+          experience: doc.experienceYears,
+          experienceYears: doc.experienceYears,
           clinicName: doc.clinicName,
-          fee: doc.fee,
+          fee: doc.consultationFee,
+          consultationFee: doc.consultationFee,
           scrapedRating: doc.scrapedRating,
           coordinates: doc.location.coordinates,
           distanceKm: distanceInKm,

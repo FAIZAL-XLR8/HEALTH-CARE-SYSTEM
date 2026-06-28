@@ -1,5 +1,31 @@
 import React, { useState } from 'react';
 import { Upload, AlertOctagon, Heart, BrainCircuit, Activity, Calendar, ArrowRight, Loader } from 'lucide-react';
+import reportBg from '../assets/report.jpg';
+import { motion } from 'framer-motion';
+
+// Framer Motion variants — same pattern as Home.jsx
+const containerVariants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.15 },
+  },
+};
+
+const headingVariants = {
+  hidden: { opacity: 0, y: 25 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+};
+
+const descriptionVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 30, scale: 0.98 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.7, ease: 'easeOut' } },
+  hover: { y: -6, transition: { duration: 0.25, ease: 'easeInOut' } },
+};
 
 const ReportAnalyzer = ({ onSearchDoctor, token, onOpenAuth }) => {
   const [file, setFile] = useState(null);
@@ -51,24 +77,52 @@ const ReportAnalyzer = ({ onSearchDoctor, token, onOpenAuth }) => {
   };
 
   return (
-    <div style={{ maxWidth: '800px', margin: '40px auto', padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '30px' }}>
-      
+    <div className="relative min-h-screen w-full overflow-hidden bg-slate-950">
+      {/* Background Image */}
+      <img
+        src={reportBg}
+        alt="Medical report background"
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0"
+      />
+
+      {/* Dark Overlay */}
+      <div className="absolute inset-0 bg-black/30 z-0"></div>
+
+      {/* Gradient fade to dark */}
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/60 to-slate-950 z-0"></div>
+
+      {/* Content */}
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        style={{ maxWidth: '800px', margin: '0 auto', padding: '40px 24px', display: 'flex', flexDirection: 'column', gap: '30px', position: 'relative', zIndex: 10 }}
+      >
+
       {/* Header Banner */}
-      <section style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <h2 style={{ fontSize: '2rem', color: '#fff', fontWeight: 800 }}>
+      <motion.section
+        variants={containerVariants}
+        style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '10px' }}
+      >
+        <motion.h2 variants={headingVariants} style={{ fontSize: '2rem', color: '#fff', fontWeight: 800 }}>
           Multimodal AI Laboratory Report Locker
-        </h2>
-        <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+        </motion.h2>
+        <motion.p variants={descriptionVariants} style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
           Drop any diagnostic PDF or image (CBC, Lipid Panel, Thyroid) and let Gemini read, analyze, and map your metrics instantly.
-        </p>
-      </section>
+        </motion.p>
+      </motion.section>
 
       {/* Main Console */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
         
         {/* Lockscreen Panel for Unauthenticated Users */}
         {!token && (
-          <div className="glass-panel" style={{ padding: '50px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px', textAlign: 'center' }}>
+          <motion.div
+            variants={cardVariants}
+            whileHover="hover"
+            className="glass-panel"
+            style={{ padding: '50px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px', textAlign: 'center' }}
+          >
             <div style={{ background: 'rgba(244, 63, 94, 0.1)', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
               <Upload style={{ color: 'var(--accent-alert)' }} size={28} />
             </div>
@@ -94,12 +148,18 @@ const ReportAnalyzer = ({ onSearchDoctor, token, onOpenAuth }) => {
             >
               Login / Sign Up
             </button>
-          </div>
+          </motion.div>
         )}
 
         {/* Upload Container Panel */}
         {token && !analysis && (
-          <form onSubmit={handleUploadSubmit} className="glass-panel" style={{ padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px', borderStyle: 'dashed', borderWidth: '2px', borderColor: file ? 'var(--primary-neon)' : 'var(--card-border)' }}>
+          <motion.form
+            variants={cardVariants}
+            whileHover="hover"
+            onSubmit={handleUploadSubmit}
+            className="glass-panel"
+            style={{ padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px', borderStyle: 'dashed', borderWidth: '2px', borderColor: file ? 'var(--primary-neon)' : 'var(--card-border)' }}
+          >
             <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyCenter: 'center', padding: '16px' }}>
               <Upload style={{ color: 'var(--primary-neon)' }} size={28} />
             </div>
@@ -153,12 +213,17 @@ const ReportAnalyzer = ({ onSearchDoctor, token, onOpenAuth }) => {
                 'Trigger AI Analysis'
               )}
             </button>
-          </form>
+          </motion.form>
         )}
 
         {/* 📊 High-End AI Analysis Dashboard Renders */}
         {analysis && (
-          <div className="glass-panel" style={{ padding: '30px', display: 'flex', flexDirection: 'column', gap: '24px', position: 'relative' }}>
+          <motion.div
+            variants={cardVariants}
+            whileHover="hover"
+            className="glass-panel"
+            style={{ padding: '30px', display: 'flex', flexDirection: 'column', gap: '24px', position: 'relative' }}
+          >
             
             {/* Header patient profile info */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--card-border)', paddingBottom: '16px' }}>
@@ -266,7 +331,7 @@ const ReportAnalyzer = ({ onSearchDoctor, token, onOpenAuth }) => {
 
             </div>
 
-          </div>
+          </motion.div>
         )}
 
       </div>
@@ -276,6 +341,7 @@ const ReportAnalyzer = ({ onSearchDoctor, token, onOpenAuth }) => {
           to { transform: rotate(360deg); }
         }
       `}} />
+      </motion.div>
     </div>
   );
 };

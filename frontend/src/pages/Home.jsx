@@ -293,7 +293,7 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
             variants={descriptionVariants}
             style={{ fontSize: '1.05rem', color: 'var(--text-muted)', lineHeight: '1.6' }}
           >
-            A Skyscanner-inspired platform for diagnostic tests and specialized clinics. View real-time deals, locate nearby NABL labs, and consult with Gemini AI assistants.
+            Easily find nearby doctors, specialists, and medical clinics. Compare prices in real-time, locate registered clinics close to you, and consult with our helpful AI health assistants.
           </motion.p>
         </motion.section>
 
@@ -519,232 +519,504 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '80px', marginTop: '40px', width: '100%' }}>
             
-            {/* Feature 1: Report Locker */}
+            {/* Feature 1: Report Analyzer */}
             <motion.div 
               variants={featureCardVariants}
-              whileHover="hover"
-              className="glass-panel" 
-              style={{ padding: '30px 24px', display: 'flex', flexDirection: 'column', gap: '16px', justifyContent: 'space-between' }}
+              style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
+                gap: '50px', 
+                alignItems: 'center',
+                width: '100%',
+                maxWidth: '1100px',
+                margin: '0 auto'
+              }}
             >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '38px', height: '38px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px' }}>
-                    <FileText style={{ color: 'var(--primary-neon)' }} size={20} />
-                  </div>
-                  <span style={{ fontSize: '0.65rem', color: 'var(--primary-neon)', fontWeight: 600, background: 'rgba(6, 182, 212, 0.1)', padding: '4px 8px', borderRadius: '4px', letterSpacing: '0.05em' }}>
-                    GEMINI VISION
-                  </span>
-                </div>
-                <h3 style={{ fontSize: '1.2rem', color: '#fff', fontWeight: 700 }}>AI Laboratory Locker</h3>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
-                  Securely store and analyze complete diagnostic reports. Our LLM parses outliers and tracks metric graphs.
+              {/* Text Info */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <span style={{ 
+                  fontSize: '0.72rem', 
+                  color: 'var(--primary-neon)', 
+                  fontWeight: 700, 
+                  background: 'rgba(6, 182, 212, 0.08)', 
+                  padding: '6px 12px', 
+                  borderRadius: '50px', 
+                  alignSelf: 'flex-start',
+                  letterSpacing: '0.08em',
+                  fontFamily: 'Outfit'
+                }}>
+                  GEMINI VISION AI
+                </span>
+                <h3 style={{ fontSize: '2rem', color: '#fff', fontWeight: 800, fontFamily: 'Outfit', lineHeight: '1.25' }}>
+                  Understand Your Laboratory Reports in Plain English
+                </h3>
+                <p style={{ fontSize: '0.92rem', color: 'var(--text-muted)', lineHeight: '1.7' }}>
+                  Don't get confused by complex numbers and strange medical words. Simply upload any blood test, lab PDF, or paper scan. Our AI translates it into simple language, highlights abnormal values, and explains what they mean for your body.
                 </p>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: 'var(--text-muted)' }}>
+                    <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-neon)', fontWeight: 'bold' }}>✔</div>
+                    Translates diagnostic results into clear, simple summaries.
+                  </li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: 'var(--text-muted)' }}>
+                    <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-neon)', fontWeight: 'bold' }}>✔</div>
+                    Flags alert indicators (like high sugar levels) in bright colors.
+                  </li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: 'var(--text-muted)' }}>
+                    <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-neon)', fontWeight: 'bold' }}>✔</div>
+                    Organizes your health history securely in one place.
+                  </li>
+                </ul>
+                <button 
+                  onClick={() => onNavigate && onNavigate('reports')}
+                  style={{
+                    background: 'var(--primary-neon)',
+                    border: 'none',
+                    color: '#000000',
+                    borderRadius: '50px',
+                    padding: '14px 28px',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    width: 'fit-content',
+                    boxShadow: '0 4px 20px rgba(6, 182, 212, 0.25)',
+                    transition: 'all 0.25s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 24px rgba(6, 182, 212, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 20px rgba(6, 182, 212, 0.25)';
+                  }}
+                >
+                  Analyze My Reports
+                  <ArrowRight size={16} />
+                </button>
               </div>
-              <button 
-                onClick={() => onNavigate && onNavigate('reports')}
-                style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid var(--card-border)',
-                  color: '#fff',
-                  borderRadius: '6px',
-                  padding: '10px 16px',
-                  fontSize: '0.78rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = 'var(--primary-neon)';
-                  e.target.style.color = '#000';
-                  e.target.style.borderColor = 'var(--primary-neon)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = 'rgba(255,255,255,0.03)';
-                  e.target.style.color = '#fff';
-                  e.target.style.borderColor = 'var(--card-border)';
-                }}
-              >
-                Open AI Locker
-                <ArrowRight size={14} />
-              </button>
+
+              {/* Visual Mockup Column */}
+              <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', height: '360px' }}>
+                {/* Background Glow */}
+                <div className="glow-backdrop" style={{ background: 'rgba(6, 182, 212, 0.25)' }} />
+                
+                {/* Main Card (Hinged UI mock) */}
+                <div className="glass-panel float-card-anim" style={{ 
+                  width: '100%', 
+                  maxWidth: '380px', 
+                  padding: '24px', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '16px',
+                  borderRadius: '16px',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+                  zIndex: 1
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span className="pulse-status" style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+                      <span style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600, letterSpacing: '0.05em' }}>REPORT ANALYSIS ACTIVE</span>
+                    </div>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--primary-neon)', background: 'rgba(6,182,212,0.1)', padding: '2px 6px', borderRadius: '4px' }}>Gemini Parser</span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.8rem', color: '#fff' }}>
+                      <span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span>
+                      <span>Read blood report scan (PDF)</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.8rem', color: '#fff' }}>
+                      <span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span>
+                      <span>Convert medical metrics to logs</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.8rem', color: '#fff' }}>
+                      <span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span>
+                      <span style={{ color: '#f43f5e', fontWeight: 600 }}>Flag: Cholesterol level (High)</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.8rem', color: 'rgba(255,255,255,0.45)' }}>
+                      <div className="spin-anim" style={{ width: '12px', height: '12px', borderRadius: '50%', border: '2px solid var(--primary-neon)', borderTopColor: 'transparent' }} />
+                      <span>Writing plain-English breakdown...</span>
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: '6px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#9ca3af', marginBottom: '6px' }}>
+                      <span>PARSING COMPLETION</span>
+                      <span style={{ color: 'var(--primary-neon)', fontWeight: 'bold' }}>75%</span>
+                    </div>
+                    <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.06)', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ width: '75%', height: '100%', background: 'linear-gradient(to right, var(--primary-neon), var(--secondary-neon))', borderRadius: '3px' }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </motion.div>
 
-            {/* Feature 2: Prescription Decrypter */}
+            {/* Feature 2: Prescription Scanner */}
             <motion.div 
               variants={featureCardVariants}
-              whileHover="hover"
-              className="glass-panel" 
-              style={{ padding: '30px 24px', display: 'flex', flexDirection: 'column', gap: '16px', justifyContent: 'space-between' }}
+              style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
+                gap: '50px', 
+                alignItems: 'center',
+                width: '100%',
+                maxWidth: '1100px',
+                margin: '0 auto'
+              }}
             >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ background: 'rgba(16, 185, 129, 0.1)', width: '38px', height: '38px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px' }}>
-                    <Pill style={{ color: 'var(--secondary-neon)' }} size={20} />
+              {/* Visual Mockup Column (Appears on left on desktop due to alternating grid) */}
+              <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', height: '360px' }}>
+                {/* Background Glow */}
+                <div className="glow-backdrop" style={{ background: 'rgba(16, 185, 129, 0.2)' }} />
+                
+                {/* Main Card */}
+                <div className="glass-panel float-card-anim" style={{ 
+                  width: '100%', 
+                  maxWidth: '380px', 
+                  padding: '24px', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '16px',
+                  borderRadius: '16px',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+                  zIndex: 1,
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}>
+                  {/* Sliding green laser line scanner */}
+                  <div className="laser-scanner-line" />
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: 'var(--secondary-neon)', padding: '4px', borderRadius: '6px', display: 'flex' }}><Pill size={14} /></span>
+                      <span style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600, letterSpacing: '0.05em' }}>PRESCRIPTION SCANNER</span>
+                    </div>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--secondary-neon)', background: 'rgba(16,185,129,0.1)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>Digitized</span>
                   </div>
-                  <span style={{ fontSize: '0.65rem', color: 'var(--secondary-neon)', fontWeight: 600, background: 'rgba(16, 185, 129, 0.1)', padding: '4px 8px', borderRadius: '4px', letterSpacing: '0.05em' }}>
-                    MULTIMODAL AI
-                  </span>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div>
+                      <span style={{ fontSize: '0.65rem', color: 'var(--secondary-neon)', fontWeight: 600, display: 'block', textTransform: 'uppercase', marginBottom: '2px' }}>Extracted Drug</span>
+                      <span style={{ fontSize: '0.92rem', color: '#ffffff', fontWeight: 700 }}>Amoxicillin (500mg)</span>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '12px' }}>
+                      <div>
+                        <span style={{ fontSize: '0.65rem', color: 'var(--secondary-neon)', fontWeight: 600, display: 'block', textTransform: 'uppercase', marginBottom: '2px' }}>Reason for Use</span>
+                        <span style={{ fontSize: '0.78rem', color: '#e5e7eb' }}>Bacterial Infection</span>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '0.65rem', color: 'var(--secondary-neon)', fontWeight: 600, display: 'block', textTransform: 'uppercase', marginBottom: '2px' }}>Standard Usage</span>
+                        <span style={{ fontSize: '0.78rem', color: '#e5e7eb' }}>1 Capsule every 8h</span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', background: 'rgba(0,0,0,0.2)', padding: '10px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      <span style={{ fontSize: '0.65rem', color: 'var(--secondary-neon)', fontWeight: 600, textTransform: 'uppercase' }}>Precautions</span>
+                      <ul style={{ margin: 0, paddingLeft: '12px', fontSize: '0.7rem', color: '#9ca3af' }}>
+                        <li>Take post meals with warm water</li>
+                        <li>Avoid dairy products</li>
+                      </ul>
+                    </div>
+                  </div>
                 </div>
-                <h3 style={{ fontSize: '1.2rem', color: '#fff', fontWeight: 700 }}>AI Prescription Scanner</h3>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
-                  Deconstruct handwritten physician scripts instantly. Verifies chemical warnings, common side effects, and precautions.
-                </p>
               </div>
-              <button 
-                onClick={() => onNavigate && onNavigate('prescription')}
-                style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid var(--card-border)',
-                  color: '#fff',
-                  borderRadius: '6px',
-                  padding: '10px 16px',
-                  fontSize: '0.78rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = 'var(--secondary-neon)';
-                  e.target.style.color = '#000';
-                  e.target.style.borderColor = 'var(--secondary-neon)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = 'rgba(255,255,255,0.03)';
-                  e.target.style.color = '#fff';
-                  e.target.style.borderColor = 'var(--card-border)';
-                }}
-              >
-                Scan Prescription
-                <ArrowRight size={14} />
-              </button>
+
+              {/* Text Info */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <span style={{ 
+                  fontSize: '0.72rem', 
+                  color: 'var(--secondary-neon)', 
+                  fontWeight: 700, 
+                  background: 'rgba(16, 185, 129, 0.08)', 
+                  padding: '6px 12px', 
+                  borderRadius: '50px', 
+                  alignSelf: 'flex-start',
+                  letterSpacing: '0.08em',
+                  fontFamily: 'Outfit'
+                }}>
+                  PRESCRIPTION TRANSLATOR
+                </span>
+                <h3 style={{ fontSize: '2rem', color: '#fff', fontWeight: 800, fontFamily: 'Outfit', lineHeight: '1.25' }}>
+                  Scan & Decode Messy Doctor Handwriting
+                </h3>
+                <p style={{ fontSize: '0.92rem', color: 'var(--text-muted)', lineHeight: '1.7' }}>
+                  Physician handwriting can be almost impossible to read. Simply take a snapshot of your written prescription page. Our system scans the image, lists the medicine names clearly, explains dosage frequencies, and provides safety precaution alerts.
+                </p>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: 'var(--text-muted)' }}>
+                    <div style={{ background: 'rgba(16, 185, 129, 0.1)', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--secondary-neon)', fontWeight: 'bold' }}>✔</div>
+                    Scans hard-to-read handwritten prescription cards.
+                  </li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: 'var(--text-muted)' }}>
+                    <div style={{ background: 'rgba(16, 185, 129, 0.1)', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--secondary-neon)', fontWeight: 'bold' }}>✔</div>
+                    Lists side effects, drug warnings, and directions.
+                  </li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: 'var(--text-muted)' }}>
+                    <div style={{ background: 'rgba(16, 185, 129, 0.1)', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--secondary-neon)', fontWeight: 'bold' }}>✔</div>
+                    Translates raw scripts into an organized dose timeline.
+                  </li>
+                </ul>
+                <button 
+                  onClick={() => onNavigate && onNavigate('prescription')}
+                  style={{
+                    background: 'var(--secondary-neon)',
+                    border: 'none',
+                    color: '#000000',
+                    borderRadius: '50px',
+                    padding: '14px 28px',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    width: 'fit-content',
+                    boxShadow: '0 4px 20px rgba(16, 185, 129, 0.25)',
+                    transition: 'all 0.25s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 24px rgba(16, 185, 129, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 20px rgba(16, 185, 129, 0.25)';
+                  }}
+                >
+                  Scan Prescription
+                  <ArrowRight size={16} />
+                </button>
+              </div>
             </motion.div>
 
-            {/* Feature 3: Gemini Chatbot */}
+            {/* Feature 3: Symptom Chatbot */}
             <motion.div 
               variants={featureCardVariants}
-              whileHover="hover"
-              className="glass-panel" 
-              style={{ padding: '30px 24px', display: 'flex', flexDirection: 'column', gap: '16px', justifyContent: 'space-between' }}
+              style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
+                gap: '50px', 
+                alignItems: 'center',
+                width: '100%',
+                maxWidth: '1100px',
+                margin: '0 auto'
+              }}
             >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '38px', height: '38px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px' }}>
-                    <MessageSquare style={{ color: 'var(--primary-neon)' }} size={20} />
-                  </div>
-                  <span style={{ fontSize: '0.65rem', color: 'var(--primary-neon)', fontWeight: 600, background: 'rgba(6, 182, 212, 0.1)', padding: '4px 8px', borderRadius: '4px', letterSpacing: '0.05em' }}>
-                    24/7 ACTIVE
-                  </span>
-                </div>
-                <h3 style={{ fontSize: '1.2rem', color: '#fff', fontWeight: 700 }}>Gemini Symptom Triage</h3>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
-                  Consult our live clinical chatbot about active symptoms. Receives recommendations and routes directly to clinics.
+              {/* Text Info */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <span style={{ 
+                  fontSize: '0.72rem', 
+                  color: 'var(--primary-neon)', 
+                  fontWeight: 700, 
+                  background: 'rgba(6, 182, 212, 0.08)', 
+                  padding: '6px 12px', 
+                  borderRadius: '50px', 
+                  alignSelf: 'flex-start',
+                  letterSpacing: '0.08em',
+                  fontFamily: 'Outfit'
+                }}>
+                  VIRTUAL HEALTH CARE
+                </span>
+                <h3 style={{ fontSize: '2rem', color: '#fff', fontWeight: 800, fontFamily: 'Outfit', lineHeight: '1.25' }}>
+                  Consult Your 24/7 AI Health Advisor
+                </h3>
+                <p style={{ fontSize: '0.92rem', color: 'var(--text-muted)', lineHeight: '1.7' }}>
+                  Chat with our virtual clinical assistant, AeroBot. Explain how you feel in simple terms, and it will ask follow-up questions to understand your symptoms, advise on standard self-care steps, and recommend slots with matched local doctors.
                 </p>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: 'var(--text-muted)' }}>
+                    <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-neon)', fontWeight: 'bold' }}>✔</div>
+                    Friendly clinical questions designed in easy-to-read language.
+                  </li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: 'var(--text-muted)' }}>
+                    <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-neon)', fontWeight: 'bold' }}>✔</div>
+                    Fast assessments with suggested care actions.
+                  </li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: 'var(--text-muted)' }}>
+                    <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-neon)', fontWeight: 'bold' }}>✔</div>
+                    Finds and recommends matches with local doctors immediately.
+                  </li>
+                </ul>
+                <button 
+                  onClick={() => onOpenChat && onOpenChat()}
+                  style={{
+                    background: 'var(--primary-neon)',
+                    border: 'none',
+                    color: '#000000',
+                    borderRadius: '50px',
+                    padding: '14px 28px',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    width: 'fit-content',
+                    boxShadow: '0 4px 20px rgba(6, 182, 212, 0.25)',
+                    transition: 'all 0.25s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 24px rgba(6, 182, 212, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 20px rgba(6, 182, 212, 0.25)';
+                  }}
+                >
+                  Consult Assistant
+                  <ArrowRight size={16} />
+                </button>
               </div>
-              <button 
-                onClick={() => onOpenChat && onOpenChat()}
-                style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid var(--card-border)',
-                  color: '#fff',
-                  borderRadius: '6px',
-                  padding: '10px 16px',
-                  fontSize: '0.78rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = 'var(--primary-neon)';
-                  e.target.style.color = '#000';
-                  e.target.style.borderColor = 'var(--primary-neon)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = 'rgba(255,255,255,0.03)';
-                  e.target.style.color = '#fff';
-                  e.target.style.borderColor = 'var(--card-border)';
-                }}
-              >
-                Consult Assistant
-                <ArrowRight size={14} />
-              </button>
+
+              {/* Visual Mockup Column */}
+              <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', height: '360px' }}>
+                {/* Background Glow */}
+                <div className="glow-backdrop" style={{ background: 'rgba(6, 182, 212, 0.2)' }} />
+                
+                {/* Main Card */}
+                <div className="glass-panel float-card-anim" style={{ 
+                  width: '100%', 
+                  maxWidth: '380px', 
+                  padding: '20px 24px', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '12px',
+                  borderRadius: '16px',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+                  zIndex: 1
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span className="pulse-status" style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+                      <span style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600, letterSpacing: '0.05em' }}>AEROBOT VIRTUAL HELPER</span>
+                    </div>
+                  </div>
+
+                  {/* Chat Dialog simulation */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '180px', overflowY: 'hidden' }}>
+                    <div style={{ 
+                      alignSelf: 'flex-start',
+                      background: 'rgba(255,255,255,0.04)',
+                      padding: '8px 12px',
+                      borderRadius: '12px 12px 12px 4px',
+                      fontSize: '0.72rem',
+                      color: '#e5e7eb',
+                      maxWidth: '85%'
+                    }}>
+                      Hi! Explain your symptoms in simple terms.
+                    </div>
+                    <div style={{ 
+                      alignSelf: 'flex-end',
+                      background: 'var(--primary-neon)',
+                      padding: '8px 12px',
+                      borderRadius: '12px 12px 4px 12px',
+                      fontSize: '0.72rem',
+                      color: '#000000',
+                      fontWeight: 600,
+                      maxWidth: '85%'
+                    }}>
+                      I have a mild fever and a dry cough since yesterday.
+                    </div>
+                    <div style={{ 
+                      alignSelf: 'flex-start',
+                      background: 'rgba(255,255,255,0.04)',
+                      padding: '8px 12px',
+                      borderRadius: '12px 12px 12px 4px',
+                      fontSize: '0.72rem',
+                      color: '#e5e7eb',
+                      maxWidth: '85%'
+                    }}>
+                      Rest is advised. Let's find you slot bookings with local Physicians?
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                    <span style={{ background: 'rgba(6, 182, 212, 0.1)', color: 'var(--primary-neon)', border: '1px solid rgba(6, 182, 212, 0.25)', borderRadius: '20px', padding: '4px 10px', fontSize: '0.65rem', fontWeight: 600 }}>Book Doctor 📅</span>
+                    <span style={{ background: 'rgba(255,255,255,0.03)', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '20px', padding: '4px 10px', fontSize: '0.65rem' }}>Precautions</span>
+                  </div>
+                </div>
+              </div>
             </motion.div>
 
           </div>
         </motion.section>
 
-        {/* 🛡️ Core Trust Value Cards */}
-        <motion.section 
-          variants={featuresContainerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}
-        >
-          <motion.div 
-            variants={featureCardVariants}
-            whileHover="hover"
-            className="glass-panel" 
-            style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}
-          >
-            <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '38px', height: '38px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyCenter: 'center', padding: '10px' }}>
-              <ShieldCheck style={{ color: 'var(--primary-neon)' }} size={20} />
-            </div>
-            <h3 style={{ fontSize: '1.05rem', color: '#fff', fontWeight: 600 }}>NABL Verified Pricing</h3>
-            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5' }}>
-              Get verified pricing matrices across standard accredited labs (Apollo, Thyrocare, SRL) with 100% price transparency.
-            </p>
-          </motion.div>
 
-          <motion.div 
-            variants={featureCardVariants}
-            whileHover="hover"
-            className="glass-panel" 
-            style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}
-          >
-            <div style={{ background: 'rgba(16, 185, 129, 0.1)', width: '38px', height: '38px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyCenter: 'center', padding: '10px' }}>
-              <Clock style={{ color: 'var(--secondary-neon)' }} size={20} />
-            </div>
-            <h3 style={{ fontSize: '1.05rem', color: '#fff', fontWeight: 600 }}>2:00 AM Cron Synced</h3>
-            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5' }}>
-              Our nightly background crawlers execute sequential crawls to ensure cached baseline prices remain completely fresh.
-            </p>
-          </motion.div>
-
-          <motion.div 
-            variants={featureCardVariants}
-            whileHover="hover"
-            className="glass-panel" 
-            style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}
-          >
-            <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '38px', height: '38px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyCenter: 'center', padding: '10px' }}>
-              <Brain style={{ color: 'var(--primary-neon)' }} size={20} />
-            </div>
-            <h3 style={{ fontSize: '1.05rem', color: '#fff', fontWeight: 600 }}>Gemini Multimodal Parser</h3>
-            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5' }}>
-              Upload any medical diagnostic PDF or image and let our AI parse abnormal boundaries, matching you instantly to local specialist doctors.
-            </p>
-          </motion.div>
-        </motion.section>
 
         <style dangerouslySetInnerHTML={{
           __html: `
         .suggestion-item:hover {
           background: rgba(6, 182, 212, 0.1) !important;
           color: var(--primary-neon) !important;
+        }
+        @keyframes workflowPulse {
+          0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+          70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        @keyframes barGrow {
+          0% { transform: scaleY(0.2); }
+          100% { transform: scaleY(1); }
+        }
+        @keyframes floatCard {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-8px); }
+          100% { transform: translateY(0px); }
+        }
+        @keyframes glowPulse {
+          0%, 100% { opacity: 0.12; }
+          50% { opacity: 0.28; }
+        }
+        @keyframes laserScan {
+          0% { top: 0%; }
+          50% { top: 100%; }
+          100% { top: 0%; }
+        }
+        .laser-scanner-line {
+          position: absolute;
+          left: 0;
+          width: 100%;
+          height: 2px;
+          background: var(--secondary-neon);
+          box-shadow: 0 0 8px var(--secondary-neon);
+          animation: laserScan 4s linear infinite;
+          z-index: 2;
+          pointer-events: none;
+        }
+        .float-card-anim {
+          animation: floatCard 4s ease-in-out infinite;
+        }
+        .pulse-status {
+          animation: workflowPulse 2.2s infinite;
+        }
+        .bar-grow-anim {
+          transform-origin: bottom;
+          animation: barGrow 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .glow-backdrop {
+          position: absolute;
+          width: 280px;
+          height: 280px;
+          filter: blur(80px);
+          border-radius: 50%;
+          z-index: 0;
+          pointer-events: none;
+          animation: glowPulse 4.5s ease-in-out infinite alternate;
         }
       `}} />
       </motion.div>

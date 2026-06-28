@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
-import { Search, MapPin, Stethoscope, TestTube, Brain, HeartPulse, ShieldCheck, Clock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, MapPin, Stethoscope, TestTube, Brain, HeartPulse, ShieldCheck, Clock, FileText, Pill, MessageSquare, ArrowRight } from 'lucide-react';
 import hospital from '../assets/hospital_pic.jpg';
 import { motion } from 'framer-motion';
+import { TypeAnimation } from 'react-type-animation';
+
+
 
 // Reusable Framer Motion variants for structured animation sequence
 const containerVariants = {
@@ -79,7 +82,7 @@ const searchButtonHoverVariants = {
   }
 };
 
-const Home = ({ onSearch }) => {
+const Home = ({ onSearch, onNavigate, onOpenChat }) => {
   const [activeTab, setActiveTab] = useState('labs'); // 'labs' | 'doctors'
   const [searchQuery, setSearchQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -257,9 +260,34 @@ const Home = ({ onSearch }) => {
           </motion.span>
           <motion.h1 
             variants={headingVariants}
-            style={{ fontSize: '3rem', fontWeight: 800, color: '#fff', lineHeight: '1.1', background: 'linear-gradient(135deg, #fff 40%, rgba(255,255,255,0.7) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
+            style={{ fontSize: '3.1rem', fontWeight: 800, color: '#fff', lineHeight: '1.2' }}
           >
-            Compare Prices, Distances & Ratings Instantly
+            <span style={{ background: 'linear-gradient(135deg, #fff 60%, rgba(255,255,255,0.75) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              Compare
+            </span>{" "}
+            <TypeAnimation
+              sequence={[
+                'Prices',
+                2000,
+                'Distances',
+                2000,
+                'Ratings',
+                2000
+              ]}
+              wrapper="span"
+              speed={50}
+              style={{
+                background: 'linear-gradient(135deg, var(--primary-neon) 0%, #0891b2 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                fontWeight: 800,
+                display: 'inline-block'
+              }}
+              repeat={Infinity}
+            />{" "}
+            <span style={{ background: 'linear-gradient(135deg, #fff 60%, rgba(255,255,255,0.75) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              Instantly
+            </span>
           </motion.h1>
           <motion.p 
             variants={descriptionVariants}
@@ -471,6 +499,190 @@ const Home = ({ onSearch }) => {
                 </button>
               ))
             )}
+          </div>
+        </motion.section>
+
+        {/* 🤖 Advanced AI Features Suite */}
+        <motion.section 
+          variants={featuresContainerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
+        >
+          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', fontFamily: 'Outfit' }}>
+              Explore AI Powered Health Tools
+            </h2>
+            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: '600px', margin: '0 auto' }}>
+              Leverage Gemini models to manage diagnostic lockers, decrypt handwritten prescriptions, and locate specialists instantly.
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+            
+            {/* Feature 1: Report Locker */}
+            <motion.div 
+              variants={featureCardVariants}
+              whileHover="hover"
+              className="glass-panel" 
+              style={{ padding: '30px 24px', display: 'flex', flexDirection: 'column', gap: '16px', justifyContent: 'space-between' }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '38px', height: '38px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px' }}>
+                    <FileText style={{ color: 'var(--primary-neon)' }} size={20} />
+                  </div>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--primary-neon)', fontWeight: 600, background: 'rgba(6, 182, 212, 0.1)', padding: '4px 8px', borderRadius: '4px', letterSpacing: '0.05em' }}>
+                    GEMINI VISION
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '1.2rem', color: '#fff', fontWeight: 700 }}>AI Laboratory Locker</h3>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+                  Securely store and analyze complete diagnostic reports. Our LLM parses outliers and tracks metric graphs.
+                </p>
+              </div>
+              <button 
+                onClick={() => onNavigate && onNavigate('reports')}
+                style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid var(--card-border)',
+                  color: '#fff',
+                  borderRadius: '6px',
+                  padding: '10px 16px',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = 'var(--primary-neon)';
+                  e.target.style.color = '#000';
+                  e.target.style.borderColor = 'var(--primary-neon)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = 'rgba(255,255,255,0.03)';
+                  e.target.style.color = '#fff';
+                  e.target.style.borderColor = 'var(--card-border)';
+                }}
+              >
+                Open AI Locker
+                <ArrowRight size={14} />
+              </button>
+            </motion.div>
+
+            {/* Feature 2: Prescription Decrypter */}
+            <motion.div 
+              variants={featureCardVariants}
+              whileHover="hover"
+              className="glass-panel" 
+              style={{ padding: '30px 24px', display: 'flex', flexDirection: 'column', gap: '16px', justifyContent: 'space-between' }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ background: 'rgba(16, 185, 129, 0.1)', width: '38px', height: '38px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px' }}>
+                    <Pill style={{ color: 'var(--secondary-neon)' }} size={20} />
+                  </div>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--secondary-neon)', fontWeight: 600, background: 'rgba(16, 185, 129, 0.1)', padding: '4px 8px', borderRadius: '4px', letterSpacing: '0.05em' }}>
+                    MULTIMODAL AI
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '1.2rem', color: '#fff', fontWeight: 700 }}>AI Prescription Scanner</h3>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+                  Deconstruct handwritten physician scripts instantly. Verifies chemical warnings, common side effects, and precautions.
+                </p>
+              </div>
+              <button 
+                onClick={() => onNavigate && onNavigate('prescription')}
+                style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid var(--card-border)',
+                  color: '#fff',
+                  borderRadius: '6px',
+                  padding: '10px 16px',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = 'var(--secondary-neon)';
+                  e.target.style.color = '#000';
+                  e.target.style.borderColor = 'var(--secondary-neon)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = 'rgba(255,255,255,0.03)';
+                  e.target.style.color = '#fff';
+                  e.target.style.borderColor = 'var(--card-border)';
+                }}
+              >
+                Scan Prescription
+                <ArrowRight size={14} />
+              </button>
+            </motion.div>
+
+            {/* Feature 3: Gemini Chatbot */}
+            <motion.div 
+              variants={featureCardVariants}
+              whileHover="hover"
+              className="glass-panel" 
+              style={{ padding: '30px 24px', display: 'flex', flexDirection: 'column', gap: '16px', justifyContent: 'space-between' }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '38px', height: '38px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px' }}>
+                    <MessageSquare style={{ color: 'var(--primary-neon)' }} size={20} />
+                  </div>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--primary-neon)', fontWeight: 600, background: 'rgba(6, 182, 212, 0.1)', padding: '4px 8px', borderRadius: '4px', letterSpacing: '0.05em' }}>
+                    24/7 ACTIVE
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '1.2rem', color: '#fff', fontWeight: 700 }}>Gemini Symptom Triage</h3>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+                  Consult our live clinical chatbot about active symptoms. Receives recommendations and routes directly to clinics.
+                </p>
+              </div>
+              <button 
+                onClick={() => onOpenChat && onOpenChat()}
+                style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid var(--card-border)',
+                  color: '#fff',
+                  borderRadius: '6px',
+                  padding: '10px 16px',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = 'var(--primary-neon)';
+                  e.target.style.color = '#000';
+                  e.target.style.borderColor = 'var(--primary-neon)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = 'rgba(255,255,255,0.03)';
+                  e.target.style.color = '#fff';
+                  e.target.style.borderColor = 'var(--card-border)';
+                }}
+              >
+                Consult Assistant
+                <ArrowRight size={14} />
+              </button>
+            </motion.div>
+
           </div>
         </motion.section>
 

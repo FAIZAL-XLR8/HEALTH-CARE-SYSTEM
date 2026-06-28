@@ -34,8 +34,10 @@ function App() {
   // Booking details
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [activeAppointmentId, setActiveAppointmentId] = useState(null);
-
-
+  // Scroll to top on route change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [activePage]);
 
   // Handle Authentication Callbacks
   const handleAuthSuccess = (data) => {
@@ -96,6 +98,7 @@ function App() {
           position: 'sticky',
           top: 0,
           zIndex: 100,
+          
           borderRadius: 0,
           borderLeft: 'none',
           borderRight: 'none',
@@ -239,7 +242,11 @@ function App() {
       <main style={{ flex: 1, paddingBottom: '80px' }}>
         
         {activePage === 'home' && (
-          <Home onSearch={handleSearchTrigger} />
+          <Home 
+            onSearch={handleSearchTrigger} 
+            onNavigate={(page) => setActivePage(page)}
+            onOpenChat={() => setIsChatOpen(true)}
+          />
         )}
         
         {activePage === 'search' && searchParams && (

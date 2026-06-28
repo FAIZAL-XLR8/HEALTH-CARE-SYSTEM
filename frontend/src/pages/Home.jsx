@@ -89,7 +89,7 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
 
   const commonSpecialties = [
     'Dentist',
-    'Gynecologist/obstetrician',
+    'Gynaecologist/obstetrician',
     'General Physician',
     'Dermatologist',
     'ENT Specialist',
@@ -99,7 +99,7 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
 
   const allSpecialties = [
     'Dentist',
-    'Gynecologist/obstetrician',
+    'Gynaecologist/obstetrician',
     'General Physician',
     'Dermatologist',
     'ENT Specialist',
@@ -131,7 +131,7 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
       .replace(/neurolg/g, 'neurolog')   // typo: neurolgist -> neurologist
       .replace(/physcian/g, 'physician') // typo: general physcian -> general physician
       .replace(/physican/g, 'physician') // typo: general physican -> general physician
-      .replace(/gyna/g, 'gyne')         // typo: gynaecologist -> gynecologist
+      .replace(/gyne/g, 'gyna')         // typo: gynecologist -> gynaecologist
       .replace(/cardio/g, 'cardio');
 
     const scored = allSpecialties.map(spec => {

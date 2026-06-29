@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, CreditCard, MessageSquare, Video, AlertCircle, RefreshCw } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { showFlash } from '../components/FlashMessage';
 
 // Framer Motion variants — same pattern as Home.jsx
 const containerVariants = {
@@ -96,14 +97,14 @@ const PatientDashboard = ({ token, onOpenAuth, onStartConsultation }) => {
               });
               const verifyData = await verifyRes.json();
               if (verifyRes.ok) {
-                alert('Payment verified and appointment confirmed successfully!');
+                showFlash('Appointment booked successfully!', 'success');
                 fetchAppointments();
               } else {
-                alert(verifyData.message || 'Payment verification failed.');
+                showFlash(verifyData.message || 'Payment verification failed.', 'error');
               }
             } catch (err) {
               console.error(err);
-              alert('Verification error. Please contact support.');
+              showFlash('Verification error. Please contact support.', 'error');
             } finally {
               setLoading(false);
             }
@@ -126,12 +127,12 @@ const PatientDashboard = ({ token, onOpenAuth, onStartConsultation }) => {
         const rzp = new window.Razorpay(options);
         rzp.open();
       } else {
-        alert(data.message || 'Payment initiation failed.');
+        showFlash(data.message || 'Payment initiation failed.', 'error');
         setLoading(false);
       }
     } catch (err) {
       console.error(err);
-      alert('Razorpay connection error.');
+      showFlash('Razorpay connection error.', 'error');
       setLoading(false);
     }
   };

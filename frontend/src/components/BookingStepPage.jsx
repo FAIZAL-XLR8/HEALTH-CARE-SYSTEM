@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, CreditCard, Shield, AlertTriangle, Ban } from 'lucide-react';
+import { showFlash } from './FlashMessage';
 
 const getLocalDateString = (date = new Date()) => {
   const year = date.getFullYear();
@@ -105,14 +106,17 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
     }
     if (!selectedSlot) {
       setError('Please select a time slot.');
+      showFlash('Please fill all required fields', 'warning');
       return;
     }
     if (!patientName.trim()) {
       setError('Please enter patient name.');
+      showFlash('Please fill all required fields', 'warning');
       return;
     }
     if (!patientAge.trim()) {
       setError('Please enter patient age.');
+      showFlash('Please fill all required fields', 'warning');
       return;
     }
 
@@ -192,10 +196,11 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
               });
               const verifyData = await verifyRes.json();
               if (verifyRes.ok) {
-                alert('Payment verified and appointment confirmed successfully!');
+                sessionStorage.setItem('pending-flash', JSON.stringify({ message: 'Appointment booked successfully!', type: 'success' }));
                 window.location.reload();
               } else {
                 setError(verifyData.message || 'Payment verification failed.');
+                showFlash('Payment failed', 'error');
               }
             } catch (err) {
               console.error(err);
@@ -495,7 +500,7 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
             </button>
           ) : (
             <button 
-              disabled={loading || !selectedSlot}
+              disabled={loading || !patientName.trim() || !patientAge.trim() || (isDoctor && !selectedSlot)}
               onClick={handleReserve}
               style={{
                 flex: 1,
@@ -504,14 +509,14 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
                 borderRadius: '8px',
                 padding: '12px',
                 color: '#000',
-                cursor: selectedSlot ? 'pointer' : 'not-allowed',
+                cursor: (patientName.trim() && patientAge.trim() && (!isDoctor || selectedSlot)) ? 'pointer' : 'not-allowed',
                 fontSize: '0.85rem',
                 fontWeight: 700,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
-                opacity: selectedSlot ? 1 : 0.5,
+                opacity: (patientName.trim() && patientAge.trim() && (!isDoctor || selectedSlot)) ? 1 : 0.5,
                 boxShadow: '0 4px 12px rgba(6, 182, 212, 0.25)'
               }}
             >

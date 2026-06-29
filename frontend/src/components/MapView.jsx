@@ -86,7 +86,7 @@ const MapView = ({
       container: mapContainerRef.current,
       style: 'mapbox://styles/mapbox/dark-v11', // Premium dark style to fit dark theme UI
       center: [centerLng, centerLat],
-      zoom: 12,
+      zoom: 10,
       attributionControl: false // clean layout
     });
     
@@ -119,30 +119,8 @@ const MapView = ({
     markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
     
-    if (searchCenterMarkerRef.current) {
-      searchCenterMarkerRef.current.remove();
-      searchCenterMarkerRef.current = null;
-    }
-    
-    // Add current search center marker (red center pin)
     const center = getCenterCoords();
-    const centerEl = document.createElement('div');
-    centerEl.className = 'search-center-marker';
-    centerEl.style.width = '14px';
-    centerEl.style.height = '14px';
-    centerEl.style.borderRadius = '50%';
-    centerEl.style.background = 'var(--accent-alert, #ef4444)';
-    centerEl.style.border = '2px solid #fff';
-    centerEl.style.boxShadow = '0 0 8px #ef4444';
     
-    const centerPopup = new mapboxgl.Popup({ offset: 10, closeButton: true, closeOnClick: true })
-      .setHTML('<div style="color:#000; font-family:sans-serif; font-size:11px; font-weight:bold;">Search Center</div>');
-      
-    searchCenterMarkerRef.current = new mapboxgl.Marker(centerEl)
-      .setLngLat(center)
-      .setPopup(centerPopup)
-      .addTo(map);
-      
     // Filter coordinates
     const validProviders = providers.filter(p => p.coordinates && p.coordinates.length === 2);
     if (validProviders.length === 0) {
@@ -151,8 +129,6 @@ const MapView = ({
     }
     
     const bounds = new mapboxgl.LngLatBounds();
-    // Add search center to bounds so it is always visible
-    bounds.extend(center);
     
     validProviders.forEach((p, index) => {
       const [lng, lat] = p.coordinates;
@@ -216,7 +192,7 @@ const MapView = ({
     if (validProviders.length > 0) {
       map.fitBounds(bounds, {
         padding: { top: 40, bottom: 40, left: 40, right: 40 },
-        maxZoom: 14,
+        maxZoom: 12,
         duration: 1200
       });
     }
@@ -334,10 +310,6 @@ const MapView = ({
       
       {/* Map Legend */}
       <div style={{ display: 'flex', gap: '16px', marginTop: '12px', justifyContent: 'center', fontSize: '0.7rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-alert, #ef4444)' }} />
-          <span style={{ color: 'var(--text-muted)' }}>Search Center</span>
-        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--secondary-neon, #10b981)' }} />
           <span style={{ color: 'var(--text-muted)' }}>Providers</span>

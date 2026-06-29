@@ -243,6 +243,85 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  if (!token) {
+    return (
+      <div style={{ maxWidth: '650px', margin: '60px auto', padding: '0 24px' }}>
+        <div className="glass-panel" style={{
+          padding: '40px 24px',
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '24px',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+          border: '1px solid var(--card-border)',
+          borderRadius: '16px'
+        }}>
+          <div style={{
+            background: 'rgba(239, 68, 68, 0.1)',
+            width: '60px',
+            height: '60px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--accent-alert)',
+            marginBottom: '8px'
+          }}>
+            <Ban size={30} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', margin: 0, fontFamily: 'Outfit' }}>
+              Access Denied
+            </h3>
+            <p style={{ fontSize: '0.92rem', color: 'var(--text-muted)', margin: 0, lineHeight: '1.6' }}>
+              Please log in to book appointments. This page can only be accessed when you are logged in.
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '12px', width: '100%', justifyContent: 'center', marginTop: '12px' }}>
+            <button
+              onClick={onCancel}
+              style={{
+                flex: '1',
+                maxWidth: '160px',
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid var(--card-border)',
+                color: '#fff',
+                borderRadius: '8px',
+                padding: '12px',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              Go Back
+            </button>
+            <button
+              onClick={onOpenAuth}
+              style={{
+                flex: '1',
+                maxWidth: '160px',
+                background: 'var(--primary-neon)',
+                border: 'none',
+                color: '#000',
+                borderRadius: '8px',
+                padding: '12px',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(6, 182, 212, 0.3)',
+                transition: 'all 0.2s'
+              }}
+            >
+              Login / Signup
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ maxWidth: '650px', margin: '40px auto', padding: '0 24px' }}>
       <div className="glass-panel" style={{ padding: '30px', display: 'flex', flexDirection: 'column', gap: '20px' }}>

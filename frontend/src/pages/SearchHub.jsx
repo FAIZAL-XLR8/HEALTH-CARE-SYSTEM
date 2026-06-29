@@ -224,8 +224,11 @@ const SearchHub = ({ searchParams, onBook }) => {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <h3 style={{ color: '#fff', fontSize: '1.05rem', fontWeight: 600 }}>{p.name}</h3>
                         </div>
-                        <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                          {p.specialty} • {p.experience} yrs exp • {p.clinicName}
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
+                          {p.specialty}
+                        </span>
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block' }}>
+                          {p.clinicName}
                         </span>
                       </div>
 

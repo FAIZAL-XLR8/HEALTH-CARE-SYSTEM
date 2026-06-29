@@ -18,38 +18,38 @@ const containerVariants = {
 
 const badgeVariants = {
   hidden: { opacity: 0, y: -15 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { duration: 0.5, ease: "easeOut" } 
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: "easeOut" }
   },
 };
 
 const headingVariants = {
   hidden: { opacity: 0, y: 25 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { duration: 0.6, ease: "easeOut" } 
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: "easeOut" }
   },
 };
 
 const descriptionVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { duration: 0.6, ease: "easeOut" } 
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: "easeOut" }
   },
 };
 
 const searchCardVariants = {
   hidden: { opacity: 0, y: 30, scale: 0.98 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
+  visible: {
+    opacity: 1,
+    y: 0,
     scale: 1,
-    transition: { duration: 0.7, ease: "easeOut" } 
+    transition: { duration: 0.7, ease: "easeOut" }
   },
 };
 
@@ -64,10 +64,10 @@ const featuresContainerVariants = {
 
 const featureCardVariants = {
   hidden: { opacity: 0, y: 30 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { duration: 0.6, ease: "easeOut" } 
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: "easeOut" }
   },
   hover: {
     y: -6,
@@ -219,7 +219,7 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
       />
 
       {/* Dark Overlay */}
-      <div className="absolute inset-0 bg-black/50 z-0"></div>
+      <div className="absolute inset-0 bg-black/40 z-0"></div>
 
       {/* Gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/60 to-slate-950 z-0"></div>
@@ -233,11 +233,11 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
       >
 
         {/* 🚀 Hero Headline Section */}
-        <motion.section 
+        <motion.section
           variants={containerVariants}
           style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '750px', margin: '0 auto' }}
         >
-          <motion.span 
+          <motion.span
             variants={badgeVariants}
             style={{
               background: 'rgba(6, 182, 212, 0.1)',
@@ -256,40 +256,37 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
             }}
           >
             <HeartPulse size={14} />
-            Bengaluru's Premier Healthcare Aggregator
+           Bengaluru's Leading Healthcare Platform
           </motion.span>
-          <motion.h1 
+          <motion.h1
             variants={headingVariants}
             style={{ fontSize: '3.1rem', fontWeight: 800, color: '#fff', lineHeight: '1.2' }}
           >
-            <span style={{ background: 'linear-gradient(135deg, #fff 60%, rgba(255,255,255,0.75) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              Compare
-            </span>{" "}
+
+
             <TypeAnimation
               sequence={[
-                'Prices',
+                'Consult Doctors Instantly',
                 2000,
-                'Distances',
+                'Decode Your Prescriptions',
                 2000,
-                'Ratings',
-                2000
+                'Find the Right Specialist',
+                2000,
+
+
               ]}
               wrapper="span"
-              speed={50}
+              speed={150}
               style={{
-                background: 'linear-gradient(135deg, var(--primary-neon) 0%, #0891b2 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                fontWeight: 800,
-                display: 'inline-block'
+                color: "#ffffff",
+                fontWeight: 600,
+                display: "inline-block",
               }}
               repeat={Infinity}
-            />{" "}
-            <span style={{ background: 'linear-gradient(135deg, #fff 60%, rgba(255,255,255,0.75) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              Instantly
-            </span>
+            />
+
           </motion.h1>
-          <motion.p 
+          <motion.p
             variants={descriptionVariants}
             style={{ fontSize: '1.05rem', color: 'var(--text-muted)', lineHeight: '1.6' }}
           >
@@ -298,9 +295,9 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
         </motion.section>
 
         {/* 🔍 Dynamic Skyscanner-Style Search Console */}
-        <motion.section 
+        <motion.section
           variants={searchCardVariants}
-          className="glass-panel" 
+          className="glass-panel"
           style={{ padding: '24px', maxWidth: '850px', width: '100%', margin: '0 auto', position: 'relative', zIndex: 10 }}
         >
           {/* Section Header */}
@@ -449,7 +446,7 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
         </motion.section>
 
         {/* 🤖 Advanced AI Features Suite */}
-        <motion.section 
+        <motion.section
           variants={featuresContainerVariants}
           initial="hidden"
           whileInView="visible"
@@ -461,20 +458,20 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
               Explore Our AI Powered Health Tools
             </h2>
             <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: '600px', margin: '0 auto' }}>
-             We help you read handwritten prescriptions,know general uses and side effects of Prescribed Medicines and connect you with the right doctor in just a few clicks.
+              We help you read handwritten prescriptions,know general uses and side effects of Prescribed Medicines and connect you with the right doctor in just a few clicks.
 
             </p>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '80px', marginTop: '40px', width: '100%' }}>
-            
+
             {/* Feature 1: Report Analyzer */}
-            <motion.div 
+            <motion.div
               variants={featureCardVariants}
-              style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
-                gap: '50px', 
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                gap: '50px',
                 alignItems: 'center',
                 width: '100%',
                 maxWidth: '1100px',
@@ -483,26 +480,26 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
             >
               {/* Text Info */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <span style={{ 
-                  fontSize: '0.72rem', 
-                  color: 'var(--primary-neon)', 
-                  fontWeight: 700, 
-                  background: 'rgba(6, 182, 212, 0.08)', 
-                  padding: '6px 12px', 
-                  borderRadius: '50px', 
+                <span style={{
+                  fontSize: '0.72rem',
+                  color: 'var(--primary-neon)',
+                  fontWeight: 700,
+                  background: 'rgba(6, 182, 212, 0.08)',
+                  padding: '6px 12px',
+                  borderRadius: '50px',
                   alignSelf: 'flex-start',
                   letterSpacing: '0.08em',
                   fontFamily: 'Outfit'
                 }}>
-                 AI REPORT ANALYZER
+                  AI REPORT ANALYZER
                 </span>
                 <h3 style={{ fontSize: '2rem', color: '#fff', fontWeight: 800, fontFamily: 'Outfit', lineHeight: '1.25' }}>
                   Understand Your Laboratory Reports
                 </h3>
                 <p style={{ fontSize: '0.92rem', color: 'var(--text-muted)', lineHeight: '1.7' }}>
-                Simply upload any blood test, lab PDF, or paper scan. Our AI translates it into simple language, highlights abnormal values, and explains what they mean for your body.
+                  Simply upload any blood test, lab PDF, or paper scan. Our AI translates it into simple language, highlights abnormal values, and explains what they mean for your body.
                 </p>
-                <button 
+                <button
                   onClick={() => onNavigate && onNavigate('reports')}
                   style={{
                     background: 'var(--primary-neon)',
@@ -539,14 +536,14 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
               <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', height: '360px' }}>
                 {/* Background Glow */}
                 <div className="glow-backdrop" style={{ background: 'rgba(6, 182, 212, 0.25)' }} />
-                
+
                 {/* Main Card (Hinged UI mock) */}
-                <div className="glass-panel float-card-anim" style={{ 
-                  width: '100%', 
-                  maxWidth: '380px', 
-                  padding: '24px', 
-                  display: 'flex', 
-                  flexDirection: 'column', 
+                <div className="glass-panel float-card-anim" style={{
+                  width: '100%',
+                  maxWidth: '380px',
+                  padding: '24px',
+                  display: 'flex',
+                  flexDirection: 'column',
                   gap: '16px',
                   borderRadius: '16px',
                   border: '1px solid rgba(255,255,255,0.08)',
@@ -573,7 +570,7 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
                       <span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span>
                       <span style={{ color: '#f43f5e', fontWeight: 600 }}>Flag: Cholesterol level (High)</span>
                     </div>
-                    
+
                   </div>
 
                   <div style={{ marginTop: '6px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '12px' }}>
@@ -590,12 +587,12 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
             </motion.div>
 
             {/* Feature 2: Prescription Scanner */}
-            <motion.div 
+            <motion.div
               variants={featureCardVariants}
-              style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
-                gap: '50px', 
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                gap: '50px',
                 alignItems: 'center',
                 width: '100%',
                 maxWidth: '1100px',
@@ -606,14 +603,14 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
               <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', height: '360px' }}>
                 {/* Background Glow */}
                 <div className="glow-backdrop" style={{ background: 'rgba(16, 185, 129, 0.2)' }} />
-                
+
                 {/* Main Card */}
-                <div className="glass-panel float-card-anim" style={{ 
-                  width: '100%', 
-                  maxWidth: '380px', 
-                  padding: '24px', 
-                  display: 'flex', 
-                  flexDirection: 'column', 
+                <div className="glass-panel float-card-anim" style={{
+                  width: '100%',
+                  maxWidth: '380px',
+                  padding: '24px',
+                  display: 'flex',
+                  flexDirection: 'column',
                   gap: '16px',
                   borderRadius: '16px',
                   border: '1px solid rgba(255,255,255,0.08)',
@@ -662,13 +659,13 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
 
               {/* Text Info */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <span style={{ 
-                  fontSize: '0.72rem', 
-                  color: 'var(--secondary-neon)', 
-                  fontWeight: 700, 
-                  background: 'rgba(16, 185, 129, 0.08)', 
-                  padding: '6px 12px', 
-                  borderRadius: '50px', 
+                <span style={{
+                  fontSize: '0.72rem',
+                  color: 'var(--secondary-neon)',
+                  fontWeight: 700,
+                  background: 'rgba(16, 185, 129, 0.08)',
+                  padding: '6px 12px',
+                  borderRadius: '50px',
                   alignSelf: 'flex-start',
                   letterSpacing: '0.08em',
                   fontFamily: 'Outfit'
@@ -679,9 +676,9 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
                   Scan & Decode Your Prescription
                 </h3>
                 <p style={{ fontSize: '0.92rem', color: 'var(--text-muted)', lineHeight: '1.7' }}>
-                Simply take a snapshot of your written prescription page. Our system scans the image, lists the medicine names clearly, explains dosage frequencies, and provides safety precaution alerts, side effects and general uses of medicince.
+                  Simply take a snapshot of your written prescription page. Our system scans the image, lists the medicine names clearly, explains dosage frequencies, and provides safety precaution alerts, side effects and general uses of medicince.
                 </p>
-                <button 
+                <button
                   onClick={() => onNavigate && onNavigate('prescription')}
                   style={{
                     background: 'var(--secondary-neon)',
@@ -716,12 +713,12 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
             </motion.div>
 
             {/* Feature 3: Symptom Chatbot */}
-            <motion.div 
+            <motion.div
               variants={featureCardVariants}
-              style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
-                gap: '50px', 
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                gap: '50px',
                 alignItems: 'center',
                 width: '100%',
                 maxWidth: '1100px',
@@ -730,13 +727,13 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
             >
               {/* Text Info */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <span style={{ 
-                  fontSize: '0.72rem', 
-                  color: 'var(--primary-neon)', 
-                  fontWeight: 700, 
-                  background: 'rgba(6, 182, 212, 0.08)', 
-                  padding: '6px 12px', 
-                  borderRadius: '50px', 
+                <span style={{
+                  fontSize: '0.72rem',
+                  color: 'var(--primary-neon)',
+                  fontWeight: 700,
+                  background: 'rgba(6, 182, 212, 0.08)',
+                  padding: '6px 12px',
+                  borderRadius: '50px',
                   alignSelf: 'flex-start',
                   letterSpacing: '0.08em',
                   fontFamily: 'Outfit'
@@ -749,8 +746,8 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
                 <p style={{ fontSize: '0.92rem', color: 'var(--text-muted)', lineHeight: '1.7' }}>
                   Chat with our virtual clinical assistant, AeroBot. Explain how you feel in simple terms, and it will ask follow-up questions to understand your symptoms, advise on standard self-care steps, and recommend slots with matched local doctors.
                 </p>
-  
-                <button 
+
+                <button
                   onClick={() => onOpenChat && onOpenChat()}
                   style={{
                     background: 'var(--primary-neon)',
@@ -787,14 +784,14 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
               <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', height: '360px' }}>
                 {/* Background Glow */}
                 <div className="glow-backdrop" style={{ background: 'rgba(6, 182, 212, 0.2)' }} />
-                
+
                 {/* Main Card */}
-                <div className="glass-panel float-card-anim" style={{ 
-                  width: '100%', 
-                  maxWidth: '380px', 
-                  padding: '20px 24px', 
-                  display: 'flex', 
-                  flexDirection: 'column', 
+                <div className="glass-panel float-card-anim" style={{
+                  width: '100%',
+                  maxWidth: '380px',
+                  padding: '20px 24px',
+                  display: 'flex',
+                  flexDirection: 'column',
                   gap: '12px',
                   borderRadius: '16px',
                   border: '1px solid rgba(255,255,255,0.08)',
@@ -810,7 +807,7 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
 
                   {/* Chat Dialog simulation */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '180px', overflowY: 'hidden' }}>
-                    <div style={{ 
+                    <div style={{
                       alignSelf: 'flex-start',
                       background: 'rgba(255,255,255,0.04)',
                       padding: '8px 12px',
@@ -821,7 +818,7 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
                     }}>
                       Hi! Explain your symptoms in simple terms.
                     </div>
-                    <div style={{ 
+                    <div style={{
                       alignSelf: 'flex-end',
                       background: 'var(--primary-neon)',
                       padding: '8px 12px',
@@ -833,7 +830,7 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
                     }}>
                       I have a mild fever and a dry cough since yesterday.
                     </div>
-                    <div style={{ 
+                    <div style={{
                       alignSelf: 'flex-start',
                       background: 'rgba(255,255,255,0.04)',
                       padding: '8px 12px',

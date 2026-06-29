@@ -476,21 +476,20 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                             <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#000000' }}>
                               Dr. {doc.name}
                             </span>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: '#f8fafc', padding: '2px 4px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
-                              <Star size={10} fill="var(--accent-star)" stroke="var(--accent-star)" />
-                              <span style={{ fontSize: '0.68rem', color: '#000000', fontWeight: 'bold' }}>
-                                {doc.scrapedRating || 4.5}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: 'rgba(16, 185, 129, 0.1)', padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                              <span style={{ fontSize: '0.68rem', color: '#10b981', fontWeight: 'bold' }}>
+                                {doc.experience || doc.experienceYears || 10} Yrs Exp
                               </span>
                             </div>
                           </div>
 
                           <span style={{ fontSize: '0.7rem', color: '#000000', fontWeight: 500 }}>
-                            {doc.specialty} • {doc.experience} yrs exp
+                            {doc.specialty || doc.specialization}
                           </span>
 
                           <span style={{ fontSize: '0.7rem', color: '#000000', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
                             <MapPin size={10} style={{ color: '#701557' }} />
-                            {doc.clinicName} ({doc.distanceKm} km)
+                            {doc.clinicName}
                           </span>
 
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px', borderTop: '1px solid #e2e8f0', paddingTop: '6px' }}>

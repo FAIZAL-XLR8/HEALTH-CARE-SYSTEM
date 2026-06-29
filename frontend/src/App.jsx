@@ -32,6 +32,7 @@ function App() {
     }
   });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
   // Booking details
   const [selectedProvider, setSelectedProvider] = useState(null);
@@ -82,6 +83,8 @@ function App() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setActivePage('home');
+    setIsLogoutConfirmOpen(false);
+    showFlash('Logged out successfully', 'success');
   };
 
   const handleSearchTrigger = (params) => {
@@ -230,7 +233,7 @@ function App() {
                 {user.role === 'admin' ? '🛡️' : (user.role === 'doctor' ? '🩺' : '👤')} {user.name}
               </span>
               <button 
-                onClick={handleLogout}
+                onClick={() => setIsLogoutConfirmOpen(true)}
                 style={{
                   background: 'none',
                   border: '1px solid var(--card-border)',
@@ -453,6 +456,77 @@ function App() {
         onClose={() => setIsAuthModalOpen(false)} 
         onSuccess={handleAuthSuccess}
       />
+
+      {/* Logout Confirmation Modal */}
+      {isLogoutConfirmOpen && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(2, 6, 23, 0.7)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1100,
+        }}>
+          <div className="glass-panel" style={{
+            maxWidth: '400px',
+            width: '90%',
+            padding: '28px',
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+            border: '1px solid var(--card-border)'
+          }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff', margin: 0, fontFamily: 'Outfit' }}>
+              Confirm Logout
+            </h3>
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', margin: 0 }}>
+              Are you sure you want to log out of your session?
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '4px' }}>
+              <button
+                onClick={() => setIsLogoutConfirmOpen(false)}
+                style={{
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid var(--card-border)',
+                  color: '#fff',
+                  borderRadius: '8px',
+                  padding: '10px 24px',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleLogout}
+                style={{
+                  background: 'var(--accent-alert)',
+                  border: 'none',
+                  color: '#fff',
+                  borderRadius: '8px',
+                  padding: '10px 24px',
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(244, 63, 94, 0.3)',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Log out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <FlashMessage />
     </div>

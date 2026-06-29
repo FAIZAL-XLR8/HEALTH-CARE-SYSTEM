@@ -86,7 +86,7 @@ const ReportAnalyzer = ({ onSearchDoctor, token, onOpenAuth }) => {
       />
 
       {/* Dark Overlay */}
-      <div className="absolute inset-0 bg-black/50 z-0"></div>
+      <div className="absolute inset-0 bg-black/50  z-0"></div>
 
       {/* Gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/60 to-slate-950 z-0"></div>

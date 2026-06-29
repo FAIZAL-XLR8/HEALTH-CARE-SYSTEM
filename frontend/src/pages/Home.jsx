@@ -194,7 +194,7 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
       queryVal = 'ENT';
     }
     onSearch({
-      type: activeTab,
+      type: 'doctors',
       query: queryVal
     });
   };

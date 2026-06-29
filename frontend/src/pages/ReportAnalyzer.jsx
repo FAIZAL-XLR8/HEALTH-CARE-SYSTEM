@@ -77,16 +77,20 @@ const ReportAnalyzer = ({ onSearchDoctor, token, onOpenAuth }) => {
   };
 
   return (
-    <div 
-      className="relative min-h-screen w-full overflow-x-hidden bg-slate-950"
-      style={{
-        backgroundImage: `linear-gradient(to bottom, rgba(5, 6, 12, 0.5) 0%, rgba(5, 6, 12, 0.75) 50%, #05060c 100%), url(${reportBg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
-        backgroundRepeat: 'no-repeat'
-      }}
-    >
+    <div className="relative min-h-screen w-full overflow-hidden bg-slate-950">
+      {/* Background */}
+      <img
+        src={reportBg}
+        alt="Medical report background"
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0"
+      />
+
+      {/* Dark Overlay */}
+      <div className="absolute inset-0 bg-black/50 z-0"></div>
+
+      {/* Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/60 to-slate-950 z-0"></div>
+
       {/* Content */}
       <motion.div
         variants={containerVariants}

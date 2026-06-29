@@ -47,22 +47,11 @@ const appointmentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Doctor',
   },
-  lab: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Lab',
-  },
   type: {
     type: String,
     enum: ['doctor', 'lab'],
     default: 'doctor',
   },
-  testsSelected: [
-    {
-      testId: String,
-      testName: String,
-      price: Number,
-    }
-  ],
   queueNumber: {
     type: Number,
     default: 1,

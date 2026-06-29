@@ -19,9 +19,9 @@ const fileAnalyzeLimiter = apiRateLimiter({
 });
 
 const chatbotLimiter = apiRateLimiter({
-  windowSeconds: 60,
+  windowSeconds: 2,
   keyPrefix: 'rateLimit:chatbot',
-  message: 'Chatbot rate limit exceeded. Please wait 10 seconds.'
+  message: 'Chatbot rate limit exceeded. Please wait 2 seconds.'
 });
 const videoController = require('../controllers/videoController');
 

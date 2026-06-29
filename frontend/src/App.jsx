@@ -13,6 +13,7 @@ import PatientDashboard from './pages/PatientDashboard';
 import DoctorDashboard from './pages/DoctorDashboard';
 import TelehealthRoom from './pages/TelehealthRoom';
 import AdminDashboard from './pages/AdminDashboard';
+import Profile from './pages/Profile';
 
 function App() {
   const [activePage, setActivePage] = useState('home'); 
@@ -194,11 +195,20 @@ function App() {
 
           {user ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ 
-                fontSize: '0.82rem', 
-                color: user.role === 'admin' ? '#f43f5e' : (user.role === 'doctor' ? 'var(--secondary-neon)' : 'var(--primary-neon)'), 
-                fontWeight: 600 
-              }}>
+              <span 
+                onClick={() => setActivePage('profile')}
+                style={{ 
+                  fontSize: '0.82rem', 
+                  color: user.role === 'admin' ? '#f43f5e' : (user.role === 'doctor' ? 'var(--secondary-neon)' : 'var(--primary-neon)'), 
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+                className="hover-opacity"
+                title="View My Profile Details"
+              >
                 {user.role === 'admin' ? '🛡️' : (user.role === 'doctor' ? '🩺' : '👤')} {user.name}
               </span>
               <button 
@@ -292,6 +302,23 @@ function App() {
         {activePage === 'admin-dashboard' && (
           <AdminDashboard
             token={token}
+          />
+        )}
+
+        {/* 👤 User Profile Details Page */}
+        {activePage === 'profile' && (
+          <Profile 
+            user={user}
+            token={token}
+            onBack={() => {
+              if (user && user.role === 'admin') {
+                setActivePage('admin-dashboard');
+              } else if (user && user.role === 'doctor') {
+                setActivePage('doctor-dashboard');
+              } else {
+                setActivePage('patient-dashboard');
+              }
+            }}
           />
         )}
 

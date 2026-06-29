@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Upload, AlertOctagon, Heart, BrainCircuit, Activity, ArrowRight, Loader, Pill, ShieldAlert, CheckCircle } from 'lucide-react';
-import reportBg from '../assets/report.jpg';
+import reportBg from '../assets/tubagus-andri-maulana-lK_p_c7VGDc-unsplash.jpg';
 import { motion } from 'framer-motion';
 
 // Framer Motion variants — same pattern as ReportAnalyzer / Home.jsx
@@ -156,7 +156,7 @@ const PrescriptionAnalyzer = ({ token, onOpenAuth }) => {
               whileHover="hover"
               onSubmit={handleUploadSubmit}
               className="glass-panel"
-              style={{ padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px', borderStyle: 'dashed', borderWidth: '2px', borderColor: file ? 'var(--primary-neon)' : 'var(--card-border)' }}
+              style={{ padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px', borderStyle: 'dashed', borderWidth: '2px', borderColor: file ? 'var(--primary-neon)' : 'var(--card-border)', maxWidth: '550px', width: '100%', margin: '40px auto 0' }}
             >
               <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
                 <Pill style={{ color: 'var(--primary-neon)' }} size={28} />

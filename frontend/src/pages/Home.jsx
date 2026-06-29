@@ -83,7 +83,7 @@ const searchButtonHoverVariants = {
 };
 
 const Home = ({ onSearch, onNavigate, onOpenChat }) => {
-  const [activeTab, setActiveTab] = useState('labs'); // 'labs' | 'doctors'
+  const [activeTab, setActiveTab] = useState('doctors'); // Default to doctors, labs removed
   const [searchQuery, setSearchQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -304,50 +304,6 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
           style={{ padding: '24px', maxWidth: '850px', width: '100%', margin: '0 auto', position: 'relative', zIndex: 10 }}
         >
 
-          {/* Tab Selectors */}
-          <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
-            <button
-              onClick={() => setActiveTab('labs')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '10px 18px',
-                borderRadius: '8px',
-                fontSize: '0.85rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                background: activeTab === 'labs' ? 'var(--primary-neon)' : 'rgba(255, 255, 255, 0.03)',
-                color: activeTab === 'labs' ? '#fff' : 'var(--text-muted)',
-                border: activeTab === 'labs' ? 'none' : '1px solid var(--card-border)',
-              }}
-            >
-              <TestTube size={16} />
-              Diagnostic Tests
-            </button>
-            <button
-              onClick={() => setActiveTab('doctors')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '10px 18px',
-                borderRadius: '8px',
-                fontSize: '0.85rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                background: activeTab === 'doctors' ? 'var(--primary-neon)' : 'rgba(255, 255, 255, 0.03)',
-                color: activeTab === 'doctors' ? '#fff' : 'var(--text-muted)',
-                border: activeTab === 'doctors' ? 'none' : '1px solid var(--card-border)',
-              }}
-            >
-              <Stethoscope size={16} />
-              Find Doctors
-            </button>
-          </div>
-
           {/* Input Form Grid */}
           <form onSubmit={handleSearchSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: '12px', alignItems: 'center' }}>
 
@@ -359,8 +315,8 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setShowSuggestions(true)}
-                onBlur={() => setShowSuggestions(false)}
-                placeholder={activeTab === 'labs' ? "Search tests (e.g. CBC, Lipid, HbA1c)..." : "Specialty (e.g. ENT, Cardiologist)..."}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                placeholder="Specialty (e.g. ENT, Dentist, Gynaecologist)..."
                 style={{
                   width: '100%',
                   background: 'rgba(0,0,0,0.2)',
@@ -374,7 +330,7 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
               />
 
               {/* Practo-style Common Specialties Dropdown suggestions */}
-              {showSuggestions && activeTab === 'doctors' && (
+              {showSuggestions && (
                 <div
                   className="glass-panel"
                   style={{
@@ -462,43 +418,26 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
           {/* Quick Tags under the search console */}
           <div style={{ marginTop: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Popular in Bengaluru:</span>
-            {activeTab === 'labs' ? (
-              ['cbc', 'lipid', 'hba1c'].map(tag => (
-                <button
-                  key={tag}
-                  onClick={() => setSearchQuery(tag)}
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid var(--card-border)',
-                    color: 'var(--text-muted)',
-                    fontSize: '0.72rem',
-                    padding: '4px 10px',
-                    borderRadius: '50px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  {tag === 'cbc' ? 'CBC Test' : tag === 'lipid' ? 'Lipid Profile' : 'Diabetes HbA1c'}
-                </button>
-              ))
-            ) : (
-              ['ENT', 'Cardiologist', 'General Physician'].map(tag => (
-                <button
-                  key={tag}
-                  onClick={() => setSearchQuery(tag)}
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid var(--card-border)',
-                    color: 'var(--text-muted)',
-                    fontSize: '0.72rem',
-                    padding: '4px 10px',
-                    borderRadius: '50px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  {tag}
-                </button>
-              ))
-            )}
+            {['ENT', 'Cardiologist', 'General Physician'].map(tag => (
+              <button
+                key={tag}
+                onClick={() => {
+                  setSearchQuery(tag);
+                  onSearch({ type: 'doctors', query: tag });
+                }}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid var(--card-border)',
+                  color: 'var(--text-muted)',
+                  fontSize: '0.72rem',
+                  padding: '4px 10px',
+                  borderRadius: '50px',
+                  cursor: 'pointer'
+                }}
+              >
+                {tag}
+              </button>
+            ))}
           </div>
         </motion.section>
 

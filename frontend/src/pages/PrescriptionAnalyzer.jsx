@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Upload, AlertOctagon, Heart, BrainCircuit, Activity, ArrowRight, Loader, Pill, ShieldAlert, CheckCircle } from 'lucide-react';
-import reportBg from '../assets/tubagus-andri-maulana-lK_p_c7VGDc-unsplash.jpg';
+import reportBg from '../assets/prescription.jpg';
 import { motion } from 'framer-motion';
 
 // Framer Motion variants — same pattern as ReportAnalyzer / Home.jsx
@@ -75,20 +75,16 @@ const PrescriptionAnalyzer = ({ token, onOpenAuth }) => {
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-slate-950">
-      {/* Background Image */}
-      <img
-        src={reportBg}
-        alt="Medical background"
-        className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0"
-      />
-
-      {/* Dark Overlay */}
-      <div className="absolute inset-0 bg-black/30 z-0"></div>
-
-      {/* Gradient fade to dark */}
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/60 to-slate-950 z-0"></div>
-
+    <div 
+      className="relative min-h-screen w-full overflow-x-hidden bg-slate-950"
+      style={{
+        backgroundImage: `linear-gradient(to bottom, rgba(5, 6, 12, 0.5) 0%, rgba(5, 6, 12, 0.75) 50%, #05060c 100%), url(${reportBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
       {/* Content */}
       <motion.div
         variants={containerVariants}

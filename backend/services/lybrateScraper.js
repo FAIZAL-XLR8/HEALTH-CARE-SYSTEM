@@ -14,20 +14,22 @@ async function scrapeLybrateDoctors(city, specialty) {
   } else if (citySlug === 'new-delhi') {
     citySlug = 'delhi';
   }
-  
+
   // Normalize specialty query for direct URL slug (e.g. 'ENT Specialist' -> 'ent-specialist')
   let specialtySlug = specialty.toLowerCase().trim()
     .replace('ear-nose-throat (ent) specialist', 'ent-specialist')
     .replace('ent specialist', 'ent-specialist')
     .replace(/^ent$/, 'ent-specialist')
-    .replace('gynecologist/obstetrician', 'gynecologist')
+    .replace('gynaecologist/obstetrician', 'gynaecologist')
+    .replace('gynecologist/obstetrician', 'gynaecologist')
+    .replace('gynecologist', 'gynaecologist')
     .replace(/\//g, '-')
     .replace(/\s+/g, '-');
-    
+
   const TARGET_URL = `https://www.lybrate.com/${citySlug}/${specialtySlug}`;
-  
+
   console.log(`🕵️ [Lybrate Scraper] Launching Puppeteer browser to crawl ${TARGET_URL}...`);
-  
+
   const browser = await puppeteer.launch({
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -37,7 +39,7 @@ async function scrapeLybrateDoctors(city, specialty) {
     const page = await browser.newPage();
     // Emulate a standard screen desktop browser
     await page.setViewport({ width: 1280, height: 800 });
-    
+
     // Spoof headers to bypass basic detection
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
 
@@ -82,7 +84,7 @@ async function scrapeLybrateDoctors(city, specialty) {
 
         const name = nameNode ? nameNode.innerText.trim().replace(/^Dr\.\s+/i, '') : null;
         const experience = expNode ? parseInt(expNode.innerText.replace(/[^0-9]/g, ''), 10) : 10;
-        
+
         // Robust fee parser that handles original vs discounted prices and comma formatting (e.g. 1,000)
         let fee = null;
         if (feeNode) {

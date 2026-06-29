@@ -14,13 +14,13 @@ const adminController = require('../controllers/adminController');
 const apiRateLimiter = require('../middleware/rateLimiter');
 
 const fileAnalyzeLimiter = apiRateLimiter({
-  windowSeconds: 10,
+  windowSeconds: 60,
   keyPrefix: 'rateLimit:fileAnalyze',
   message: 'Analysis rate limit exceeded. Please wait 10 seconds.'
 });
 
 const chatbotLimiter = apiRateLimiter({
-  windowSeconds: 10,
+  windowSeconds: 60,
   keyPrefix: 'rateLimit:chatbot',
   message: 'Chatbot rate limit exceeded. Please wait 10 seconds.'
 });

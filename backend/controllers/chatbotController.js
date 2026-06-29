@@ -161,7 +161,7 @@ exports.handleChatbotMessage = async (req, res) => {
         "isComplete": boolean,
         "triageAnalysis": "Clear, patient-friendly summary explaining the potential disease condition. Leave empty if isComplete is false.",
         "priority": "High" | "Medium" | "Low",
-        "specialty": "Cardiologist" | "Dermatologist" | "ENT Specialist" | "General Physician" | "Gastroenterologist" | "Orthopedist" | "Neurologist" | "Endocrinologist" | "Pulmonologist" | "Urologist" | "Dentist" | "Gynecologist/obstetrician",
+        "specialty": "Cardiologist" | "Dermatologist" | "ENT Specialist" | "General Physician" | "Gastroenterologist" | "Orthopedist" | "Neurologist" | "Endocrinologist" | "Pulmonologist" | "Urologist" | "Dentist" | "Gynaecologist/obstetrician",
         "followUpInstructions": "Empathic clinical advice on what the patient should do next. Leave empty if isComplete is false.",
         "text": "The follow-up question to ask the patient if the conversation is NOT complete. Leave empty if isComplete is true.",
         "options": ["Option A", "Option B", "Option C", "None of these"], // List of choice options for the user to answer the follow-up question. Provide 3-5 appropriate short options. Leave empty if isComplete is true.
@@ -244,7 +244,7 @@ async function getRecommendedDoctors(specialty) {
           distanceField: 'distanceInMeters',
           maxDistance: searchRadius,
           spherical: true,
-          query: { specialty: { $regex: new RegExp('\\b' + specialty.trim() + '\\b', 'i') } },
+          query: { specialization: { $regex: new RegExp('\\b' + specialty.trim() + '\\b', 'i') } },
         },
       },
     ]);
@@ -255,19 +255,33 @@ async function getRecommendedDoctors(specialty) {
 
       if (scrapedDocs && scrapedDocs.length > 0) {
         const insertPromises = scrapedDocs.map(async (doc) => {
-          const exists = await Doctor.findOne({ name: doc.name, specialty: doc.specialty });
+          const exists = await Doctor.findOne({
+            name: { $regex: new RegExp('^' + doc.name.trim() + '$', 'i') },
+            specialization: { $regex: new RegExp('^' + doc.specialty.trim() + '$', 'i') }
+          });
           if (!exists) {
             const offsetLng = (Math.random() - 0.5) * 0.05;
             const offsetLat = (Math.random() - 0.5) * 0.05;
+            const uniqueSlug = `${doc.name.toLowerCase().replace(/[^a-z]/g, '')}_${Date.now()}`;
+            const mockPhone = `+919${Math.floor(100000000 + Math.random() * 900000000)}`;
             
             return Doctor.create({
               name: doc.name,
-              specialty: doc.specialty,
-              experience: doc.experience || 10,
+              email: `${uniqueSlug}@health.com`,
+              password: 'default_scraped_password_123',
+              phone: mockPhone,
+              specialization: doc.specialty,
+              experienceYears: doc.experience || 10,
               clinicName: doc.clinicName || 'Metro Health Clinic',
-              fee: doc.fee || 500,
+              consultationFee: doc.fee || 500,
               googleRating: doc.rating || 4.5,
               scrapedRating: doc.rating,
+              isOnline: false,
+              lastSeen: new Date(),
+              status: 'approved',
+              isVerified: true,
+              emailVerified: true,
+              phoneVerified: true,
               location: {
                 type: 'Point',
                 coordinates: [userLng + offsetLng, userLat + offsetLat],
@@ -287,7 +301,7 @@ async function getRecommendedDoctors(specialty) {
               distanceField: 'distanceInMeters',
               maxDistance: searchRadius,
               spherical: true,
-              query: { specialty: { $regex: new RegExp('\\b' + specialty.trim() + '\\b', 'i') } },
+              query: { specialization: { $regex: new RegExp('\\b' + specialty.trim() + '\\b', 'i') } },
             },
           },
         ]);
@@ -299,10 +313,13 @@ async function getRecommendedDoctors(specialty) {
       return {
         doctorId: doc._id,
         name: doc.name,
-        specialty: doc.specialty,
-        experience: doc.experience,
+        specialty: doc.specialization,
+        specialization: doc.specialization,
+        experience: doc.experienceYears,
+        experienceYears: doc.experienceYears,
         clinicName: doc.clinicName,
-        fee: doc.fee,
+        fee: doc.consultationFee,
+        consultationFee: doc.consultationFee,
         googleRating: doc.googleRating,
         scrapedRating: doc.scrapedRating,
         coordinates: doc.location.coordinates,

@@ -1,5 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, MessageSquare, Users, CheckCircle, RefreshCw, AlertCircle, FileText, CreditCard, Shield, AlertTriangle } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+// Framer Motion variants — same pattern as Home.jsx
+const containerVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.12 } },
+};
+
+const headingVariants = {
+  hidden: { opacity: 0, y: 25 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+};
+
+const descriptionVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 30, scale: 0.98 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: 'easeOut' } },
+  hover: { y: -5, transition: { duration: 0.22, ease: 'easeInOut' } },
+};
 
 const calculateAge = (dateOfBirth) => {
   if (!dateOfBirth) return 'N/A';
@@ -103,19 +126,34 @@ const DoctorDashboard = ({ token, onStartConsultation }) => {
   };
 
   return (
-    <div style={{ maxWidth: '1100px', margin: '40px auto', padding: '0 24px' }}>
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      style={{ maxWidth: '1100px', margin: '40px auto', padding: '0 24px' }}
+    >
       
       {/* Top Banner */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           {doctorProfile && (
-            <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#fff' }}>
+            <motion.h2
+              variants={headingVariants}
+              initial="hidden"
+              animate="visible"
+              style={{ fontSize: '1.8rem', fontWeight: 800, color: '#fff' }}
+            >
               Welcome, {doctorProfile.name}
-            </h2>
+            </motion.h2>
           )}
-          <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+          <motion.p
+            variants={descriptionVariants}
+            initial="hidden"
+            animate="visible"
+            style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}
+          >
             Manage appointments, connect with active consultations, and view patient health history.
-          </p>
+          </motion.p>
         </div>
         
         <button
@@ -192,9 +230,14 @@ const DoctorDashboard = ({ token, onStartConsultation }) => {
               No registered patients found in your records.
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}
+            >
               {patientsList.map(p => (
-                <div key={p._id} style={{ background: 'rgba(0,0,0,0.15)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '16px', display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <motion.div key={p._id} variants={cardVariants} whileHover="hover" style={{ background: 'rgba(0,0,0,0.15)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '16px', display: 'flex', gap: '12px', alignItems: 'center' }}>
                   <img
                     src={p.profilePhoto || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop'}
                     alt={p.name}
@@ -207,9 +250,9 @@ const DoctorDashboard = ({ token, onStartConsultation }) => {
                       Visited {p.totalBookings} times • Last: {new Date(p.lastVisit).toLocaleDateString()}
                     </p>
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           )}
         </div>
       ) : (
@@ -222,13 +265,19 @@ const DoctorDashboard = ({ token, onStartConsultation }) => {
               <p style={{ fontSize: '0.9rem' }}>No appointments found in this section.</p>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <motion.div
+              key={activeTab}
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+            >
               {getActiveList().map(appt => {
                 const patient = appt.userId || {};
                 const isExpired = appt.remainingValidity === 'Expired' || (appt.chatEnabledUntil && new Date() >= new Date(appt.chatEnabledUntil));
 
                 return (
-                  <div key={appt._id} className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                  <motion.div key={appt._id} variants={cardVariants} whileHover="hover" className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                     
                     {/* Patient detail */}
                     <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
@@ -332,10 +381,10 @@ const DoctorDashboard = ({ token, onStartConsultation }) => {
                       )}
                     </div>
 
-                  </div>
+                  </motion.div>
                 );
               })}
-            </div>
+            </motion.div>
           )}
         </div>
       )}
@@ -350,7 +399,7 @@ const DoctorDashboard = ({ token, onStartConsultation }) => {
           animation: spin 1s linear infinite;
         }
       `}} />
-    </div>
+    </motion.div>
   );
 };
 

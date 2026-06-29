@@ -1,5 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, CreditCard, MessageSquare, Video, AlertCircle, RefreshCw } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+// Framer Motion variants — same pattern as Home.jsx
+const containerVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.12 } },
+};
+
+const headingVariants = {
+  hidden: { opacity: 0, y: 25 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+};
+
+const descriptionVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 30, scale: 0.98 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: 'easeOut' } },
+  hover: { y: -5, transition: { duration: 0.22, ease: 'easeInOut' } },
+};
 
 const PatientDashboard = ({ token, onOpenAuth, onStartConsultation }) => {
   const [appointments, setAppointments] = useState([]);
@@ -142,10 +165,22 @@ const PatientDashboard = ({ token, onOpenAuth, onStartConsultation }) => {
       
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#fff' }}>Patient Dashboard</h2>
-          <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+          <motion.h2
+            initial="hidden"
+            animate="visible"
+            variants={headingVariants}
+            style={{ fontSize: '1.8rem', fontWeight: 800, color: '#fff' }}
+          >
+            Patient Dashboard
+          </motion.h2>
+          <motion.p
+            initial="hidden"
+            animate="visible"
+            variants={descriptionVariants}
+            style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}
+          >
             Manage your booked consultations, payments, and active telehealth rooms.
-          </p>
+          </motion.p>
         </div>
         
         <button
@@ -191,14 +226,25 @@ const PatientDashboard = ({ token, onOpenAuth, onStartConsultation }) => {
           <p style={{ fontSize: '0.8rem', marginTop: '4px' }}>Search for doctors on the homepage to book a consultation slot.</p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+        >
           {appointments.map(appt => {
             const doc = appt.doctorId || appt.doctor || {};
             const isPaid = appt.paymentStatus === 'paid';
             const isExpired = appt.remainingValidity === 'Expired' || (appt.chatEnabledUntil && new Date() >= new Date(appt.chatEnabledUntil));
             
             return (
-              <div key={appt._id} className="glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
+              <motion.div
+                key={appt._id}
+                variants={cardVariants}
+                whileHover="hover"
+                className="glass-panel"
+                style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}
+              >
                 
                 {/* Doctor Profile Info */}
                 <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
@@ -288,10 +334,10 @@ const PatientDashboard = ({ token, onOpenAuth, onStartConsultation }) => {
                   )}
                 </div>
 
-              </div>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       )}
 
       <style dangerouslySetInnerHTML={{

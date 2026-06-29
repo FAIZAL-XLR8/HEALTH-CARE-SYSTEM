@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Star, ArrowRight, ArrowDownUp, RefreshCw, Sparkles, Navigation } from 'lucide-react';
+import { ArrowRight, ArrowDownUp, RefreshCw, Sparkles, Navigation, Briefcase } from 'lucide-react';
 import MapView from '../components/MapView';
 
 const SearchHub = ({ searchParams, onBook }) => {
@@ -60,17 +60,14 @@ const SearchHub = ({ searchParams, onBook }) => {
         return b.experience - a.experience; // Doctor next slot proxy: Experience
       }
 
-      // 'BEST' Tab: Dynamic Weighted Scoring (Price 50%, Rating 30%, Experience 20%)
+      // 'BEST' Tab: Dynamic Weighted Scoring (Price 60%, Experience 40%)
       const getScore = (p) => {
-        const ratingVal = p.scrapedRating || 4.5;
-        const ratingScore = ratingVal * 20; // max 100
-
         const price = p.fee || p.consultationFee || 500;
         const priceScore = Math.max(0, 100 - (price / 10)); // cheaper is better
 
         const credentialScore = p.experience > 15 ? 100 : 50;
 
-        return (priceScore * 0.50) + (ratingScore * 0.30) + (credentialScore * 0.20);
+        return (priceScore * 0.60) + (credentialScore * 0.40);
       };
 
       return getScore(b) - getScore(a);
@@ -232,20 +229,12 @@ const SearchHub = ({ searchParams, onBook }) => {
                         </span>
                       </div>
 
-                      {/* Ratings */}
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        {p.scrapedRating !== undefined && p.scrapedRating !== null ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255, 255, 255, 0.03)', padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--card-border)' }} title="Lybrate Rating">
-                            <Star size={12} fill="var(--accent-star, #fbbf24)" stroke="var(--accent-star, #fbbf24)" />
-                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Lybrate:</span>
-                            <span style={{ fontSize: '0.72rem', fontWeight: 'bold', color: '#fff' }}>{p.scrapedRating}</span>
-                          </div>
-                        ) : (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255, 255, 255, 0.03)', padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--card-border)' }}>
-                            <Star size={12} fill="none" stroke="var(--text-muted)" />
-                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Rating: N/A</span>
-                          </div>
-                        )}
+                      {/* Experience Badge instead of rating */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(16, 185, 129, 0.1)', padding: '6px 12px', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
+                        <Briefcase size={12} style={{ color: 'var(--secondary-neon)' }} />
+                        <span style={{ fontSize: '0.74rem', fontWeight: 'bold', color: 'var(--secondary-neon)' }}>
+                          {p.experience || p.experienceYears || 10} Yrs Exp
+                        </span>
                       </div>
                     </div>
 

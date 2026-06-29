@@ -479,7 +479,7 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: '#f8fafc', padding: '2px 4px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
                               <Star size={10} fill="var(--accent-star)" stroke="var(--accent-star)" />
                               <span style={{ fontSize: '0.68rem', color: '#000000', fontWeight: 'bold' }}>
-                                {doc.googleRating || doc.scrapedRating || 4.5}
+                                {doc.scrapedRating || 4.5}
                               </span>
                             </div>
                           </div>

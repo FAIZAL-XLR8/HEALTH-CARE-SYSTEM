@@ -137,7 +137,6 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
 
   return (
     <div 
-      className="glass-panel"
       style={{
         position: 'fixed',
         bottom: '24px',
@@ -148,9 +147,9 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
-        border: '1px solid rgba(6, 182, 212, 0.35)',
-        boxShadow: '0 12px 40px rgba(6, 182, 212, 0.18)',
-        background: 'rgba(7, 9, 19, 0.95)',
+        border: '1px solid #e2e8f0',
+        boxShadow: '0 12px 40px rgba(0, 0, 0, 0.1)',
+        background: '#ffffff',
         borderRadius: '16px'
       }}
     >
@@ -158,8 +157,8 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
       <div 
         style={{
           padding: '16px',
-          background: 'linear-gradient(90deg, rgba(6, 182, 212, 0.15), rgba(16, 185, 129, 0.05))',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+          background: '#ffffff',
+          borderBottom: '1px solid #e2e8f0',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center'
@@ -168,16 +167,16 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ position: 'relative' }}>
             <div style={{ 
-              background: 'linear-gradient(135deg, var(--primary-neon) 0%, #0891b2 100%)', 
+              background: '#f1f5f9', 
               width: '36px', 
               height: '36px', 
               borderRadius: '50%', 
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center',
-              boxShadow: '0 0 12px rgba(6, 182, 212, 0.4)'
+              border: '1px solid #e2e8f0'
             }}>
-              <Bot style={{ color: '#000' }} size={18} />
+              <Bot style={{ color: '#701557' }} size={18} />
             </div>
             <span 
               style={{ 
@@ -187,20 +186,20 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                 width: '10px',
                 height: '10px',
                 borderRadius: '50%',
-                background: 'var(--secondary-neon)',
-                border: '2px solid rgba(7, 9, 19, 0.95)',
+                background: '#10b981',
+                border: '2px solid #ffffff',
                 display: 'inline-block'
               }} 
             />
           </div>
           <div>
-            <h3 style={{ fontSize: '1rem', color: '#fff', fontWeight: 700, fontFamily: 'Outfit' }}>
+            <h3 style={{ fontSize: '1rem', color: '#1f2937', fontWeight: 700, fontFamily: 'Outfit' }}>
               AeroBot AI
             </h3>
             <span 
               style={{ 
                 fontSize: '0.65rem', 
-                color: isRagActive ? 'var(--secondary-neon)' : '#9ca3af', 
+                color: isRagActive ? '#10b981' : '#6b7280', 
                 display: 'flex', 
                 alignItems: 'center', 
                 gap: '4px' 
@@ -218,7 +217,7 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
             style={{
               background: 'none',
               border: 'none',
-              color: 'var(--text-muted)',
+              color: '#64748b',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -228,12 +227,12 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
               transition: 'background 0.2s, color 0.2s'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-              e.currentTarget.style.color = '#fff';
+              e.currentTarget.style.background = '#f1f5f9';
+              e.currentTarget.style.color = '#0f172a';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'none';
-              e.currentTarget.style.color = 'var(--text-muted)';
+              e.currentTarget.style.color = '#64748b';
             }}
           >
             <RotateCcw size={16} />
@@ -244,7 +243,7 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
             style={{
               background: 'none',
               border: 'none',
-              color: 'var(--text-muted)',
+              color: '#64748b',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -254,12 +253,12 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
               transition: 'background 0.2s, color 0.2s'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-              e.currentTarget.style.color = '#fff';
+              e.currentTarget.style.background = '#f1f5f9';
+              e.currentTarget.style.color = '#0f172a';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'none';
-              e.currentTarget.style.color = 'var(--text-muted)';
+              e.currentTarget.style.color = '#64748b';
             }}
           >
             <X size={18} />
@@ -268,7 +267,7 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
       </div>
 
       {/* Message Sequence Container */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', background: '#f5f3f0', display: 'flex', flexDirection: 'column', gap: '18px' }}>
         {messages.map((msg, index) => {
           const isAi = msg.sender === 'ai';
           return (
@@ -292,13 +291,13 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center',
-                background: isAi ? 'linear-gradient(135deg, rgba(6, 182, 212, 0.25) 0%, rgba(16, 185, 129, 0.15) 100%)' : 'rgba(255, 255, 255, 0.08)',
-                border: `1px solid ${isAi ? 'rgba(6, 182, 212, 0.3)' : 'rgba(255, 255, 255, 0.15)'}`
+                background: isAi ? '#f1f5f9' : '#701557',
+                border: isAi ? '1px solid #e2e8f0' : 'none'
               }}>
                 {isAi ? (
-                  <Bot style={{ color: 'var(--primary-neon)' }} size={14} />
+                  <Bot style={{ color: '#701557' }} size={14} />
                 ) : (
-                  <User style={{ color: '#fff' }} size={12} />
+                  <User style={{ color: '#ffffff' }} size={12} />
                 )}
               </div>
 
@@ -306,15 +305,15 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
                 <div 
                   style={{
-                    background: isAi ? 'rgba(255, 255, 255, 0.03)' : 'linear-gradient(135deg, var(--primary-neon) 0%, #0891b2 100%)',
-                    color: isAi ? 'var(--text-primary)' : '#000',
-                    fontWeight: isAi ? 400 : 600,
+                    background: isAi ? '#ffffff' : '#701557',
+                    color: isAi ? '#1f2937' : '#ffffff',
+                    fontWeight: isAi ? 400 : 500,
                     padding: '12px 16px',
-                    borderRadius: isAi ? '2px 18px 18px 18px' : '18px 2px 18px 18px',
+                    borderRadius: isAi ? '16px 16px 16px 4px' : '16px 16px 4px 16px',
                     fontSize: '0.82rem',
                     lineHeight: '1.5',
-                    border: isAi ? '1px solid rgba(255, 255, 255, 0.05)' : 'none',
-                    boxShadow: isAi ? 'none' : '0 4px 15px rgba(6, 182, 212, 0.2)'
+                    border: 'none',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
                   }}
                 >
                   {msg.text}
@@ -328,10 +327,10 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                           onClick={() => sendMessage(option)}
                           disabled={isLoading}
                           style={{
-                            background: 'rgba(6, 182, 212, 0.08)',
-                            border: '1px solid rgba(6, 182, 212, 0.25)',
+                            background: 'rgba(112, 21, 87, 0.05)',
+                            border: '1px solid rgba(112, 21, 87, 0.25)',
                             borderRadius: '50px',
-                            color: 'var(--primary-neon)',
+                            color: '#701557',
                             padding: '6px 14px',
                             fontSize: '0.74rem',
                             fontWeight: 700,
@@ -339,14 +338,14 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                             transition: 'all 0.2s'
                           }}
                           onMouseEnter={(e) => {
-                            e.target.style.background = 'var(--primary-neon)';
-                            e.target.style.color = '#000';
-                            e.target.style.borderColor = 'var(--primary-neon)';
+                            e.target.style.background = '#701557';
+                            e.target.style.color = '#fff';
+                            e.target.style.borderColor = '#701557';
                           }}
                           onMouseLeave={(e) => {
-                            e.target.style.background = 'rgba(6, 182, 212, 0.08)';
-                            e.target.style.color = 'var(--primary-neon)';
-                            e.target.style.borderColor = 'rgba(6, 182, 212, 0.25)';
+                            e.target.style.background = 'rgba(112, 21, 87, 0.05)';
+                            e.target.style.color = '#701557';
+                            e.target.style.borderColor = 'rgba(112, 21, 87, 0.25)';
                           }}
                         >
                           {option}
@@ -360,13 +359,11 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                     <div 
                       style={{
                         marginTop: '10px',
-                        background: 'rgba(7, 9, 19, 0.85)',
-                        borderRadius: '8px',
-                        border: `1px solid ${
-                          msg.triage.priority === 'High' ? 'var(--accent-alert)' :
-                          msg.triage.priority === 'Medium' ? 'var(--accent-star)' : 'var(--secondary-neon)'
-                        }`,
-                        padding: '12px',
+                        background: '#ffffff',
+                        borderRadius: '12px',
+                        border: '1px solid #e2e8f0',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                        padding: '16px',
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '8px',
@@ -374,20 +371,22 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.65rem', color: '#9ca3af', fontWeight: 500 }}>TRIAGE PRIORITY:</span>
+                        <span style={{ fontSize: '0.65rem', color: '#6b7280', fontWeight: 600 }}>TRIAGE PRIORITY:</span>
                         <span 
                           style={{
                             fontSize: '0.62rem',
                             fontWeight: 'bold',
-                            padding: '2px 6px',
+                            padding: '2px 8px',
                             borderRadius: '4px',
-                            color: '#fff',
+                            color: 
+                              msg.triage.priority === 'High' ? '#b91c1c' :
+                              msg.triage.priority === 'Medium' ? '#b45309' : '#047857',
                             background: 
-                              msg.triage.priority === 'High' ? 'var(--accent-alert)' :
-                              msg.triage.priority === 'Medium' ? 'rgba(251, 191, 36, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+                              msg.triage.priority === 'High' ? '#fee2e2' :
+                              msg.triage.priority === 'Medium' ? '#fef3c7' : '#d1fae5',
                             border: `1px solid ${
-                              msg.triage.priority === 'High' ? 'var(--accent-alert)' :
-                              msg.triage.priority === 'Medium' ? 'var(--accent-star)' : 'var(--secondary-neon)'
+                              msg.triage.priority === 'High' ? '#fca5a5' :
+                              msg.triage.priority === 'Medium' ? '#fcd34d' : '#6ee7b7'
                             }`
                           }}
                         >
@@ -395,17 +394,17 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                         </span>
                       </div>
 
-                      <div style={{ fontSize: '0.78rem', color: '#fff' }}>
+                      <div style={{ fontSize: '0.78rem', color: '#1f2937' }}>
                         <strong>Assessment:</strong> {msg.triage.analysis}
                       </div>
 
                       {msg.triage.specialist && (
-                        <div style={{ fontSize: '0.74rem', color: '#fff' }}>
+                        <div style={{ fontSize: '0.74rem', color: '#1f2937' }}>
                           <strong>Specialist:</strong> {msg.triage.specialist}
                         </div>
                       )}
 
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#4b5563' }}>
                         <strong>Advice:</strong> {msg.triage.followUp}
                       </div>
 
@@ -418,10 +417,10 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                           }}
                           style={{
                             marginTop: '2px',
-                            background: 'rgba(6, 182, 212, 0.08)',
-                            border: '1px solid rgba(6, 182, 212, 0.25)',
+                            background: 'rgba(112, 21, 87, 0.05)',
+                            border: '1px solid rgba(112, 21, 87, 0.25)',
                             borderRadius: '6px',
-                            color: 'var(--primary-neon)',
+                            color: '#701557',
                             padding: '5px 8px',
                             fontSize: '0.7rem',
                             fontWeight: 600,
@@ -444,7 +443,7 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                 {/* Recommended Doctors Carousel/List */}
                 {isAi && msg.doctors && msg.doctors.length > 0 && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px', width: '100%' }}>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--primary-neon)', fontWeight: 600, letterSpacing: '0.05em' }}>
+                    <span style={{ fontSize: '0.7rem', color: '#701557', fontWeight: 600, letterSpacing: '0.05em' }}>
                       RECOMMENDED DOCTORS IN BANGALORE:
                     </span>
                     <div 
@@ -462,56 +461,57 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                           key={doc.doctorId || docIdx}
                           style={{
                             flex: '0 0 260px',
-                            background: 'rgba(255, 255, 255, 0.02)',
-                            border: '1px solid rgba(255, 255, 255, 0.05)',
+                            background: '#ffffff',
+                            border: '1px solid #e2e8f0',
                             borderRadius: '10px',
                             padding: '10px',
                             display: 'flex',
                             flexDirection: 'column',
                             gap: '6px',
-                            transition: 'all 0.2s'
+                            transition: 'all 0.2s',
+                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
                           }}
                         >
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#fff' }}>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#000000' }}>
                               Dr. {doc.name}
                             </span>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: 'rgba(255,255,255,0.03)', padding: '2px 4px', borderRadius: '4px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: '#f8fafc', padding: '2px 4px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
                               <Star size={10} fill="var(--accent-star)" stroke="var(--accent-star)" />
-                              <span style={{ fontSize: '0.68rem', color: '#fff', fontWeight: 'bold' }}>
+                              <span style={{ fontSize: '0.68rem', color: '#000000', fontWeight: 'bold' }}>
                                 {doc.googleRating || doc.scrapedRating || 4.5}
                               </span>
                             </div>
                           </div>
 
-                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                          <span style={{ fontSize: '0.7rem', color: '#000000', fontWeight: 500 }}>
                             {doc.specialty} • {doc.experience} yrs exp
                           </span>
 
-                          <span style={{ fontSize: '0.7rem', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <MapPin size={10} style={{ color: 'var(--primary-neon)' }} />
+                          <span style={{ fontSize: '0.7rem', color: '#000000', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                            <MapPin size={10} style={{ color: '#701557' }} />
                             {doc.clinicName} ({doc.distanceKm} km)
                           </span>
 
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: '6px' }}>
-                            <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--secondary-neon)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px', borderTop: '1px solid #e2e8f0', paddingTop: '6px' }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#10b981' }}>
                               Fee: ₹{doc.fee}
                             </span>
                             <button
                               onClick={() => {
-                                if (onBook) {
-                                  onBook(doc);
-                                  onClose();
-                                } else {
-                                  onSearchSpecialty(doc.specialty);
-                                  onClose();
-                                }
-                              }}
+                                  if (onBook) {
+                                    onBook(doc);
+                                    onClose();
+                                  } else {
+                                    onSearchSpecialty(doc.specialty);
+                                    onClose();
+                                  }
+                                }}
                               style={{
-                                background: 'rgba(6, 182, 212, 0.1)',
-                                border: '1px solid rgba(6, 182, 212, 0.35)',
+                                background: 'rgba(112, 21, 87, 0.05)',
+                                border: '1px solid rgba(112, 21, 87, 0.35)',
                                 borderRadius: '6px',
-                                color: 'var(--primary-neon)',
+                                color: '#701557',
                                 padding: '4px 8px',
                                 fontSize: '0.68rem',
                                 fontWeight: 700,
@@ -522,13 +522,13 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                                 transition: 'all 0.2s'
                               }}
                               onMouseEnter={(e) => {
-                                e.target.style.background = 'var(--primary-neon)';
-                                e.target.style.color = '#000';
-                              }}
+                                  e.target.style.background = '#701557';
+                                  e.target.style.color = '#fff';
+                                }}
                               onMouseLeave={(e) => {
-                                e.target.style.background = 'rgba(6, 182, 212, 0.1)';
-                                e.target.style.color = 'var(--primary-neon)';
-                              }}
+                                  e.target.style.background = 'rgba(112, 21, 87, 0.05)';
+                                  e.target.style.color = '#701557';
+                                }}
                             >
                               Book
                               <ArrowRight size={10} />
@@ -545,18 +545,19 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                   <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
                     <div 
                       style={{
-                        background: 'rgba(255, 255, 255, 0.02)',
-                        border: '1px solid rgba(6, 182, 212, 0.25)',
+                        background: '#ffffff',
+                        border: '1px solid #e2e8f0',
                         borderRadius: '12px',
                         padding: '14px',
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '10px',
                         width: '100%',
-                        boxSizing: 'border-box'
+                        boxSizing: 'border-box',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
                       }}
                     >
-                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <span style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         Select multiple options:
                       </span>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -570,12 +571,12 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                                 alignItems: 'center', 
                                 gap: '10px', 
                                 fontSize: '0.8rem', 
-                                color: '#fff',
+                                color: '#374151',
                                 cursor: 'pointer',
                                 padding: '8px 10px',
                                 borderRadius: '8px',
-                                background: isChecked ? 'rgba(6, 182, 212, 0.06)' : 'transparent',
-                                border: '1px solid ' + (isChecked ? 'rgba(6, 182, 212, 0.25)' : 'transparent'),
+                                background: isChecked ? 'rgba(112, 21, 87, 0.05)' : 'transparent',
+                                border: '1px solid ' + (isChecked ? 'rgba(112, 21, 87, 0.25)' : 'transparent'),
                                 transition: 'all 0.2s',
                                 boxSizing: 'border-box'
                               }}
@@ -585,7 +586,7 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                                 checked={isChecked}
                                 onChange={() => handleToggleOption(opt)}
                                 style={{ 
-                                  accentColor: 'var(--primary-neon)',
+                                  accentColor: '#701557',
                                   width: '16px',
                                   height: '16px',
                                   cursor: 'pointer'
@@ -601,10 +602,10 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                         disabled={selectedOptions.length === 0}
                         style={{
                           marginTop: '6px',
-                          background: selectedOptions.length === 0 ? 'rgba(6, 182, 212, 0.05)' : 'var(--primary-neon)',
-                          border: selectedOptions.length === 0 ? '1px solid rgba(6, 182, 212, 0.15)' : 'none',
+                          background: selectedOptions.length === 0 ? '#f3f4f6' : '#701557',
+                          border: 'none',
                           borderRadius: '8px',
-                          color: selectedOptions.length === 0 ? 'var(--text-muted)' : '#000',
+                          color: selectedOptions.length === 0 ? '#9ca3af' : '#ffffff',
                           padding: '10px 16px',
                           fontSize: '0.8rem',
                           fontWeight: 700,
@@ -626,49 +627,50 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
 
         {/* Pulsing Loading Indicators */}
         {isLoading && (
-          <div style={{ alignSelf: 'flex-start', marginLeft: '38px', background: 'rgba(255, 255, 255, 0.04)', padding: '10px 14px', borderRadius: '12px 12px 12px 2px', display: 'flex', gap: '4px', alignItems: 'center' }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--primary-neon)', animation: 'pulseDot 1.2s infinite 0s' }} />
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--primary-neon)', animation: 'pulseDot 1.2s infinite 0.2s' }} />
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--primary-neon)', animation: 'pulseDot 1.2s infinite 0.4s' }} />
+          <div style={{ alignSelf: 'flex-start', marginLeft: '38px', background: '#ffffff', padding: '10px 14px', borderRadius: '12px 12px 12px 2px', display: 'flex', gap: '4px', alignItems: 'center', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#701557', animation: 'pulseDot 1.2s infinite 0s' }} />
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#701557', animation: 'pulseDot 1.2s infinite 0.2s' }} />
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#701557', animation: 'pulseDot 1.2s infinite 0.4s' }} />
           </div>
         )}
         <div ref={chatEndRef} />
       </div>
 
       {/* Input Console */}
-      <form onSubmit={handleSend} style={{ padding: '12px', borderTop: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', gap: '8px' }}>
+      <form onSubmit={handleSend} style={{ padding: '12px', borderTop: '1px solid #e2e8f0', background: '#ffffff', display: 'flex', gap: '8px', alignItems: 'center' }}>
         <input 
           type="text" 
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           placeholder="Describe symptoms (e.g. cough, fever)..."
           disabled={isLoading}
+          className="chat-input"
           style={{
             flex: 1,
-            background: 'rgba(0, 0, 0, 0.3)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            borderRadius: '8px',
-            padding: '8px 12px',
-            color: '#fff',
+            background: '#f3f4f6',
+            border: '1px solid #e5e7eb',
+            borderRadius: '24px',
+            padding: '8px 16px',
+            color: '#000000',
             fontSize: '0.8rem',
             outline: 'none'
           }}
         />
         <button 
           type="submit" 
-          disabled={isLoading}
+          disabled={isLoading || !inputText.trim()}
           style={{
-            background: 'var(--primary-neon)',
+            background: '#701557',
             border: 'none',
-            borderRadius: '8px',
-            width: '32px',
-            height: '32px',
+            borderRadius: '50%',
+            width: '34px',
+            height: '34px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#000',
+            color: '#ffffff',
             cursor: 'pointer',
-            opacity: isLoading ? 0.6 : 1
+            opacity: isLoading || !inputText.trim() ? 0.6 : 1
           }}
         >
           <Send size={14} />
@@ -686,12 +688,16 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
           height: 4px;
         }
         .chat-carousel::-webkit-scrollbar-track {
-          background: rgba(0, 0, 0, 0.2);
+          background: rgba(0, 0, 0, 0.05);
           border-radius: 4px;
         }
         .chat-carousel::-webkit-scrollbar-thumb {
-          background: var(--primary-neon, #06b6d4);
+          background: #701557;
           border-radius: 4px;
+        }
+        .chat-input::placeholder {
+          color: #4b5563 !important;
+          opacity: 1 !important;
         }
       `}} />
     </div>

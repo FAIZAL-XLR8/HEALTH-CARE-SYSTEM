@@ -104,7 +104,7 @@ const ReportAnalyzer = ({ onSearchDoctor, token, onOpenAuth }) => {
         variants={containerVariants}
         style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '10px' }}
       >
-        <motion.h2 variants={headingVariants} style={{ fontSize: '2rem', color: '#fff', fontWeight: 800 }}>
+        <motion.h2 variants={headingVariants} style={{ fontSize: '2rem', color: 'var(--text-primary)', fontWeight: 800 }}>
           Multimodal AI Laboratory Report Locker
         </motion.h2>
         <motion.p variants={descriptionVariants} style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
@@ -127,7 +127,7 @@ const ReportAnalyzer = ({ onSearchDoctor, token, onOpenAuth }) => {
               <Upload style={{ color: 'var(--accent-alert)' }} size={28} />
             </div>
             <div>
-              <h3 style={{ fontSize: '1.2rem', color: '#fff', fontWeight: 700 }}>Authentication Required</h3>
+              <h3 style={{ fontSize: '1.2rem', color: 'var(--text-primary)', fontWeight: 700 }}>Authentication Required</h3>
               <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '6px', maxWidth: '360px' }}>
                 Please login or sign up to access your personal AI medical report locker.
               </p>
@@ -181,7 +181,7 @@ const ReportAnalyzer = ({ onSearchDoctor, token, onOpenAuth }) => {
             </div>
 
             {file && (
-              <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '8px 16px', fontSize: '0.8rem', color: '#fff' }}>
+              <div style={{ background: 'var(--bg-obsidian)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '8px 16px', fontSize: '0.8rem', color: 'var(--text-primary)' }}>
                 Selected Document: <strong>{file.name}</strong>
               </div>
             )}
@@ -191,8 +191,8 @@ const ReportAnalyzer = ({ onSearchDoctor, token, onOpenAuth }) => {
               disabled={!file || isLoading}
               style={{
                 marginTop: '10px',
-                background: file && !isLoading ? 'var(--primary-neon)' : 'rgba(255, 255, 255, 0.05)',
-                color: file && !isLoading ? '#000' : 'var(--text-muted)',
+                background: file && !isLoading ? 'var(--primary-neon)' : 'var(--card-border)',
+                color: file && !isLoading ? 'var(--bg-dark)' : 'var(--text-muted)',
                 border: 'none',
                 borderRadius: '8px',
                 padding: '12px 24px',
@@ -229,7 +229,7 @@ const ReportAnalyzer = ({ onSearchDoctor, token, onOpenAuth }) => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--card-border)', paddingBottom: '16px' }}>
               <div>
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>PATIENT LOCKER SUMMARY</span>
-                <h3 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 700 }}>Patient: {analysis.patientName || 'Aarav Mehta'}</h3>
+                <h3 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: 700 }}>Patient: {analysis.patientName || 'Aarav Mehta'}</h3>
               </div>
               
               <button 
@@ -250,7 +250,7 @@ const ReportAnalyzer = ({ onSearchDoctor, token, onOpenAuth }) => {
 
             {/* Simple patient-friendly brief summary */}
             <div>
-              <p style={{ fontSize: '0.9rem', color: '#fff', lineHeight: '1.6', fontStyle: 'italic', background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '10px', borderLeft: '3px solid var(--primary-neon)' }}>
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', lineHeight: '1.6', fontStyle: 'italic', background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '10px', borderLeft: '3px solid var(--primary-neon)' }}>
                 "{analysis.fullSummary}"
               </p>
             </div>
@@ -259,7 +259,7 @@ const ReportAnalyzer = ({ onSearchDoctor, token, onOpenAuth }) => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
               
               {/* Identified tests */}
-              <div className="glass-panel" style={{ padding: '16px', background: 'rgba(0,0,0,0.15)' }}>
+              <div className="glass-panel" style={{ padding: '16px', background: 'var(--bg-dark)' }}>
                 <h4 style={{ fontSize: '0.85rem', color: 'var(--primary-neon)', fontWeight: 600, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Activity size={14} />
                   Identified Tests
@@ -274,7 +274,7 @@ const ReportAnalyzer = ({ onSearchDoctor, token, onOpenAuth }) => {
               </div>
 
               {/* Critical out of bounds lights */}
-              <div className="glass-panel" style={{ padding: '16px', background: 'rgba(0,0,0,0.15)', borderColor: 'rgba(244, 63, 94, 0.15)' }}>
+              <div className="glass-panel" style={{ padding: '16px', background: 'var(--bg-dark)', borderColor: 'rgba(244, 63, 94, 0.15)' }}>
                 <h4 style={{ fontSize: '0.85rem', color: 'var(--accent-alert)', fontWeight: 600, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <AlertOctagon size={14} />
                   Out-of-Range Metrics
@@ -299,7 +299,7 @@ const ReportAnalyzer = ({ onSearchDoctor, token, onOpenAuth }) => {
               
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <span style={{ fontSize: '0.7rem', color: 'var(--primary-neon)', fontWeight: 600, letterSpacing: '0.05em' }}>AI RECOMMENDATION</span>
-                <h4 style={{ fontSize: '1.05rem', color: '#fff', fontWeight: 700 }}>
+                <h4 style={{ fontSize: '1.05rem', color: 'var(--text-primary)', fontWeight: 700 }}>
                   Consult a {analysis.recommendedSpecialist}
                 </h4>
                 <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>

@@ -289,7 +289,89 @@
 [Join Room Start] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a409bdf656b0cbc49d84a7b
 [Join Room Try] userId: 6a4006d19d3d38c4714277c6, role: patient, patientId: 6a4006d19d3d38c4714277c6, doctorId: 6a3d02bbc109a3303468930f, isPatient: true, isDoctor: false
 [Disconnect Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
-[Connection Debug] userId: 6a3f8127292951f71fccd4dc, role: doctor
-[Join Room Start] userId: 6a3f8127292951f71fccd4dc, role: doctor, appointmentId: 6a3fe0a9917d0937ee147a63
-[Join Room Try] userId: 6a3f8127292951f71fccd4dc, role: doctor, patientId: 6a3e1e34306bc7ab887cf437, doctorId: 6a3f8127292951f71fccd4dc, isPatient: false, isDoctor: true
-[Disconnect Debug] userId: 6a3f8127292951f71fccd4dc, role: doctor
+[Connection Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Join Room Start] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a410c191ac1e5ed97709e95
+[Join Room Try] userId: 6a4006d19d3d38c4714277c6, role: patient, patientId: 6a4006d19d3d38c4714277c6, doctorId: 6a410b581ac1e5ed97709e50, isPatient: true, isDoctor: false
+[Disconnect Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Connection Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Join Room Start] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a410c191ac1e5ed97709e95
+[Join Room Try] userId: 6a4006d19d3d38c4714277c6, role: patient, patientId: 6a4006d19d3d38c4714277c6, doctorId: 6a410b581ac1e5ed97709e50, isPatient: true, isDoctor: false
+[Send Message Try] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a410c191ac1e5ed97709e95, content: hello'
+[Send Message Try] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a410c191ac1e5ed97709e95, content: f
+[Send Message Try] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a410c191ac1e5ed97709e95, content: ghg
+[Disconnect Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Connection Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Join Room Start] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a410c191ac1e5ed97709e95
+[Join Room Try] userId: 6a4006d19d3d38c4714277c6, role: patient, patientId: 6a4006d19d3d38c4714277c6, doctorId: 6a410b581ac1e5ed97709e50, isPatient: true, isDoctor: false
+[Disconnect Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Connection Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Join Room Start] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a410c191ac1e5ed97709e95
+[Join Room Try] userId: 6a4006d19d3d38c4714277c6, role: patient, patientId: 6a4006d19d3d38c4714277c6, doctorId: 6a410b581ac1e5ed97709e50, isPatient: true, isDoctor: false
+[Send Message Try] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a410c191ac1e5ed97709e95, content: helo
+[Disconnect Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Connection Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Join Room Start] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a410c191ac1e5ed97709e95
+[Join Room Try] userId: 6a4006d19d3d38c4714277c6, role: patient, patientId: 6a4006d19d3d38c4714277c6, doctorId: 6a410b581ac1e5ed97709e50, isPatient: true, isDoctor: false
+[Send Message Try] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a410c191ac1e5ed97709e95, content: elo
+[Send Message Try] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a410c191ac1e5ed97709e95, content: fmdf
+[Disconnect Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Connection Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Join Room Start] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a410c191ac1e5ed97709e95
+[Join Room Try] userId: 6a4006d19d3d38c4714277c6, role: patient, patientId: 6a4006d19d3d38c4714277c6, doctorId: 6a410b581ac1e5ed97709e50, isPatient: true, isDoctor: false
+[Disconnect Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Connection Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Join Room Start] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a410c191ac1e5ed97709e95
+[Join Room Try] userId: 6a4006d19d3d38c4714277c6, role: patient, patientId: 6a4006d19d3d38c4714277c6, doctorId: 6a410b581ac1e5ed97709e50, isPatient: true, isDoctor: false
+[Disconnect Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Connection Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Join Room Start] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a409bdf656b0cbc49d84a7b
+[Join Room Try] userId: 6a4006d19d3d38c4714277c6, role: patient, patientId: 6a4006d19d3d38c4714277c6, doctorId: 6a3d02bbc109a3303468930f, isPatient: true, isDoctor: false
+[Disconnect Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Connection Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Join Room Start] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a409bdf656b0cbc49d84a7b
+[Join Room Try] userId: 6a4006d19d3d38c4714277c6, role: patient, patientId: 6a4006d19d3d38c4714277c6, doctorId: 6a3d02bbc109a3303468930f, isPatient: true, isDoctor: false
+[Disconnect Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Connection Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Join Room Start] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a410c191ac1e5ed97709e95
+[Join Room Try] userId: 6a4006d19d3d38c4714277c6, role: patient, patientId: 6a4006d19d3d38c4714277c6, doctorId: 6a410b581ac1e5ed97709e50, isPatient: true, isDoctor: false
+[Disconnect Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Connection Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Join Room Start] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a410c191ac1e5ed97709e95
+[Join Room Try] userId: 6a4006d19d3d38c4714277c6, role: patient, patientId: 6a4006d19d3d38c4714277c6, doctorId: 6a410b581ac1e5ed97709e50, isPatient: true, isDoctor: false
+[Disconnect Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Connection Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Join Room Start] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a410c191ac1e5ed97709e95
+[Join Room Try] userId: 6a4006d19d3d38c4714277c6, role: patient, patientId: 6a4006d19d3d38c4714277c6, doctorId: 6a410b581ac1e5ed97709e50, isPatient: true, isDoctor: false
+[Disconnect Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Connection Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Join Room Start] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a410c191ac1e5ed97709e95
+[Join Room Try] userId: 6a4006d19d3d38c4714277c6, role: patient, patientId: 6a4006d19d3d38c4714277c6, doctorId: 6a410b581ac1e5ed97709e50, isPatient: true, isDoctor: false
+[Disconnect Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Connection Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Join Room Start] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a409bdf656b0cbc49d84a7b
+[Join Room Try] userId: 6a4006d19d3d38c4714277c6, role: patient, patientId: 6a4006d19d3d38c4714277c6, doctorId: 6a3d02bbc109a3303468930f, isPatient: true, isDoctor: false
+[Send Message Try] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a409bdf656b0cbc49d84a7b, content: hi
+[Disconnect Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Connection Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Join Room Start] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a410c191ac1e5ed97709e95
+[Join Room Try] userId: 6a4006d19d3d38c4714277c6, role: patient, patientId: 6a4006d19d3d38c4714277c6, doctorId: 6a410b581ac1e5ed97709e50, isPatient: true, isDoctor: false
+[Disconnect Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Connection Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Join Room Start] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a409bdf656b0cbc49d84a7b
+[Join Room Try] userId: 6a4006d19d3d38c4714277c6, role: patient, patientId: 6a4006d19d3d38c4714277c6, doctorId: 6a3d02bbc109a3303468930f, isPatient: true, isDoctor: false
+[Disconnect Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Connection Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Join Room Start] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a409bdf656b0cbc49d84a7b
+[Join Room Try] userId: 6a4006d19d3d38c4714277c6, role: patient, patientId: 6a4006d19d3d38c4714277c6, doctorId: 6a3d02bbc109a3303468930f, isPatient: true, isDoctor: false
+[Disconnect Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Connection Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Join Room Start] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a410c191ac1e5ed97709e95
+[Join Room Try] userId: 6a4006d19d3d38c4714277c6, role: patient, patientId: 6a4006d19d3d38c4714277c6, doctorId: 6a410b581ac1e5ed97709e50, isPatient: true, isDoctor: false
+[Send Message Try] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a410c191ac1e5ed97709e95, content: hi
+[Disconnect Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Connection Debug] userId: 6a4006d19d3d38c4714277c6, role: patient
+[Join Room Start] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a410c191ac1e5ed97709e95
+[Join Room Try] userId: 6a4006d19d3d38c4714277c6, role: patient, patientId: 6a4006d19d3d38c4714277c6, doctorId: 6a410b581ac1e5ed97709e50, isPatient: true, isDoctor: false
+[Send Message Try] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a410c191ac1e5ed97709e95, content: hello
+[Send Message Try] userId: 6a4006d19d3d38c4714277c6, role: patient, appointmentId: 6a410c191ac1e5ed97709e95, content: Screenshot 2024-07-31 191741.png
+[Disconnect Debug] userId: 6a4006d19d3d38c4714277c6, role: patient

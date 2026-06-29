@@ -642,10 +642,16 @@ const logout = async (req, res) => {
       const timeLeft = decoded.exp - currentTime;
 
       if (timeLeft > 0) {
-        // Block the token in Redis until its natural expiration
-        await redisClient.set(`token:${token}`, 'blocked', {
-          EX: timeLeft
-        });
+        try {
+          if (redisClient.isOpen) {
+            // Block the token in Redis until its natural expiration
+            await redisClient.set(`token:${token}`, 'blocked', {
+              EX: timeLeft
+            });
+          }
+        } catch (redisErr) {
+          console.warn('Failed to blacklist token in Redis:', redisErr.message);
+        }
       }
     }
 

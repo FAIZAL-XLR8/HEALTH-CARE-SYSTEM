@@ -135,7 +135,7 @@ const MapView = ({
     centerEl.style.border = '2px solid #fff';
     centerEl.style.boxShadow = '0 0 8px #ef4444';
     
-    const centerPopup = new mapboxgl.Popup({ offset: 10 })
+    const centerPopup = new mapboxgl.Popup({ offset: 10, closeButton: true, closeOnClick: true })
       .setHTML('<div style="color:#000; font-family:sans-serif; font-size:11px; font-weight:bold;">Search Center</div>');
       
     searchCenterMarkerRef.current = new mapboxgl.Marker(centerEl)
@@ -187,7 +187,7 @@ const MapView = ({
         ? `<br/><strong style="color:#059669;">Consultation: ₹${p.fee}</strong>` 
         : (p.price ? `<br/><strong style="color:#06b6d4;">Price: ₹${p.price}</strong>` : '');
       
-      const popup = new mapboxgl.Popup({ offset: 12 })
+      const popup = new mapboxgl.Popup({ offset: 12, closeButton: true, closeOnClick: true })
         .setHTML(`
           <div style="color:#1e293b; font-family:sans-serif; font-size:12px; line-height:1.4; padding:4px;">
             <strong style="font-size:13px; color:#0f172a;">${name}</strong>
@@ -351,6 +351,27 @@ const MapView = ({
           box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important;
           border: 1px solid rgba(0,0,0,0.1) !important;
           background: #ffffff !important;
+          padding: 12px 28px 12px 14px !important;
+        }
+        .mapboxgl-popup-close-button {
+          color: #64748b !important;
+          font-size: 16px !important;
+          padding: 4px 8px !important;
+          background: none !important;
+          border: none !important;
+          cursor: pointer !important;
+          line-height: 1 !important;
+          font-weight: 700 !important;
+          transition: color 0.2s, background-color 0.2s !important;
+          border-top-right-radius: 8px !important;
+          outline: none !important;
+          position: absolute !important;
+          right: 4px !important;
+          top: 4px !important;
+        }
+        .mapboxgl-popup-close-button:hover {
+          background-color: #f1f5f9 !important;
+          color: #ef4444 !important;
         }
         .mapboxgl-popup-anchor-top .mapboxgl-popup-tip { border-bottom-color: #ffffff !important; }
         .mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip { border-top-color: #ffffff !important; }

@@ -15,7 +15,15 @@ const protect = async (req, res, next) => {
       token = req.headers.authorization.split(' ')[1];
 
       // Check if the token is blacklisted in Redis
-      const isBlocked = await redisClient.exists(`token:${token}`);
+      let isBlocked = false;
+      try {
+        if (redisClient.isOpen) {
+          isBlocked = await redisClient.exists(`token:${token}`);
+        }
+      } catch (redisErr) {
+        console.warn('Redis blacklist check failed:', redisErr.message);
+      }
+      
       if (isBlocked) {
         return res.status(401).json({ message: 'Not authorized, token is invalid/logged out' });
       }

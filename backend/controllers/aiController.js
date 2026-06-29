@@ -205,7 +205,7 @@ exports.chatTriage = async (req, res) => {
           "${message}"
 
           Determine which medical specialty from the following list matches these symptoms best:
-          [Dentist, Gynecologist/obstetrician, General Physician, Dermatologist, ENT Specialist, Homoeopath, Ayurveda, Cardiologist, Neurologist, Pediatrician, Orthopedist, Oncologist, Psychiatrist, Urologist, Gastroenterologist, Pulmonologist, Endocrinologist, Nephrologist, Ophthalmologist, Physiotherapist, Sexologist, Dietitian]
+          [Dentist, Gynaecologist/obstetrician, General Physician, Dermatologist, ENT Specialist, Homoeopath, Ayurveda, Cardiologist, Neurologist, Pediatrician, Orthopedist, Oncologist, Psychiatrist, Urologist, Gastroenterologist, Pulmonologist, Endocrinologist, Nephrologist, Ophthalmologist, Physiotherapist, Sexologist, Dietitian]
 
           Return a clean, strict JSON output matching the following key structure exactly. Do not wrap in markdown or add code fences. Return raw JSON.
 

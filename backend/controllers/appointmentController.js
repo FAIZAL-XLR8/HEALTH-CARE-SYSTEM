@@ -1,7 +1,6 @@
 const Appointment = require('../models/Appointment');
 const Payment = require('../models/Payment');
 const Doctor = require('../models/Doctor');
-const Lab = require('../models/Lab');
 const DoctorAvailability = require('../models/DoctorAvailability');
 
 // HELPER: Convert slot time to minutes

@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Doctor = require('../models/Doctor');
 const PendingDoctor = require('../models/PendingDoctor');
+const redisClient = require('../config/redisClient');
 
 const protect = async (req, res, next) => {
   let token;
@@ -12,6 +13,12 @@ const protect = async (req, res, next) => {
   ) {
     try {
       token = req.headers.authorization.split(' ')[1];
+
+      // Check if the token is blacklisted in Redis
+      const isBlocked = await redisClient.exists(`token:${token}`);
+      if (isBlocked) {
+        return res.status(401).json({ message: 'Not authorized, token is invalid/logged out' });
+      }
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET );
 

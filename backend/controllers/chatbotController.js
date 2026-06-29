@@ -161,7 +161,7 @@ exports.handleChatbotMessage = async (req, res) => {
         "isComplete": boolean,
         "triageAnalysis": "Clear, patient-friendly summary explaining the potential disease condition. Leave empty if isComplete is false.",
         "priority": "High" | "Medium" | "Low",
-        "specialty": "Cardiologist" | "Dermatologist" | "ENT Specialist" | "General Physician" | "Gastroenterologist" | "Orthopedist" | "Neurologist" | "Endocrinologist" | "Pulmonologist" | "Urologist" | "Dentist" | "Gynecologist/obstetrician",
+        "specialty": "Cardiologist" | "Dermatologist" | "ENT Specialist" | "General Physician" | "Gastroenterologist" | "Orthopedist" | "Neurologist" | "Endocrinologist" | "Pulmonologist" | "Urologist" | "Dentist" | "Gynaecologist/obstetrician",
         "followUpInstructions": "Empathic clinical advice on what the patient should do next. Leave empty if isComplete is false.",
         "text": "The follow-up question to ask the patient if the conversation is NOT complete. Leave empty if isComplete is true.",
         "options": ["Option A", "Option B", "Option C", "None of these"], // List of choice options for the user to answer the follow-up question. Provide 3-5 appropriate short options. Leave empty if isComplete is true.

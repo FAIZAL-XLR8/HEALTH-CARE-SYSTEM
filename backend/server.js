@@ -6,6 +6,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const connectDB = require('./config/db');
 const initializeSocket = require('./config/socket');
+const redisClient = require('./config/redisClient');
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -15,8 +16,13 @@ const io = new Server(server, {
   },
 });
 
-// Connect to Mongo DB
-connectDB();
+// Connect to MongoDB and Redis simultaneously
+Promise.all([
+  connectDB(),
+  redisClient.connect()
+    .then(() => console.log('Connected to Redis server successfully.'))
+    .catch(err => console.error('Failed to connect to Redis server:', err))
+]);
 
 // Initialize socket listeners
 initializeSocket(io);

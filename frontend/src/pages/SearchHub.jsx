@@ -202,7 +202,7 @@ const SearchHub = ({ searchParams, onBook }) => {
             </button>
           </div>
 
-          {/* 📊 Skyscanner Sorting Tabs */}
+         
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', background: 'var(--card-border)', borderRadius: '12px', overflow: 'hidden', padding: '1px' }}>
             <button
               onClick={() => setSortTab('best')}

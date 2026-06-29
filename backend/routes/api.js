@@ -11,6 +11,19 @@ const prescriptionController = require('../controllers/prescriptionController');
 const { registerSSEClient } = require('../services/scraperService');
 const { protect, isAdmin } = require('../middleware/authMiddleware');
 const adminController = require('../controllers/adminController');
+const apiRateLimiter = require('../middleware/rateLimiter');
+
+const fileAnalyzeLimiter = apiRateLimiter({
+  windowSeconds: 60,
+  keyPrefix: 'rateLimit:fileAnalyze',
+  message: 'Analysis rate limit exceeded. Please wait 10 seconds.'
+});
+
+const chatbotLimiter = apiRateLimiter({
+  windowSeconds: 60,
+  keyPrefix: 'rateLimit:chatbot',
+  message: 'Chatbot rate limit exceeded. Please wait 10 seconds.'
+});
 const videoController = require('../controllers/videoController');
 
 // Multer memory-storage configuration to handle medical report uploads safely
@@ -65,10 +78,10 @@ router.delete('/videos/:appointmentId', protect, videoController.deleteVideo);
 // ==========================================
 // 🤖 AI Multimodal, Wizard & Chatbot Routes
 // ==========================================
-router.post('/reports/analyze', protect, upload.single('report'), aiController.analyzeReport);
-router.post('/prescriptions/analyze', protect, upload.single('prescription'), prescriptionController.analyzePrescription);
-router.post('/ai/chatbot', chatbotController.handleChatbotMessage);
-router.post('/ai/chat-triage', aiController.chatTriage);
+router.post('/reports/analyze', protect, fileAnalyzeLimiter, upload.single('report'), aiController.analyzeReport);
+router.post('/prescriptions/analyze', protect, fileAnalyzeLimiter, upload.single('prescription'), prescriptionController.analyzePrescription);
+router.post('/ai/chatbot', chatbotLimiter, chatbotController.handleChatbotMessage);
+router.post('/ai/chat-triage', chatbotLimiter, aiController.chatTriage);
 
 // ==========================================
 // 👑 Admin Review Panel Routes

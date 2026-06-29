@@ -10,7 +10,7 @@ const { uploadFromBuffer } = require('../services/cloudinaryService');
 // Helper to generate JWT Token
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET , {
-    expiresIn: '30d',
+    expiresIn: '7d',
   });
 };
 
@@ -616,6 +616,46 @@ const getSuspensionDetails = async (req, res) => {
   }
 };
 
+// @desc    Logout User & Blacklist Token
+// @route   POST /api/auth/logout
+// @access  Private
+const logout = async (req, res) => {
+  try {
+    let token;
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith('Bearer')
+    ) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+
+    if (!token) {
+      return res.status(400).json({ message: 'No token provided for logout.' });
+    }
+
+    // Decode token to retrieve its expiration timestamp
+    const decoded = jwt.decode(token);
+    const redisClient = require('../config/redisClient');
+
+    if (decoded && decoded.exp) {
+      const currentTime = Math.floor(Date.now() / 1000);
+      const timeLeft = decoded.exp - currentTime;
+
+      if (timeLeft > 0) {
+        // Block the token in Redis until its natural expiration
+        await redisClient.set(`token:${token}`, 'blocked', {
+          EX: timeLeft
+        });
+      }
+    }
+
+    res.status(200).json({ message: 'Logged out successfully. Token blacklisted.' });
+  } catch (error) {
+    console.error('Error in logout:', error);
+    res.status(500).json({ message: 'Error during logout process.', error: error.message });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -625,4 +665,5 @@ module.exports = {
   uploadGovernmentId,
   submitDoctorApplication,
   getSuspensionDetails,
+  logout,
 };

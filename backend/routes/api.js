@@ -2,7 +2,6 @@ const express = require('express');
 const multer = require('multer');
 const router = express.Router();
 
-const labController = require('../controllers/labController');
 const doctorController = require('../controllers/doctorController');
 const appointmentController = require('../controllers/appointmentController');
 const aiController = require('../controllers/aiController');
@@ -31,13 +30,6 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 50 * 1024 * 1024 }, // Max 50MB file sizes
 });
-
-// ==========================================
-// 🧪 Diagnostic Lab Routes
-// ==========================================
-router.get('/labs/search-test', labController.searchTest);
-router.get('/labs/compare', labController.compareLabs);
-router.get('/labs/live-updates', registerSSEClient); // SSE persistent stream channel
 
 // ==========================================
 // 🩺 Doctor Routes

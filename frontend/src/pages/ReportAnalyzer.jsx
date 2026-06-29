@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Upload, AlertOctagon, Heart, BrainCircuit, Activity, Calendar, ArrowRight, Loader } from 'lucide-react';
-import reportBg from '../assets/report.jpg';
+import reportBg from '../assets/luis-andres-villalon-vega-S2ey-293xqc-unsplash.jpg';
 import { motion } from 'framer-motion';
 
 // Framer Motion variants — same pattern as Home.jsx

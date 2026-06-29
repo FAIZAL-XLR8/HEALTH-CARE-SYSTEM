@@ -48,6 +48,10 @@ const doctorSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  scrapedRating: {
+    type: Number,
+    default: null,
+  },
   isOnline: {
     type: Boolean,
     default: false,

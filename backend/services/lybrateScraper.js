@@ -98,10 +98,7 @@ async function scrapeLybrateDoctors(city, specialty) {
           }
         }
 
-        let rating = ratingNode ? parseFloat(ratingNode.innerText) : null;
-        if (rating && rating > 5) {
-          rating = parseFloat((rating / 20).toFixed(1));
-        }
+        let rating = ratingNode ? parseFloat(ratingNode.innerText.replace(/[^0-9.]/g, '')) : null;
         const clinicName = clinicNameText ? clinicNameText.split('\n')[0] : 'Metro Health Clinic';
 
         if (name) {

@@ -6,6 +6,7 @@ import ReportAnalyzer from './pages/ReportAnalyzer';
 import PrescriptionAnalyzer from './pages/PrescriptionAnalyzer';
 import ChatDrawer from './components/ChatDrawer';
 import AuthModal from './components/AuthModal';
+import FlashMessage, { showFlash } from './components/FlashMessage';
 
 // Telehealth & Portals Pages
 import BookingStepPage from './components/BookingStepPage';
@@ -34,6 +35,22 @@ function App() {
   // Booking details
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [activeAppointmentId, setActiveAppointmentId] = useState(null);
+  // Trigger any pending flash message after page reload
+  useEffect(() => {
+    try {
+      const pending = sessionStorage.getItem('pending-flash');
+      if (pending) {
+        const { message, type } = JSON.parse(pending);
+        sessionStorage.removeItem('pending-flash');
+        setTimeout(() => {
+          showFlash(message, type);
+        }, 100);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
   // Scroll to top on route change
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -46,6 +63,7 @@ function App() {
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
     setIsAuthModalOpen(false);
+    showFlash('Login successful', 'success');
 
     // Redirect to correct dashboard based on role
     if (data.user.role === 'admin') {
@@ -409,6 +427,7 @@ function App() {
         onSuccess={handleAuthSuccess}
       />
 
+      <FlashMessage />
     </div>
   );
 }

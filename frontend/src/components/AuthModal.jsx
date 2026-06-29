@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Phone, Key, Mail, User, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { z } from 'zod';
+import { showFlash } from './FlashMessage';
 
 // Zod Validation Schemas
 const patientLoginSchema = z.object({
@@ -170,6 +171,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
       });
       setErrors(fieldErrors);
       setErrorMsg('Please correct the validation errors below.');
+      showFlash('Please fill all required fields', 'warning');
       return;
     }
     setErrors({});
@@ -195,20 +197,25 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
           setIsSuspended(true);
           setErrorMsg(data.message);
           setErrors(prev => ({ ...prev, email: 'Email address is suspended.' }));
+          showFlash(data.message, 'error');
         } else if (data.rejectionReason) {
           setErrorMsg(`Login failed: ${data.message} Reason: "${data.rejectionReason}"`);
+          showFlash(`Login failed: ${data.message}`, 'error');
         } else {
           const msg = data.message || 'Login failed. Please check credentials.';
           setErrorMsg(msg);
           
           const lowerMsg = msg.toLowerCase();
           if (lowerMsg.includes('credentials') || lowerMsg.includes('password') || lowerMsg.includes('invalid email')) {
+            showFlash('Invalid password', 'error');
             setErrors(prev => ({
               ...prev,
               password: 'Check your credentials.',
               email: role !== 'patient' ? 'Check your credentials.' : undefined,
               phone: role === 'patient' ? 'Check your credentials.' : undefined
             }));
+          } else {
+            showFlash(msg, 'error');
           }
         }
       }
@@ -256,6 +263,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
       });
       setErrors(fieldErrors);
       setErrorMsg('Please correct the validation errors below.');
+      showFlash('Please fill all required fields', 'warning');
       return;
     }
     setErrors({});

@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { Search, MapPin, Stethoscope, TestTube, Brain, HeartPulse, ShieldCheck, Clock } from 'lucide-react';
+import { Search, Stethoscope, Brain, HeartPulse, ShieldCheck, Clock } from 'lucide-react';
 
 const Home = ({ onSearch }) => {
-  const [activeTab, setActiveTab] = useState('labs'); // 'labs' | 'doctors'
   const [searchQuery, setSearchQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const commonSpecialties = [
     'Dentist',
-    'Gynecologist/obstetrician',
+    'Gynaecologist/obstetrician',
     'General Physician',
     'Dermatologist',
     'ENT Specialist',
@@ -18,7 +17,7 @@ const Home = ({ onSearch }) => {
 
   const allSpecialties = [
     'Dentist',
-    'Gynecologist/obstetrician',
+    'Gynaecologist/obstetrician',
     'General Physician',
     'Dermatologist',
     'ENT Specialist',
@@ -50,7 +49,7 @@ const Home = ({ onSearch }) => {
       .replace(/neurolg/g, 'neurolog')   // typo: neurolgist -> neurologist
       .replace(/physcian/g, 'physician') // typo: general physcian -> general physician
       .replace(/physican/g, 'physician') // typo: general physican -> general physician
-      .replace(/gyna/g, 'gyne')         // typo: gynaecologist -> gynecologist
+      .replace(/gyne/g, 'gyna')         // typo: gynecologist -> gynaecologist
       .replace(/cardio/g, 'cardio');
 
     const scored = allSpecialties.map(spec => {
@@ -113,7 +112,7 @@ const Home = ({ onSearch }) => {
       queryVal = 'ENT';
     }
     onSearch({
-      type: activeTab,
+      type: 'doctors',
       query: queryVal
     });
   };
@@ -152,60 +151,16 @@ const Home = ({ onSearch }) => {
           Bengaluru's Premier Healthcare Aggregator
         </span>
         <h1 style={{ fontSize: '3rem', fontWeight: 800, color: '#fff', lineHeight: '1.1', background: 'linear-gradient(135deg, #fff 40%, rgba(255,255,255,0.7) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          Compare Prices, Distances & Ratings Instantly
+          Compare & Consult Specialists Instantly
         </h1>
         <p style={{ fontSize: '1.05rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
-          A Skyscanner-inspired platform for diagnostic tests and specialized clinics. View real-time deals, locate nearby NABL labs, and consult with Gemini AI assistants.
+          A Skyscanner-inspired platform for specialized clinics and consulting. View real-time ratings, locate nearby specialists on our interactive map, and consult with Gemini AI assistants.
         </p>
       </section>
 
       {/* 🔍 Dynamic Skyscanner-Style Search Console */}
       <section className="glass-panel" style={{ padding: '24px', maxWidth: '850px', width: '100%', margin: '0 auto', position: 'relative', zIndex: 10 }}>
         
-        {/* Tab Selectors */}
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
-          <button 
-            onClick={() => setActiveTab('labs')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '10px 18px',
-              borderRadius: '8px',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              background: activeTab === 'labs' ? 'var(--primary-neon)' : 'rgba(255, 255, 255, 0.03)',
-              color: activeTab === 'labs' ? '#fff' : 'var(--text-muted)',
-              border: activeTab === 'labs' ? 'none' : '1px solid var(--card-border)',
-            }}
-          >
-            <TestTube size={16} />
-            Diagnostic Tests
-          </button>
-          <button 
-            onClick={() => setActiveTab('doctors')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '10px 18px',
-              borderRadius: '8px',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              background: activeTab === 'doctors' ? 'var(--primary-neon)' : 'rgba(255, 255, 255, 0.03)',
-              color: activeTab === 'doctors' ? '#fff' : 'var(--text-muted)',
-              border: activeTab === 'doctors' ? 'none' : '1px solid var(--card-border)',
-            }}
-          >
-            <Stethoscope size={16} />
-            Find Doctors
-          </button>
-        </div>
-
         {/* Input Form Grid */}
         <form onSubmit={handleSearchSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: '12px', alignItems: 'center' }}>
           
@@ -217,8 +172,8 @@ const Home = ({ onSearch }) => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setShowSuggestions(true)}
-              onBlur={() => setShowSuggestions(false)}
-              placeholder={activeTab === 'labs' ? "Search tests (e.g. CBC, Lipid, HbA1c)..." : "Specialty (e.g. ENT, Cardiologist)..."}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+              placeholder="Specialty (e.g. ENT, Dentist, Gynaecologist)..."
               style={{
                 width: '100%',
                 background: 'rgba(0,0,0,0.2)',
@@ -232,7 +187,7 @@ const Home = ({ onSearch }) => {
             />
 
             {/* Practo-style Common Specialties Dropdown suggestions */}
-            {showSuggestions && activeTab === 'doctors' && (
+            {showSuggestions && (
               <div 
                 className="glass-panel" 
                 style={{
@@ -290,8 +245,6 @@ const Home = ({ onSearch }) => {
             )}
           </div>
 
-
-
           {/* Search Button */}
           <button 
             type="submit"
@@ -318,75 +271,55 @@ const Home = ({ onSearch }) => {
         {/* Quick Tags under the search console */}
         <div style={{ marginTop: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Popular in Bengaluru:</span>
-          {activeTab === 'labs' ? (
-            ['cbc', 'lipid', 'hba1c'].map(tag => (
-              <button 
-                key={tag}
-                onClick={() => setSearchQuery(tag)}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid var(--card-border)',
-                  color: 'var(--text-muted)',
-                  fontSize: '0.72rem',
-                  padding: '4px 10px',
-                  borderRadius: '50px',
-                  cursor: 'pointer'
-                }}
-              >
-                {tag === 'cbc' ? 'CBC Test' : tag === 'lipid' ? 'Lipid Profile' : 'Diabetes HbA1c'}
-              </button>
-            ))
-          ) : (
-            ['ENT', 'Cardiologist', 'General Physician'].map(tag => (
-              <button 
-                key={tag}
-                onClick={() => setSearchQuery(tag)}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid var(--card-border)',
-                  color: 'var(--text-muted)',
-                  fontSize: '0.72rem',
-                  padding: '4px 10px',
-                  borderRadius: '50px',
-                  cursor: 'pointer'
-                }}
-              >
-                {tag}
-              </button>
-            ))
-          )}
+          {['ENT', 'Cardiologist', 'General Physician'].map(tag => (
+            <button 
+              key={tag}
+              onClick={() => setSearchQuery(tag)}
+              style={{
+                background: 'rgba(255, 255, 255, 0.03)',
+                border: '1px solid var(--card-border)',
+                color: 'var(--text-muted)',
+                fontSize: '0.72rem',
+                padding: '4px 10px',
+                borderRadius: '50px',
+                cursor: 'pointer'
+              }}
+            >
+              {tag}
+            </button>
+          ))}
         </div>
       </section>
 
       {/* 🛡️ Core Trust Value Cards */}
       <section style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
         <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '38px', height: '38px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyCenter: 'center', padding: '10px' }}>
+          <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '38px', height: '38px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px' }}>
             <ShieldCheck style={{ color: 'var(--primary-neon)' }} size={20} />
           </div>
-          <h3 style={{ fontSize: '1.05rem', color: '#fff', fontWeight: 600 }}>NABL Verified Pricing</h3>
+          <h3 style={{ fontSize: '1.05rem', color: '#fff', fontWeight: 600 }}>Verified Specialist Profiles</h3>
           <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5' }}>
-            Get verified pricing matrices across standard accredited labs (Apollo, Thyrocare, SRL) with 100% price transparency.
+            Compare ratings, experience, and consultation fees across verified clinics in Bengaluru.
           </p>
         </div>
 
         <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ background: 'rgba(16, 185, 129, 0.1)', width: '38px', height: '38px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyCenter: 'center', padding: '10px' }}>
+          <div style={{ background: 'rgba(16, 185, 129, 0.1)', width: '38px', height: '38px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px' }}>
             <Clock style={{ color: 'var(--secondary-neon)' }} size={20} />
           </div>
           <h3 style={{ fontSize: '1.05rem', color: '#fff', fontWeight: 600 }}>2:00 AM Cron Synced</h3>
           <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5' }}>
-            Our nightly background crawlers execute sequential crawls to ensure cached baseline prices remain completely fresh.
+            Our background crawlers sync with clinic schedules nightly to keep doctor profiles and availability slots up to date.
           </p>
         </div>
 
         <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '38px', height: '38px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyCenter: 'center', padding: '10px' }}>
+          <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '38px', height: '38px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px' }}>
             <Brain style={{ color: 'var(--primary-neon)' }} size={20} />
           </div>
           <h3 style={{ fontSize: '1.05rem', color: '#fff', fontWeight: 600 }}>Gemini Multimodal Parser</h3>
           <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5' }}>
-            Upload any medical diagnostic PDF or image and let our AI parse abnormal boundaries, matching you instantly to local specialist doctors.
+            Upload any medical prescriptions or reports to let our AI assistant parse coordinates and recommend local matching doctors.
           </p>
         </div>
       </section>

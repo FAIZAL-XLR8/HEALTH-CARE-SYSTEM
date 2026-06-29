@@ -303,6 +303,13 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
           className="glass-panel" 
           style={{ padding: '24px', maxWidth: '850px', width: '100%', margin: '0 auto', position: 'relative', zIndex: 10 }}
         >
+          {/* Section Header */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+            <Stethoscope size={18} style={{ color: 'var(--primary-neon)' }} />
+            <h2 style={{ fontSize: '1.1rem', color: '#ffffff', fontWeight: 700, margin: 0, fontFamily: 'Outfit', letterSpacing: '-0.02em' }}>
+              Find Doctors
+            </h2>
+          </div>
 
           {/* Input Form Grid */}
           <form onSubmit={handleSearchSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: '12px', alignItems: 'center' }}>
@@ -451,10 +458,11 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
         >
           <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', fontFamily: 'Outfit' }}>
-              Explore AI Powered Health Tools
+              Explore Our AI Powered Health Tools
             </h2>
             <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: '600px', margin: '0 auto' }}>
-              Leverage Gemini models to manage diagnostic lockers, decrypt handwritten prescriptions, and locate specialists instantly.
+             We help you read handwritten prescriptions,know general uses and side effects of Prescribed Medicines and connect you with the right doctor in just a few clicks.
+
             </p>
           </div>
 
@@ -486,28 +494,14 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
                   letterSpacing: '0.08em',
                   fontFamily: 'Outfit'
                 }}>
-                  GEMINI VISION AI
+                 AI REPORT ANALYZER
                 </span>
                 <h3 style={{ fontSize: '2rem', color: '#fff', fontWeight: 800, fontFamily: 'Outfit', lineHeight: '1.25' }}>
-                  Understand Your Laboratory Reports in Plain English
+                  Understand Your Laboratory Reports
                 </h3>
                 <p style={{ fontSize: '0.92rem', color: 'var(--text-muted)', lineHeight: '1.7' }}>
-                  Don't get confused by complex numbers and strange medical words. Simply upload any blood test, lab PDF, or paper scan. Our AI translates it into simple language, highlights abnormal values, and explains what they mean for your body.
+                Simply upload any blood test, lab PDF, or paper scan. Our AI translates it into simple language, highlights abnormal values, and explains what they mean for your body.
                 </p>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: 'var(--text-muted)' }}>
-                    <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-neon)', fontWeight: 'bold' }}>✔</div>
-                    Translates diagnostic results into clear, simple summaries.
-                  </li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: 'var(--text-muted)' }}>
-                    <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-neon)', fontWeight: 'bold' }}>✔</div>
-                    Flags alert indicators (like high sugar levels) in bright colors.
-                  </li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: 'var(--text-muted)' }}>
-                    <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-neon)', fontWeight: 'bold' }}>✔</div>
-                    Organizes your health history securely in one place.
-                  </li>
-                </ul>
                 <button 
                   onClick={() => onNavigate && onNavigate('reports')}
                   style={{
@@ -564,7 +558,6 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
                       <span className="pulse-status" style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
                       <span style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600, letterSpacing: '0.05em' }}>REPORT ANALYSIS ACTIVE</span>
                     </div>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--primary-neon)', background: 'rgba(6,182,212,0.1)', padding: '2px 6px', borderRadius: '4px' }}>Gemini Parser</span>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -580,10 +573,7 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
                       <span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span>
                       <span style={{ color: '#f43f5e', fontWeight: 600 }}>Flag: Cholesterol level (High)</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.8rem', color: 'rgba(255,255,255,0.45)' }}>
-                      <div className="spin-anim" style={{ width: '12px', height: '12px', borderRadius: '50%', border: '2px solid var(--primary-neon)', borderTopColor: 'transparent' }} />
-                      <span>Writing plain-English breakdown...</span>
-                    </div>
+                    
                   </div>
 
                   <div style={{ marginTop: '6px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '12px' }}>
@@ -640,7 +630,6 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
                       <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: 'var(--secondary-neon)', padding: '4px', borderRadius: '6px', display: 'flex' }}><Pill size={14} /></span>
                       <span style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600, letterSpacing: '0.05em' }}>PRESCRIPTION SCANNER</span>
                     </div>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--secondary-neon)', background: 'rgba(16,185,129,0.1)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>Digitized</span>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -687,25 +676,11 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
                   PRESCRIPTION TRANSLATOR
                 </span>
                 <h3 style={{ fontSize: '2rem', color: '#fff', fontWeight: 800, fontFamily: 'Outfit', lineHeight: '1.25' }}>
-                  Scan & Decode Messy Doctor Handwriting
+                  Scan & Decode Your Prescription
                 </h3>
                 <p style={{ fontSize: '0.92rem', color: 'var(--text-muted)', lineHeight: '1.7' }}>
-                  Physician handwriting can be almost impossible to read. Simply take a snapshot of your written prescription page. Our system scans the image, lists the medicine names clearly, explains dosage frequencies, and provides safety precaution alerts.
+                Simply take a snapshot of your written prescription page. Our system scans the image, lists the medicine names clearly, explains dosage frequencies, and provides safety precaution alerts, side effects and general uses of medicince.
                 </p>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: 'var(--text-muted)' }}>
-                    <div style={{ background: 'rgba(16, 185, 129, 0.1)', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--secondary-neon)', fontWeight: 'bold' }}>✔</div>
-                    Scans hard-to-read handwritten prescription cards.
-                  </li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: 'var(--text-muted)' }}>
-                    <div style={{ background: 'rgba(16, 185, 129, 0.1)', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--secondary-neon)', fontWeight: 'bold' }}>✔</div>
-                    Lists side effects, drug warnings, and directions.
-                  </li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: 'var(--text-muted)' }}>
-                    <div style={{ background: 'rgba(16, 185, 129, 0.1)', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--secondary-neon)', fontWeight: 'bold' }}>✔</div>
-                    Translates raw scripts into an organized dose timeline.
-                  </li>
-                </ul>
                 <button 
                   onClick={() => onNavigate && onNavigate('prescription')}
                   style={{
@@ -774,20 +749,7 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
                 <p style={{ fontSize: '0.92rem', color: 'var(--text-muted)', lineHeight: '1.7' }}>
                   Chat with our virtual clinical assistant, AeroBot. Explain how you feel in simple terms, and it will ask follow-up questions to understand your symptoms, advise on standard self-care steps, and recommend slots with matched local doctors.
                 </p>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: 'var(--text-muted)' }}>
-                    <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-neon)', fontWeight: 'bold' }}>✔</div>
-                    Friendly clinical questions designed in easy-to-read language.
-                  </li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: 'var(--text-muted)' }}>
-                    <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-neon)', fontWeight: 'bold' }}>✔</div>
-                    Fast assessments with suggested care actions.
-                  </li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: 'var(--text-muted)' }}>
-                    <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-neon)', fontWeight: 'bold' }}>✔</div>
-                    Finds and recommends matches with local doctors immediately.
-                  </li>
-                </ul>
+  
                 <button 
                   onClick={() => onOpenChat && onOpenChat()}
                   style={{

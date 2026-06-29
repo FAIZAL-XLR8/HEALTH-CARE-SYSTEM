@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Upload, AlertOctagon, Heart, BrainCircuit, Activity, Calendar, ArrowRight, Loader } from 'lucide-react';
-import reportBg from '../assets/luis-andres-villalon-vega-S2ey-293xqc-unsplash.jpg';
+import reportBg from '../assets/report.jpg';
 import { motion } from 'framer-motion';
 
 // Framer Motion variants — same pattern as Home.jsx
@@ -77,26 +77,22 @@ const ReportAnalyzer = ({ onSearchDoctor, token, onOpenAuth }) => {
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-slate-950">
-      {/* Background Image */}
-      <img
-        src={reportBg}
-        alt="Medical report background"
-        className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0"
-      />
-
-      {/* Dark Overlay */}
-      <div className="absolute inset-0 bg-black/30 z-0"></div>
-
-      {/* Gradient fade to dark */}
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/60 to-slate-950 z-0"></div>
-
+    <div 
+      className="relative min-h-screen w-full overflow-x-hidden bg-slate-950"
+      style={{
+        backgroundImage: `linear-gradient(to bottom, rgba(5, 6, 12, 0.5) 0%, rgba(5, 6, 12, 0.75) 50%, #05060c 100%), url(${reportBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
       {/* Content */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        style={{ maxWidth: '800px', margin: '0 auto', padding: '40px 24px', display: 'flex', flexDirection: 'column', gap: '30px', position: 'relative', zIndex: 10 }}
+        style={{ maxWidth: '850px', margin: '0 auto', padding: '40px 24px', display: 'flex', flexDirection: 'column', gap: '30px', position: 'relative', zIndex: 10 }}
       >
 
       {/* Header Banner */}

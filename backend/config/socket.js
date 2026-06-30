@@ -119,8 +119,6 @@ const initializeSocket = (io) => {
         }
       } catch (err) {
         console.error('Error joining appointment room:', err);
-        const fs = require('fs');
-        fs.appendFileSync('socket_debug.log', `[Join Room Crash] userId: ${userId}, error: ${err.message}\n${err.stack}\n`);
         socket.emit('error', 'Error joining consultation room.');
       }
     });
@@ -132,11 +130,8 @@ const initializeSocket = (io) => {
       console.log(`🚪 User ${userId} left room appointment:${appointmentId}`);
     });
 
-    // 3. Real-Time Chat Messaging
     socket.on('send-message', async ({ appointmentId, type, content, fileUrl, fileName }) => {
       try {
-        const fs = require('fs');
-        fs.appendFileSync('socket_debug.log', `[Send Message Try] userId: ${userId}, role: ${role}, appointmentId: ${appointmentId}, content: ${content}\n`);
         const appointment = await Appointment.findById(appointmentId);
         if (!appointment) return socket.emit('error', 'Appointment not found.');
 
@@ -302,8 +297,6 @@ const initializeSocket = (io) => {
     // Disconnect Handler
     socket.on('disconnect', async () => {
       console.log(`🔌 Socket disconnected: User ${userId}`);
-      const fs = require('fs');
-      fs.appendFileSync('socket_debug.log', `[Disconnect Debug] userId: ${userId}, role: ${role}\n`);
       if (socket.currentAppointmentId) {
         socket.to(`appointment:${socket.currentAppointmentId}`).emit('participant-left', { userId, role });
       }

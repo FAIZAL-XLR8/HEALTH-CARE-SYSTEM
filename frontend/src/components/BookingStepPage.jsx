@@ -9,7 +9,7 @@ const getLocalDateString = (date = new Date()) => {
   return `${year}-${month}-${day}`;
 };
 
-const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
+const BookingStepPage = ({ provider, user, onCancel, onOpenAuth }) => {
   const [selectedDate, setSelectedDate] = useState(() => {
     return getLocalDateString();
   });
@@ -128,7 +128,7 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
   };
 
   const handleReserve = async () => {
-    if (!token) {
+    if (!user) {
       onOpenAuth();
       return;
     }
@@ -154,9 +154,9 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
       const res = await fetch('/api/appointments/reserve', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({
           doctorId: providerId,
           date: selectedDate,
@@ -189,9 +189,9 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
       const res = await fetch('/api/payments/create-checkout-session', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({
           appointmentId: reservedAppt._id
         })
@@ -212,9 +212,9 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
               const verifyRes = await fetch('/api/payments/verify-checkout-session', {
                 method: 'POST',
                 headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`
+                  'Content-Type': 'application/json'
                 },
+                credentials: 'include',
                 body: JSON.stringify({
                   razorpay_order_id: response.razorpay_order_id,
                   razorpay_payment_id: response.razorpay_payment_id,
@@ -271,7 +271,7 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  if (!token) {
+  if (!user) {
     return (
       <div style={{ maxWidth: '650px', margin: '60px auto', padding: '0 24px' }}>
         <div className="glass-panel" style={{

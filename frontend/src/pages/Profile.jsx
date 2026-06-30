@@ -2,22 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, User, Mail, Phone, Calendar, Briefcase, FileText, CheckCircle, Clock, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const Profile = ({ user: initialUser, token, onBack }) => {
+const Profile = ({ user: initialUser, onBack }) => {
   const [user, setUser] = useState(initialUser);
   const [loading, setLoading] = useState(true);
 
   // Fetch full details on mount
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!token) {
-        setLoading(false);
-        return;
-      }
       try {
         const res = await fetch('/api/auth/me', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          credentials: 'include'
         });
         if (res.ok) {
           const fullData = await res.json();
@@ -31,7 +25,7 @@ const Profile = ({ user: initialUser, token, onBack }) => {
       }
     };
     fetchProfile();
-  }, [token]);
+  }, []);
 
   if (loading && !user) {
     return (
@@ -257,12 +251,6 @@ const Profile = ({ user: initialUser, token, onBack }) => {
                 </div>
               </div>
 
-              {user.clinicName && (
-                <div>
-                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: 600 }}>Clinic Address</span>
-                  <span style={{ fontSize: '0.92rem', fontWeight: 500 }}>{user.clinicName}</span>
-                </div>
-              )}
 
               {user.bio && (
                 <div>

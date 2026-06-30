@@ -1,37 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, CheckCircle, XCircle, AlertTriangle, FileText, Phone, Mail, User, Briefcase, IndianRupee, Clock } from 'lucide-react';
 
-const AdminDashboard = ({ token }) => {
+const AdminDashboard = () => {
   const [doctors, setDoctors] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [rejectionReasons, setRejectionReasons] = useState({});
   const [showRejectInput, setShowRejectInput] = useState({});
-  const [showSuspendInput, setShowSuspendInput] = useState({});
-  const [suspensionReasons, setSuspensionReasons] = useState({});
+  const [suspendingDoctor, setSuspendingDoctor] = useState(null);
+  const [suspensionReasonText, setSuspensionReasonText] = useState('');
+  const [submittingSuspension, setSubmittingSuspension] = useState(false);
 
   useEffect(() => {
     fetchDoctors();
-  }, [token]);
-
-  useEffect(() => {
-    const handleMessage = (e) => {
-      if (e.data === 'doctor-suspended') {
-        fetchDoctors();
-      }
-    };
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [token]);
+  }, []);
 
   const fetchDoctors = async () => {
     setIsLoading(true);
     setError('');
     try {
       const res = await fetch('/api/admin/doctors', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        credentials: 'include'
       });
       const data = await res.json();
       if (res.ok) {
@@ -51,10 +40,7 @@ const AdminDashboard = ({ token }) => {
     try {
       const res = await fetch(`/api/admin/doctors/${doctorId}/approve`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+        credentials: 'include'
       });
       const data = await res.json();
       if (res.ok) {
@@ -80,9 +66,9 @@ const AdminDashboard = ({ token }) => {
       const res = await fetch(`/api/admin/doctors/${doctorId}/reject`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ rejectionReason: reason })
       });
       const data = await res.json();
@@ -101,36 +87,7 @@ const AdminDashboard = ({ token }) => {
     }
   };
 
-  const handleSuspendSubmit = async (doctorId) => {
-    const reason = suspensionReasons[doctorId];
-    if (!reason || !reason.trim()) {
-      alert('Please enter a suspension reason.');
-      return;
-    }
-    if (!window.confirm('Are you sure you want to suspend this doctor account? They will lose access immediately.')) return;
-    try {
-      const res = await fetch(`/api/admin/doctors/${doctorId}/suspend`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ suspensionReason: reason.trim() })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        alert('Doctor account suspended and notification email sent.');
-        setSuspensionReasons(prev => ({ ...prev, [doctorId]: '' }));
-        setShowSuspendInput(prev => ({ ...prev, [doctorId]: false }));
-        fetchDoctors();
-      } else {
-        alert(data.message || 'Failed to suspend doctor.');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Error connecting to suspend doctor.');
-    }
-  };
+
 
   const pendingDocs = doctors.filter(d => d.status === 'pending');
   const activeDocs = doctors.filter(d => d.status === 'approved');
@@ -239,7 +196,7 @@ const AdminDashboard = ({ token }) => {
                   <DoctorCardMini 
                     key={doc._id} 
                     doc={doc} 
-                    token={token}
+                    onSuspend={() => setSuspendingDoctor(doc)}
                   />
                 ))}
               </div>
@@ -282,6 +239,151 @@ const AdminDashboard = ({ token }) => {
           to { transform: rotate(360deg); }
         }
       `}} />
+
+      {suspendingDoctor && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.8)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999
+        }}>
+          <div className="glass-panel" style={{
+            background: 'linear-gradient(135deg, rgba(13, 17, 29, 0.95) 0%, rgba(22, 28, 45, 0.95) 100%)',
+            border: '1px solid rgba(234, 179, 8, 0.25)',
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.5)',
+            borderRadius: '16px',
+            maxWidth: '500px',
+            width: '100%',
+            padding: '30px',
+            boxSizing: 'border-box'
+          }}>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '0 0 8px 0', color: '#fff', textAlign: 'center' }}>
+              Confirm Account Suspension
+            </h3>
+            <p style={{ fontSize: '0.95rem', color: '#94a3b8', textAlign: 'center', marginBottom: '24px' }}>
+              Dr. {suspendingDoctor.name} ({suspendingDoctor.specialization || suspendingDoctor.specialty})
+            </p>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{
+                display: 'block',
+                fontSize: '0.78rem',
+                color: '#94a3b8',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                marginBottom: '8px'
+              }}>
+                Reason for Suspension *
+              </label>
+              <textarea
+                value={suspensionReasonText}
+                onChange={(e) => setSuspensionReasonText(e.target.value)}
+                rows={5}
+                placeholder="Please enter the exact reason. This explanation will be included in the notification email sent to the doctor..."
+                style={{
+                  width: '100%',
+                  background: 'rgba(0, 0, 0, 0.3)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '8px',
+                  padding: '12px',
+                  color: '#fff',
+                  fontSize: '0.9rem',
+                  fontFamily: 'inherit',
+                  outline: 'none',
+                  resize: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+              <button
+                disabled={submittingSuspension}
+                onClick={() => {
+                  setSuspendingDoctor(null);
+                  setSuspensionReasonText('');
+                }}
+                style={{
+                  flex: 1,
+                  background: 'transparent',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '8px',
+                  color: '#94a3b8',
+                  padding: '12px',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                disabled={submittingSuspension}
+                onClick={async () => {
+                  if (!suspensionReasonText.trim()) {
+                    alert('Please enter a reason for suspension.');
+                    return;
+                  }
+                  if (!window.confirm('Are you sure you want to suspend this doctor account? They will lose access immediately.')) {
+                    return;
+                  }
+
+                  setSubmittingSuspension(true);
+                  try {
+                    const res = await fetch(`/api/admin/doctors/${suspendingDoctor._id}/suspend`, {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json'
+                      },
+                      credentials: 'include',
+                      body: JSON.stringify({ suspensionReason: suspensionReasonText.trim() })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      alert('Doctor account suspended successfully and notification email sent.');
+                      setSuspendingDoctor(null);
+                      setSuspensionReasonText('');
+                      fetchDoctors();
+                    } else {
+                      alert(data.message || 'Failed to suspend doctor.');
+                    }
+                  } catch (err) {
+                    console.error(err);
+                    alert('Error connecting to server.');
+                  } finally {
+                    setSubmittingSuspension(false);
+                  }
+                }}
+                style={{
+                  flex: 1,
+                  background: '#eab308',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: '#000',
+                  padding: '12px',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+              >
+                {submittingSuspension ? 'Suspending...' : 'Confirm Suspension'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -310,7 +412,6 @@ const DoctorCard = ({ doc, onApprove, onRejectSubmit, rejectionReason, setReject
             <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff', margin: '0 0 4px 0' }}>Dr. {doc.name}</h3>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', fontSize: '0.78rem' }}>
               <span style={{ color: 'var(--primary-neon)', background: 'rgba(6, 182, 212, 0.1)', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>{doc.specialization}</span>
-              <span style={{ color: 'var(--text-muted)' }}>📍 {doc.clinicName || 'Clinic unassigned'}</span>
             </div>
           </div>
         </div>
@@ -461,7 +562,7 @@ const DoctorCard = ({ doc, onApprove, onRejectSubmit, rejectionReason, setReject
 };
 
 // Mini approved doctor card
-const DoctorCardMini = ({ doc, token }) => {
+const DoctorCardMini = ({ doc, onSuspend }) => {
   return (
     <div className="glass-panel" style={{
       padding: '16px',
@@ -484,7 +585,7 @@ const DoctorCardMini = ({ doc, token }) => {
         </div>
       </div>
       <button
-        onClick={() => window.open(`/api/admin/suspend-form/${doc._id}?token=${token}`, '_blank', 'width=600,height=550')}
+        onClick={onSuspend}
         style={{
           background: 'none',
           border: '1px solid rgba(234, 179, 8, 0.3)',

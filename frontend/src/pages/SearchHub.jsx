@@ -227,9 +227,6 @@ const SearchHub = ({ searchParams, onBook }) => {
                         <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
                           {p.specialty}
                         </span>
-                        <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block' }}>
-                          {p.clinicName}
-                        </span>
                       </div>
 
                       {/* Experience Badge instead of rating */}

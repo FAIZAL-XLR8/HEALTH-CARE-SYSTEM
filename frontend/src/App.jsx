@@ -22,7 +22,6 @@ function App() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   
   // Authentication states
-  const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [user, setUser] = useState(() => {
     try {
       const stored = localStorage.getItem('user');
@@ -33,6 +32,27 @@ function App() {
   });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+
+  useEffect(() => {
+    const verifySession = async () => {
+      try {
+        const res = await fetch('/api/auth/me', {
+          credentials: 'include'
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data);
+          localStorage.setItem('user', JSON.stringify(data));
+        } else {
+          setUser(null);
+          localStorage.removeItem('user');
+        }
+      } catch (err) {
+        console.error('Session verification check failed:', err);
+      }
+    };
+    verifySession();
+  }, []);
 
   // Booking details
   const [selectedProvider, setSelectedProvider] = useState(null);
@@ -60,9 +80,7 @@ function App() {
 
   // Handle Authentication Callbacks
   const handleAuthSuccess = (data) => {
-    setToken(data.token);
     setUser(data.user);
-    localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
     setIsAuthModalOpen(false);
     showFlash('Login successful', 'success');
@@ -77,10 +95,16 @@ function App() {
     }
   };
 
-  const handleLogout = () => {
-    setToken('');
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (err) {
+      console.error('Logout request failed:', err);
+    }
     setUser(null);
-    localStorage.removeItem('token');
     localStorage.removeItem('user');
     setActivePage('home');
     setIsLogoutConfirmOpen(false);
@@ -285,18 +309,18 @@ function App() {
         )}
         
         {activePage === 'reports' && (
-          <ReportAnalyzer onSearchDoctor={handleSearchSpecialtyFromAI} token={token} onOpenAuth={() => setIsAuthModalOpen(true)} />
+          <ReportAnalyzer onSearchDoctor={handleSearchSpecialtyFromAI} user={user} onOpenAuth={() => setIsAuthModalOpen(true)} />
         )}
         
         {activePage === 'prescription' && (
-          <PrescriptionAnalyzer token={token} onOpenAuth={() => setIsAuthModalOpen(true)} />
+          <PrescriptionAnalyzer user={user} onOpenAuth={() => setIsAuthModalOpen(true)} />
         )}
 
         {/* 📅 Slot Selection & Booking Page */}
         {activePage === 'booking-step' && selectedProvider && (
           <BookingStepPage
             provider={selectedProvider}
-            token={token}
+            user={user}
             onCancel={() => setActivePage('search')}
             onOpenAuth={() => setIsAuthModalOpen(true)}
           />
@@ -305,7 +329,6 @@ function App() {
         {/* 👤 Patient Portal Page */}
         {activePage === 'patient-dashboard' && (
           <PatientDashboard
-            token={token}
             onOpenAuth={() => setIsAuthModalOpen(true)}
             onStartConsultation={handleStartConsultation}
           />
@@ -314,23 +337,19 @@ function App() {
         {/* 🩺 Doctor Portal Dashboard Page */}
         {activePage === 'doctor-dashboard' && (
           <DoctorDashboard
-            token={token}
             onStartConsultation={handleStartConsultation}
           />
         )}
 
         {/* 🛡️ Admin Dashboard Page */}
         {activePage === 'admin-dashboard' && (
-          <AdminDashboard
-            token={token}
-          />
+          <AdminDashboard />
         )}
 
         {/* 👤 User Profile Details Page */}
         {activePage === 'profile' && (
           <Profile 
             user={user}
-            token={token}
             onBack={() => {
               if (user && user.role === 'admin') {
                 setActivePage('admin-dashboard');
@@ -347,7 +366,6 @@ function App() {
         {activePage === 'telehealth-room' && activeAppointmentId && (
           <TelehealthRoom
             appointmentId={activeAppointmentId}
-            token={token}
             user={user}
             onBack={() => {
               if (user && user.role === 'doctor') {

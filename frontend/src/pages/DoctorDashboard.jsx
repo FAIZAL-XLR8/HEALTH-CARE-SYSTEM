@@ -36,7 +36,7 @@ const calculateAge = (dateOfBirth) => {
   return `${age} yrs`;
 };
 
-const DoctorDashboard = ({ token, onStartConsultation }) => {
+const DoctorDashboard = ({ onStartConsultation }) => {
   const [appointments, setAppointments] = useState([]);
   const [doctorProfile, setDoctorProfile] = useState(null);
   const [activeTab, setActiveTab] = useState('todays'); // 'todays' | 'upcoming' | 'active-chats' | 'past' | 'patients'
@@ -44,14 +44,11 @@ const DoctorDashboard = ({ token, onStartConsultation }) => {
   const [error, setError] = useState('');
 
   const fetchDashboardData = async () => {
-    if (!token) return;
     setLoading(true);
     setError('');
     try {
       const res = await fetch('/api/appointments/doctor/dashboard', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        credentials: 'include'
       });
       const data = await res.json();
       if (res.ok) {
@@ -70,7 +67,7 @@ const DoctorDashboard = ({ token, onStartConsultation }) => {
 
   useEffect(() => {
     fetchDashboardData();
-  }, [token]);
+  }, []);
 
 
   const now = new Date();

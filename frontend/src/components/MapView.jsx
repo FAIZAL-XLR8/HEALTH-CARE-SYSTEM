@@ -158,7 +158,7 @@ const MapView = ({
       
       // Dynamic popup with doctor/lab styling
       const name = p.name || p.labName || 'Healthcare Provider';
-      const detail = p.clinicName || p.specialty || 'Bengaluru';
+      const detail = p.specialty || 'Bengaluru';
       const feeText = p.fee 
         ? `<br/><strong style="color:#059669;">Consultation: ₹${p.fee}</strong>` 
         : (p.price ? `<br/><strong style="color:#06b6d4;">Price: ₹${p.price}</strong>` : '');

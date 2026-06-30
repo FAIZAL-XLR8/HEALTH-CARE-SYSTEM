@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
-export const useTelehealthChat = ({ socket, user, appointmentId, token, role }) => {
+export const useTelehealthChat = ({ socket, user, appointmentId, role }) => {
   const [appointment, setAppointment] = useState(null);
   const [messages, setMessages] = useState([]);
   const [messageText, setMessageText] = useState('');
@@ -35,13 +35,13 @@ export const useTelehealthChat = ({ socket, user, appointmentId, token, role }) 
 
   // Fetch Chat History & Appointment details
   const fetchRoomData = async () => {
-    if (!appointmentId || !token) return;
+    if (!appointmentId) return;
     try {
       let targetAppt = null;
 
       if (role === 'doctor') {
         const docRes = await fetch(`/api/appointments/doctor/dashboard`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+          credentials: 'include'
         });
         const docData = await docRes.json();
         if (docRes.ok) {
@@ -49,7 +49,7 @@ export const useTelehealthChat = ({ socket, user, appointmentId, token, role }) 
         }
       } else {
         const apptRes = await fetch(`/api/appointments/patient/dashboard`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+          credentials: 'include'
         });
         const apptData = await apptRes.json();
         if (apptRes.ok) {
@@ -66,7 +66,7 @@ export const useTelehealthChat = ({ socket, user, appointmentId, token, role }) 
 
       // Fetch chat messages
       const msgRes = await fetch(`/api/messages/${appointmentId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include'
       });
       const msgData = await msgRes.json();
       if (msgRes.ok) {
@@ -79,7 +79,7 @@ export const useTelehealthChat = ({ socket, user, appointmentId, token, role }) 
 
   useEffect(() => {
     fetchRoomData();
-  }, [appointmentId, token]);
+  }, [appointmentId]);
 
   // Initial presence population
   useEffect(() => {
@@ -152,7 +152,7 @@ export const useTelehealthChat = ({ socket, user, appointmentId, token, role }) 
     try {
       const res = await fetch('/api/messages/upload', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'include',
         body: formData
       });
       const data = await res.json();
@@ -212,7 +212,7 @@ export const useTelehealthChat = ({ socket, user, appointmentId, token, role }) 
     try {
       const res = await fetch(`/api/messages/${messageId}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include'
       });
       if (res.ok) {
         setMessages(prev => prev.filter(m => m._id !== messageId));

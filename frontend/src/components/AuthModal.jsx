@@ -33,10 +33,11 @@ const doctorSignupSchema = z.object({
   confirmPassword: z.string().min(1, 'Confirm password is required.'),
   experience: z.string().refine(val => val !== '' && !isNaN(val) && Number(val) >= 0, 'Experience must be a positive number.'),
   fee: z.string().refine(val => val !== '' && !isNaN(val) && Number(val) >= 0, 'Fee must be a positive number.'),
-  clinicName: z.string().trim().min(1, 'Clinic name is required.'),
   activeHours: z.string().trim().min(1, 'Daily available hours are required.'),
   profileImage: z.string().optional(),
   bio: z.string().optional(),
+  latitude: z.any().optional(),
+  longitude: z.any().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Passwords do not match.',
   path: ['confirmPassword'],
@@ -60,10 +61,11 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
   const [specialty, setSpecialty] = useState('General Physician');
   const [experience, setExperience] = useState('');
   const [fee, setFee] = useState('');
-  const [clinicName, setClinicName] = useState('');
   const [activeHours, setActiveHours] = useState('09:00 AM - 05:00 PM');
   const [profileImage, setProfileImage] = useState('');
   const [bio, setBio] = useState('');
+  const [clinicLat, setClinicLat] = useState('');
+  const [clinicLng, setClinicLng] = useState('');
   const [isSuspended, setIsSuspended] = useState(false);
 
   // Doctor Verification Wizard states
@@ -97,11 +99,11 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
 
   const handleFieldChange = (field, setter, value) => {
     setter(value);
-    
+
     if (field === 'email') {
       setIsSuspended(false);
     }
-    
+
     if (isSubmitted) {
       const currentData = {
         name: field === 'name' ? value : name,
@@ -111,7 +113,6 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
         confirmPassword: field === 'confirmPassword' ? value : confirmPassword,
         experience: field === 'experience' ? value : experience,
         fee: field === 'fee' ? value : fee,
-        clinicName: field === 'clinicName' ? value : clinicName,
         activeHours: field === 'activeHours' ? value : activeHours,
         profileImage: field === 'profileImage' ? value : profileImage,
         bio: field === 'bio' ? value : bio,
@@ -204,7 +205,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
         } else {
           const msg = data.message || 'Login failed. Please check credentials.';
           setErrorMsg(msg);
-          
+
           const lowerMsg = msg.toLowerCase();
           if (lowerMsg.includes('credentials') || lowerMsg.includes('password') || lowerMsg.includes('invalid email')) {
             showFlash('Invalid password', 'error');
@@ -245,10 +246,11 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
       payload.specialty = specialty;
       payload.experience = experience.toString().trim();
       payload.fee = fee.toString().trim();
-      payload.clinicName = clinicName.trim();
       payload.activeHours = activeHours.trim();
       payload.profileImage = profileImage.trim();
       payload.bio = bio.trim();
+      payload.latitude = clinicLat !== '' ? Number(clinicLat) : undefined;
+      payload.longitude = clinicLng !== '' ? Number(clinicLng) : undefined;
     }
 
     const schema = role === 'patient' ? patientSignupSchema : doctorSignupSchema;
@@ -280,10 +282,11 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
       backendPayload.specialty = specialty;
       backendPayload.experience = Number(experience);
       backendPayload.fee = Number(fee);
-      backendPayload.clinicName = clinicName.trim();
       backendPayload.activeHours = activeHours.trim();
       backendPayload.profileImage = profileImage.trim();
       backendPayload.bio = bio.trim();
+      backendPayload.latitude = clinicLat !== '' ? Number(clinicLat) : '';
+      backendPayload.longitude = clinicLng !== '' ? Number(clinicLng) : '';
     }
 
     setIsLoading(true);
@@ -315,7 +318,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
         } else {
           setErrorMsg(msg);
         }
-        
+
         const lowerMsg = msg.toLowerCase();
         if (lowerMsg.includes('already exists') || lowerMsg.includes('registered') || data.isSuspended) {
           if (lowerMsg.includes('email') || data.isSuspended) {
@@ -350,9 +353,9 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
       const res = await fetch('/api/auth/verify-email-otp', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${tempToken}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ otp: emailOtp })
       });
       const data = await res.json();
@@ -378,9 +381,9 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
       const res = await fetch('/api/auth/verify-phone-otp', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${tempToken}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ otp: phoneOtp })
       });
       const data = await res.json();
@@ -414,9 +417,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
     try {
       const res = await fetch('/api/auth/upload-id', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${tempToken}`
-        },
+        credentials: 'include',
         body: formData
       });
       const data = await res.json();
@@ -441,9 +442,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
     try {
       const res = await fetch('/api/auth/submit-application', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${tempToken}`
-        }
+        credentials: 'include'
       });
       const data = await res.json();
       if (res.ok) {
@@ -471,10 +470,11 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
     setSpecialty('General Physician');
     setExperience('');
     setFee('');
-    setClinicName('');
     setActiveHours('09:00 AM - 05:00 PM');
     setProfileImage('');
     setBio('');
+    setClinicLat('');
+    setClinicLng('');
     setIsSuspended(false);
     setErrorMsg('');
     setSuccessMsg('');
@@ -493,8 +493,8 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
   };
 
   const doctorSpecialties = [
-    'ENT', 'Cardiologist', 'Dermatologist', 'Dentist', 
-    'General Physician', 'Gynecologist/obstetrician', 
+    'ENT', 'Cardiologist', 'Dermatologist', 'Dentist',
+    'General Physician', 'Gynecologist/obstetrician',
     'Pediatrician', 'Neurologist', 'Psychiatrist'
   ];
 
@@ -530,9 +530,9 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
         maxHeight: '90vh',
         overflowY: 'auto'
       }}>
-        
+
         {/* Close Button */}
-        <button 
+        <button
           onClick={() => { onClose(); resetForm(); }}
           style={{
             position: 'absolute',
@@ -551,15 +551,15 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
 
         {/* Tab Headers (Login vs Register) - Hidden if Admin or in middle of doctor wizard */}
         {role !== 'admin' && wizardStep === 1 && (
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: '1fr 1fr', 
-            gap: '8px', 
-            background: 'rgba(0,0,0,0.2)', 
-            padding: '4px', 
-            borderRadius: '10px', 
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '8px',
+            background: 'rgba(0,0,0,0.2)',
+            padding: '4px',
+            borderRadius: '10px',
             border: '1px solid var(--card-border)',
-            marginBottom: '20px' 
+            marginBottom: '20px'
           }}>
             <button
               type="button"
@@ -668,8 +668,8 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
         {wizardStep === 1 && (
           <div style={{ textAlign: 'center', marginBottom: '20px' }}>
             <h3 style={{ fontSize: '1.35rem', color: '#fff', fontWeight: 800 }}>
-              {mode === 'login' 
-                ? (role === 'admin' ? 'Admin Gateway' : `${role === 'doctor' ? 'Doctor' : 'User'} Login`) 
+              {mode === 'login'
+                ? (role === 'admin' ? 'Admin Gateway' : `${role === 'doctor' ? 'Doctor' : 'User'} Login`)
                 : `Create ${role === 'doctor' ? 'Doctor' : 'User'} Profile`
               }
             </h3>
@@ -694,13 +694,13 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
         {/* ================= STEP 1: FORM ================= */}
         {wizardStep === 1 && (
           <form onSubmit={mode === 'login' ? handleLogin : handleSignup} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            
+
             {/* Sign Up Fields: Full Name */}
             {mode === 'signup' && (
               <div>
                 <div style={{ position: 'relative' }}>
                   <User style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255, 255, 255, 0.3)' }} size={16} />
-                  <input 
+                  <input
                     type="text"
                     required
                     value={name}
@@ -731,7 +731,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
               <div>
                 <div style={{ position: 'relative' }}>
                   <Mail style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255, 255, 255, 0.3)' }} size={16} />
-                  <input 
+                  <input
                     type="email"
                     required
                     value={email}
@@ -753,7 +753,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
                   <span style={{ color: 'var(--accent-alert)', fontSize: '0.72rem', marginTop: '4px', display: 'block', textAlign: 'left' }}>
                     {errors.email}
                     {isSuspended && (
-                      <span 
+                      <span
                         style={{ color: '#f87171', textDecoration: 'underline', cursor: 'pointer', marginLeft: '5px', fontWeight: 'bold' }}
                         onClick={() => window.open(`/api/auth/suspension-details/${email.toLowerCase().trim()}`, '_blank')}
                       >
@@ -770,7 +770,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
               <div>
                 <div style={{ position: 'relative' }}>
                   <Phone style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255, 255, 255, 0.3)' }} size={16} />
-                  <input 
+                  <input
                     type="tel"
                     required
                     value={phone}
@@ -802,7 +802,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
             <div>
               <div style={{ position: 'relative' }}>
                 <Key style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255, 255, 255, 0.3)' }} size={16} />
-                <input 
+                <input
                   type={showPassword ? "text" : "password"}
                   required
                   value={password}
@@ -839,7 +839,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
               <div>
                 <div style={{ position: 'relative' }}>
                   <Key style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255, 255, 255, 0.3)' }} size={16} />
-                  <input 
+                  <input
                     type={showPassword ? "text" : "password"}
                     required
                     value={confirmPassword}
@@ -869,7 +869,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
             {mode === 'signup' && role === 'doctor' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px dashed var(--card-border)', paddingTop: '14px', marginTop: '4px' }}>
                 <span style={{ fontSize: '0.72rem', color: 'var(--secondary-neon)', fontWeight: 700 }}>PROFESSIONAL CREDENTIALS</span>
-                
+
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div>
                     <label style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Specialization *</label>
@@ -933,31 +933,6 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
                     {errors.fee && (
                       <span style={{ color: 'var(--accent-alert)', fontSize: '0.68rem', marginTop: '4px', display: 'block', textAlign: 'left' }}>
                         {errors.fee}
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Clinic Name *</label>
-                    <input
-                      type="text"
-                      required
-                      value={clinicName}
-                      placeholder="e.g. City Dental Care"
-                      onChange={(e) => handleFieldChange('clinicName', setClinicName, e.target.value)}
-                      style={{
-                        width: '100%',
-                        background: 'rgba(0,0,0,0.3)',
-                        border: errors.clinicName ? '1px solid var(--accent-alert)' : '1px solid var(--card-border)',
-                        borderRadius: '8px',
-                        padding: '10px',
-                        color: '#fff',
-                        fontSize: '0.8rem',
-                        outline: 'none'
-                      }}
-                    />
-                    {errors.clinicName && (
-                      <span style={{ color: 'var(--accent-alert)', fontSize: '0.68rem', marginTop: '4px', display: 'block', textAlign: 'left' }}>
-                        {errors.clinicName}
                       </span>
                     )}
                   </div>
@@ -1040,19 +1015,62 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
                     </span>
                   )}
                 </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Clinic Latitude (Optional)</label>
+                    <input
+                      type="number"
+                      step="any"
+                      value={clinicLat}
+                      placeholder="e.g. 12.971891"
+                      onChange={(e) => setClinicLat(e.target.value)}
+                      style={{
+                        width: '100%',
+                        background: 'rgba(0,0,0,0.3)',
+                        border: '1px solid var(--card-border)',
+                        borderRadius: '8px',
+                        padding: '10px',
+                        color: '#fff',
+                        fontSize: '0.8rem',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Clinic Longitude (Optional)</label>
+                    <input
+                      type="number"
+                      step="any"
+                      value={clinicLng}
+                      placeholder="e.g. 77.641151"
+                      onChange={(e) => setClinicLng(e.target.value)}
+                      style={{
+                        width: '100%',
+                        background: 'rgba(0,0,0,0.3)',
+                        border: '1px solid var(--card-border)',
+                        borderRadius: '8px',
+                        padding: '10px',
+                        color: '#fff',
+                        fontSize: '0.8rem',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
             )}
 
             {/* Submit Button */}
-            <button 
+            <button
               type="submit"
               disabled={isLoading}
               style={{
                 background: !isLoading
-                  ? (role === 'doctor' ? 'var(--secondary-neon)' : (role === 'admin' ? '#f43f5e' : 'var(--primary-neon)')) 
+                  ? (role === 'doctor' ? 'var(--secondary-neon)' : (role === 'admin' ? '#f43f5e' : 'var(--primary-neon)'))
                   : 'rgba(255,255,255,0.05)',
                 color: !isLoading
-                  ? (role === 'patient' ? '#000' : '#fff') 
+                  ? (role === 'patient' ? '#000' : '#fff')
                   : 'var(--text-muted)',
                 border: 'none',
                 borderRadius: '8px',
@@ -1064,8 +1082,8 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
                 marginTop: '8px'
               }}
             >
-              {isLoading 
-                ? (mode === 'login' ? 'Verifying Gateway...' : 'Registering Credentials...') 
+              {isLoading
+                ? (mode === 'login' ? 'Verifying Gateway...' : 'Registering Credentials...')
                 : (mode === 'login' ? 'Login' : 'Begin Verification Wizard')
               }
             </button>
@@ -1079,7 +1097,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
             <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'center', lineHeight: '1.4' }}>
               We simulated 6-digit OTP verification codes. Check your <strong>backend console terminal logs</strong> to retrieve them.
             </p>
-            
+
             <div style={{ background: 'rgba(255,255,255,0.02)', padding: '15px', borderRadius: '10px', border: '1px solid var(--card-border)' }}>
               <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>Email Verification Code *</label>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -1236,7 +1254,8 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
         )}
 
       </div>
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes fadeIn {
           from { opacity: 0; transform: scale(0.95); }
           to { opacity: 1; transform: scale(1); }

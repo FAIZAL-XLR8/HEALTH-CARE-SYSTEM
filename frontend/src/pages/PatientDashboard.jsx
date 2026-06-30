@@ -25,21 +25,18 @@ const cardVariants = {
   hover: { y: -5, transition: { duration: 0.22, ease: 'easeInOut' } },
 };
 
-const PatientDashboard = ({ token, onOpenAuth, onStartConsultation }) => {
+const PatientDashboard = ({ onOpenAuth, onStartConsultation }) => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [activeView, setActiveView] = useState('ongoing'); // 'ongoing' | 'past'
 
   const fetchAppointments = async () => {
-    if (!token) return;
     setLoading(true);
     setError('');
     try {
       const res = await fetch('/api/appointments/patient/dashboard', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        credentials: 'include'
       });
       const data = await res.json();
       if (res.ok) {
@@ -57,7 +54,7 @@ const PatientDashboard = ({ token, onOpenAuth, onStartConsultation }) => {
 
   useEffect(() => {
     fetchAppointments();
-  }, [token]);
+  }, []);
 
   const handlePayNow = async (apptId) => {
     setLoading(true);
@@ -65,9 +62,9 @@ const PatientDashboard = ({ token, onOpenAuth, onStartConsultation }) => {
       const res = await fetch('/api/payments/create-checkout-session', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ appointmentId: apptId })
       });
       const data = await res.json();
@@ -86,9 +83,9 @@ const PatientDashboard = ({ token, onOpenAuth, onStartConsultation }) => {
               const verifyRes = await fetch('/api/payments/verify-checkout-session', {
                 method: 'POST',
                 headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`
+                  'Content-Type': 'application/json'
                 },
+                credentials: 'include',
                 body: JSON.stringify({
                   razorpay_order_id: response.razorpay_order_id,
                   razorpay_payment_id: response.razorpay_payment_id,

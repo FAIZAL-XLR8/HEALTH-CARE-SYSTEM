@@ -27,7 +27,7 @@ const cardVariants = {
   hover: { y: -6, transition: { duration: 0.25, ease: 'easeInOut' } },
 };
 
-const PrescriptionAnalyzer = ({ token, onOpenAuth }) => {
+const PrescriptionAnalyzer = ({ user, onOpenAuth }) => {
   const [file, setFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -48,15 +48,10 @@ const PrescriptionAnalyzer = ({ token, onOpenAuth }) => {
     const formData = new FormData();
     formData.append('prescription', file);
 
-    const headers = {};
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
     try {
       const response = await fetch('/api/prescriptions/analyze', {
         method: 'POST',
-        headers,
+        credentials: 'include',
         body: formData,
       });
       const data = await response.json();
@@ -114,7 +109,7 @@ const PrescriptionAnalyzer = ({ token, onOpenAuth }) => {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
 
           {/* Lockscreen Panel for Unauthenticated Users */}
-          {!token && (
+          {!user && (
             <motion.div
               variants={cardVariants}
               whileHover="hover"
@@ -150,7 +145,7 @@ const PrescriptionAnalyzer = ({ token, onOpenAuth }) => {
           )}
 
           {/* Upload Container Panel */}
-          {token && !result && (
+          {user && !result && (
             <motion.form
               variants={cardVariants}
               whileHover="hover"

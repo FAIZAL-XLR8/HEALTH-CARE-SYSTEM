@@ -27,7 +27,7 @@ const cardVariants = {
   hover: { y: -6, transition: { duration: 0.25, ease: 'easeInOut' } },
 };
 
-const ReportAnalyzer = ({ onSearchDoctor, token, onOpenAuth }) => {
+const ReportAnalyzer = ({ onSearchDoctor, user, onOpenAuth }) => {
   const [file, setFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [analysis, setAnalysis] = useState(null);
@@ -49,16 +49,11 @@ const ReportAnalyzer = ({ onSearchDoctor, token, onOpenAuth }) => {
     formData.append('report', file);
     formData.append('userId', 'mock-user-123'); // Demo placeholder
 
-    const headers = {};
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
     try {
       // POST to our backend Express multimodal analysis route
       const response = await fetch('/api/reports/analyze', {
         method: 'POST',
-        headers,
+        credentials: 'include',
         body: formData,
       });
       const data = await response.json();
@@ -116,7 +111,7 @@ const ReportAnalyzer = ({ onSearchDoctor, token, onOpenAuth }) => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
         
         {/* Lockscreen Panel for Unauthenticated Users */}
-        {!token && (
+        {!user && (
           <motion.div
             variants={cardVariants}
             whileHover="hover"
@@ -152,7 +147,7 @@ const ReportAnalyzer = ({ onSearchDoctor, token, onOpenAuth }) => {
         )}
 
         {/* Upload Container Panel */}
-        {token && !analysis && (
+        {user && !analysis && (
           <motion.form
             variants={cardVariants}
             whileHover="hover"

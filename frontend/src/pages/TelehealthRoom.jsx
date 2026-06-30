@@ -31,7 +31,7 @@ const formatLastSeen = (dateString) => {
   }
 };
 
-const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
+const TelehealthRoom = ({ appointmentId, user, onBack }) => {
   const [socket, setSocket] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
@@ -44,15 +44,14 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
 
   // Initialize socket instance
   useEffect(() => {
-    if (!token) return;
     const socketInstance = io('http://localhost:5000', {
-      auth: { token }
+      withCredentials: true
     });
     setSocket(socketInstance);
     return () => {
       socketInstance.disconnect();
     };
-  }, [token, appointmentId]);
+  }, [appointmentId]);
 
   // Consume Chat Hook
   const {
@@ -80,7 +79,6 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
     socket,
     user,
     appointmentId,
-    token,
     role
   });
 

@@ -48,10 +48,7 @@ const doctorSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
-  scrapedRating: {
-    type: Number,
-    default: null,
-  },
+
   isOnline: {
     type: Boolean,
     default: false,
@@ -110,26 +107,7 @@ const doctorSchema = new mongoose.Schema({
   phoneOtpExpires: {
     type: Date,
   },
-  stripeAccountId: {
-    type: String,
-    default: '',
-  },
-  stripeCustomerId: {
-    type: String,
-    default: '',
-  },
-  stripeSubscriptionId: {
-    type: String,
-    default: '',
-  },
-  stripeOnboardingCompleted: {
-    type: Boolean,
-    default: false,
-  },
-  stripeSubscriptionActive: {
-    type: Boolean,
-    default: false,
-  },
+
   // Keep original visual map layout properties
   clinicName: {
     type: String,
@@ -179,7 +157,5 @@ doctorSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, passwordHash);
 };
 
-// Create a 2dsphere index for geospatial queries
-doctorSchema.index({ location: '2dsphere' });
 
 module.exports = mongoose.model('Doctor', doctorSchema);

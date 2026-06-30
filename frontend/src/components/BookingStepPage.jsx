@@ -24,6 +24,7 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
   // Reservation states
   const [reservedAppt, setReservedAppt] = useState(null);
   const [timeLeft, setTimeLeft] = useState(0); // in seconds
+  const [step, setStep] = useState(1); // 1 = Patient Details & Date, 2 = Slot Selection / Checkout
 
   const providerId = provider.labId || provider.doctorId || provider._id;
   const isDoctor = !provider.price;
@@ -80,6 +81,7 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
     setSelectedSlot(null);
     setReservedAppt(null);
     setTimeLeft(0);
+    setStep(1);
   }, [selectedDate, providerId]);
 
   // Reservation countdown timer
@@ -98,6 +100,32 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
     }, 1000);
     return () => clearInterval(timer);
   }, [timeLeft, reservedAppt]);
+
+  const handleContinue = () => {
+    setError('');
+    if (!patientName.trim()) {
+      setError('Please enter patient name.');
+      showFlash('Please fill out patient details first', 'warning');
+      return;
+    }
+    if (!patientAge.trim()) {
+      setError('Please enter patient age.');
+      showFlash('Please fill out patient details first', 'warning');
+      return;
+    }
+    const ageNum = Number(patientAge);
+    if (isNaN(ageNum) || ageNum <= 0 || ageNum > 120) {
+      setError('Please enter a valid numeric age (1 - 120).');
+      showFlash('Please enter a valid numeric age', 'warning');
+      return;
+    }
+    if (!patientGender) {
+      setError('Please select patient gender.');
+      showFlash('Please fill out patient details first', 'warning');
+      return;
+    }
+    setStep(2);
+  };
 
   const handleReserve = async () => {
     if (!token) {
@@ -344,11 +372,11 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
         )}
 
         {/* Date Selector & Manual Patient Info */}
-        {!reservedAppt && (
+        {!reservedAppt && step === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600 }}>
-                SELECT DATE
+                APPOINTMENT DATE
               </label>
               <input 
                 type="date" 
@@ -398,10 +426,12 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
                   PATIENT AGE
                 </label>
                 <input 
-                  type="text" 
+                  type="number" 
+                  min="1"
+                  max="120"
                   placeholder="e.g., 28"
                   value={patientAge}
-                  onChange={(e) => setPatientAge(e.target.value)}
+                  onChange={(e) => setPatientAge(e.target.value.replace(/\D/g, ''))}
                   style={{
                     width: '100%',
                     background: 'rgba(0,0,0,0.3)',
@@ -444,9 +474,31 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
           </div>
         )}
 
+        {/* Step 2 Booking Summary Header */}
+        {step === 2 && !reservedAppt && (
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.03)',
+            border: '1px solid var(--card-border)',
+            borderRadius: '12px',
+            padding: '16px',
+            fontSize: '0.88rem',
+            color: 'var(--text-muted)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '6px'
+          }}>
+            <div><strong>Patient Name:</strong> <span style={{ color: '#fff' }}>{patientName}</span></div>
+            <div style={{ display: 'flex', gap: '20px' }}>
+              <div><strong>Age:</strong> <span style={{ color: '#fff' }}>{patientAge}</span></div>
+              <div><strong>Gender:</strong> <span style={{ color: '#fff' }}>{patientGender}</span></div>
+            </div>
+            <div><strong>Appointment Date:</strong> <span style={{ color: 'var(--primary-neon)' }}>{selectedDate}</span></div>
+          </div>
+        )}
+
         {/* Slot Grid for Doctors */}
         {isDoctor ? (
-          !reservedAppt ? (
+          !reservedAppt && step === 2 ? (
             <div>
               <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '10px', fontWeight: 600 }}>
                 AVAILABLE TIMESLOTS (TODAY)
@@ -510,7 +562,7 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
                 </div>
               )}
             </div>
-          ) : (
+          ) : reservedAppt ? (
             // Reserved state count down timer
             <div style={{ background: 'rgba(16, 185, 129, 0.05)', border: '1px solid var(--secondary-neon)', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center', textAlign: 'center' }}>
               <div style={{ background: 'rgba(16, 185, 129, 0.1)', padding: '12px', borderRadius: '50%' }}>
@@ -526,82 +578,127 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
                 </div>
               </div>
             </div>
-          )
+          ) : null
         ) : (
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-            Diagnostic tests do not require daily slot selections. You can proceed directly to checkout.
-          </div>
+          step === 2 && !reservedAppt && (
+            <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+              Diagnostic tests do not require daily slot selections. You can proceed directly to checkout.
+            </div>
+          )
         )}
 
         {/* Buttons / Actions */}
         <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
-          <button 
-            disabled={loading}
-            onClick={onCancel}
-            style={{
-              flex: 1,
-              background: 'none',
-              border: '1px solid var(--card-border)',
-              borderRadius: '8px',
-              padding: '12px',
-              color: 'var(--text-muted)',
-              cursor: 'pointer',
-              fontSize: '0.85rem',
-              fontWeight: 600
-            }}
-          >
-            Cancel
-          </button>
-          
-          {reservedAppt ? (
-            <button 
-              disabled={loading}
-              onClick={handlePayment}
-              style={{
-                flex: 1,
-                background: 'var(--secondary-neon)',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '12px',
-                color: '#fff',
-                cursor: 'pointer',
-                fontSize: '0.85rem',
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)'
-              }}
-            >
-              <CreditCard size={16} />
-              Pay with Razorpay
-            </button>
+          {step === 1 ? (
+            <>
+              <button 
+                disabled={loading}
+                onClick={onCancel}
+                style={{
+                  flex: 1,
+                  background: 'none',
+                  border: '1px solid var(--card-border)',
+                  borderRadius: '8px',
+                  padding: '12px',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                  fontWeight: 600
+                }}
+              >
+                Cancel
+              </button>
+              <button 
+                disabled={loading}
+                onClick={handleContinue}
+                style={{
+                  flex: 1,
+                  background: 'var(--primary-neon)',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '12px',
+                  color: '#000',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  boxShadow: '0 4px 12px rgba(6, 182, 212, 0.25)'
+                }}
+              >
+                Continue
+              </button>
+            </>
           ) : (
-            <button 
-              disabled={loading || !patientName.trim() || !patientAge.trim() || (isDoctor && !selectedSlot)}
-              onClick={handleReserve}
-              style={{
-                flex: 1,
-                background: 'var(--primary-neon)',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '12px',
-                color: '#000',
-                cursor: (patientName.trim() && patientAge.trim() && (!isDoctor || selectedSlot)) ? 'pointer' : 'not-allowed',
-                fontSize: '0.85rem',
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                opacity: (patientName.trim() && patientAge.trim() && (!isDoctor || selectedSlot)) ? 1 : 0.5,
-                boxShadow: '0 4px 12px rgba(6, 182, 212, 0.25)'
-              }}
-            >
-              <Shield size={16} />
-              Reserve & Book
-            </button>
+            <>
+              {!reservedAppt && (
+                <button 
+                  disabled={loading}
+                  onClick={() => { setStep(1); setError(''); }}
+                  style={{
+                    flex: 1,
+                    background: 'none',
+                    border: '1px solid var(--card-border)',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    color: 'var(--text-muted)',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem',
+                    fontWeight: 600
+                  }}
+                >
+                  Back
+                </button>
+              )}
+              {reservedAppt ? (
+                <button 
+                  disabled={loading}
+                  onClick={handlePayment}
+                  style={{
+                    flex: 1,
+                    background: 'var(--secondary-neon)',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)'
+                  }}
+                >
+                  <CreditCard size={16} />
+                  Pay with Razorpay
+                </button>
+              ) : (
+                <button 
+                  disabled={loading || (isDoctor && !selectedSlot)}
+                  onClick={handleReserve}
+                  style={{
+                    flex: 1,
+                    background: 'var(--primary-neon)',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    color: '#000',
+                    cursor: (!isDoctor || selectedSlot) ? 'pointer' : 'not-allowed',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    opacity: (!isDoctor || selectedSlot) ? 1 : 0.5,
+                    boxShadow: '0 4px 12px rgba(6, 182, 212, 0.25)'
+                  }}
+                >
+                  <Shield size={16} />
+                  Reserve & Book
+                </button>
+              )}
+            </>
           )}
         </div>
 

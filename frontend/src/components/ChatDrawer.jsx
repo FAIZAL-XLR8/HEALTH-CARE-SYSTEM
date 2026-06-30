@@ -371,7 +371,7 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.65rem', color: '#6b7280', fontWeight: 600 }}>TRIAGE PRIORITY:</span>
+                        <span style={{ fontSize: '0.65rem', color: '#6b7280', fontWeight: 600 }}>RECOMMENDED TIMELINE:</span>
                         <span 
                           style={{
                             fontSize: '0.62rem',
@@ -390,7 +390,9 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                             }`
                           }}
                         >
-                          {msg.triage.priority.toUpperCase()}
+                          {msg.triage.priority === 'High' ? '🔴 URGENT ATTENTION' :
+                           msg.triage.priority === 'Medium' ? '🟡 SCHEDULE APPOINTMENT' : 
+                           '🟢 SELF-CARE / ROUTINE'}
                         </span>
                       </div>
 

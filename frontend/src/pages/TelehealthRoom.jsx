@@ -85,11 +85,17 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
   });
 
   const counterpartName = appointment
-    ? (role === 'doctor' ? (appointment.userId?.name || appointment.patientId?.name || 'Patient') : (appointment.doctor?.name || 'Doctor'))
+    ? (role === 'doctor'
+      ? (appointment.userId?.name || appointment.patientId?.name || appointment.patient?.name || 'Patient')
+      : (appointment.doctor?.name || appointment.doctorId?.name || 'Doctor')
+    )
     : 'Consultation Room';
 
   const counterpartPhoto = appointment
-    ? (role === 'doctor' ? (appointment.userId?.profileImage || appointment.patientId?.profileImage) : (appointment.doctor?.profileImage))
+    ? (role === 'doctor'
+      ? (appointment.userId?.profileImage || appointment.patientId?.profileImage || appointment.patient?.profileImage)
+      : (appointment.doctor?.profileImage || appointment.doctorId?.profileImage)
+    )
     : null;
 
   // Consume Call Hook
@@ -167,40 +173,40 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
   };
 
   return (
-    <div style={{ 
-      height: 'calc(100vh - 72px)', 
-      display: 'flex', 
-      flexDirection: 'column', 
-      background: '#ffffff', 
-      borderRadius: '0px', 
-      border: 'none', 
-      overflow: 'hidden', 
-      margin: '0', 
-      maxWidth: 'none', 
+    <div style={{
+      height: 'calc(100vh - 72px)',
+      display: 'flex',
+      flexDirection: 'column',
+      background: '#ffffff',
+      borderRadius: '0px',
+      border: 'none',
+      overflow: 'hidden',
+      margin: '0',
+      maxWidth: 'none',
       width: '100%',
       boxShadow: 'none',
       color: '#111827'
     }}>
-      
+
       {/* 🟢 TOP ACTION HEADER PANEL (Hinge Style) */}
-      <div style={{ 
-        background: '#ffffff', 
-        borderBottom: '1px solid #e2e8f0', 
-        padding: '18px 24px', 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center' 
+      <div style={{
+        background: '#ffffff',
+        borderBottom: '1px solid #e2e8f0',
+        padding: '18px 24px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <button 
+          <button
             onClick={onBack}
-            style={{ 
-              background: '#f8fafc', 
-              border: '1px solid #e2e8f0', 
-              color: '#64748b', 
-              cursor: 'pointer', 
-              display: 'flex', 
-              alignItems: 'center', 
+            style={{
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              color: '#64748b',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
               justifyContent: 'center',
               width: '36px',
               height: '36px',
@@ -218,7 +224,7 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
           >
             <ArrowLeft size={18} />
           </button>
-          
+
           <div style={{ position: 'relative' }}>
             <img
               src={counterpartPhoto || `https://api.dicebear.com/7.x/adventurer/svg?seed=${counterpartName}`}
@@ -226,15 +232,15 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
               style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #e2e8f0' }}
             />
             {counterpartPresence.online && (
-              <span style={{ 
-                position: 'absolute', 
-                bottom: '1px', 
-                right: '1px', 
-                width: '10px', 
-                height: '10px', 
-                borderRadius: '50%', 
-                background: '#10b981', 
-                border: '2px solid #ffffff' 
+              <span style={{
+                position: 'absolute',
+                bottom: '1px',
+                right: '1px',
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
+                background: '#10b981',
+                border: '2px solid #ffffff'
               }} />
             )}
           </div>
@@ -255,16 +261,16 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
             <button
               onClick={() => handleStartCall('voice')}
               title="Voice Call"
-              style={{ 
-                background: '#f8fafc', 
-                border: '1px solid #e2e8f0', 
-                color: '#701557', 
-                width: '38px', 
-                height: '38px', 
-                borderRadius: '50%', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
+              style={{
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                color: '#701557',
+                width: '38px',
+                height: '38px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
               }}
@@ -282,16 +288,16 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
             <button
               onClick={() => handleStartCall('video')}
               title="Video Call"
-              style={{ 
-                background: '#f8fafc', 
-                border: '1px solid #e2e8f0', 
-                color: '#10b981', 
-                width: '38px', 
-                height: '38px', 
-                borderRadius: '50%', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
+              style={{
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                color: '#10b981',
+                width: '38px',
+                height: '38px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
               }}
@@ -324,21 +330,27 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
           )}
 
           {/* Messages list */}
-          <div ref={messagesContainerRef} style={{ 
-            flex: 1, 
-            overflowY: 'auto', 
-            padding: '24px 20px', 
-            display: 'flex', 
-            flexDirection: 'column', 
-            gap: '16px', 
-            background: '#f5f3f0' 
+          <div ref={messagesContainerRef} style={{
+            flex: 1,
+            overflowY: 'auto',
+            padding: '24px 20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            background: '#f5f3f0'
           }}>
             {messages.map(m => {
               const isOwnMessage = m.senderId === user.id || m.senderId === user._id;
-              
+              const msgSenderPhoto = m.senderRole === 'doctor'
+                ? (appointment?.doctor?.profileImage || appointment?.doctorId?.profileImage)
+                : (appointment?.userId?.profileImage || appointment?.patientId?.profileImage || appointment?.patient?.profileImage);
+              const msgSenderName = m.senderRole === 'doctor'
+                ? (appointment?.doctor?.name || appointment?.doctorId?.name || 'Doctor')
+                : (appointment?.userId?.name || appointment?.patientId?.name || appointment?.patient?.name || 'Patient');
+
               return (
-                <div 
-                  key={m._id} 
+                <div
+                  key={m._id}
                   style={{
                     alignSelf: isOwnMessage ? 'flex-end' : 'flex-start',
                     maxWidth: '75%',
@@ -350,17 +362,17 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
                 >
                   {/* Left Avatar for partner messages only */}
                   {!isOwnMessage && (
-                    <img 
-                      src={counterpartPhoto || `https://api.dicebear.com/7.x/adventurer/svg?seed=${counterpartName}`} 
-                      alt={counterpartName} 
-                      style={{ 
-                        width: '32px', 
-                        height: '32px', 
-                        borderRadius: '50%', 
-                        objectFit: 'cover', 
+                    <img
+                      src={msgSenderPhoto || `https://api.dicebear.com/7.x/adventurer/svg?seed=${msgSenderName}`}
+                      alt={msgSenderName}
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        objectFit: 'cover',
                         flexShrink: 0,
                         border: 'none'
-                      }} 
+                      }}
                     />
                   )}
 
@@ -382,9 +394,9 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
                     {/* Media Content Types */}
                     {m.messageType === 'image' && (
                       <div style={{ marginBottom: '6px' }}>
-                        <img 
-                          src={m.fileUrl} 
-                          alt="Attachment" 
+                        <img
+                          src={m.fileUrl}
+                          alt="Attachment"
                           onClick={() => setFullscreenImageUrl(m.fileUrl)}
                           style={{ maxWidth: '100%', borderRadius: '10px', maxHeight: '200px', objectFit: 'cover', cursor: 'pointer', transition: 'opacity 0.2s' }}
                           onMouseEnter={(e) => e.target.style.opacity = 0.85}
@@ -395,8 +407,8 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
 
                     {m.messageType === 'video' && (
                       <div style={{ marginBottom: '6px', position: 'relative', overflow: 'hidden', borderRadius: '10px' }}>
-                        <video 
-                          src={m.fileUrl} 
+                        <video
+                          src={m.fileUrl}
                           controls
                           style={{ maxWidth: '100%', borderRadius: '10px', maxHeight: '240px', background: '#000', display: 'block' }}
                         />
@@ -431,15 +443,15 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
                     )}
 
                     {m.messageType === 'pdf' && (
-                      <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '10px', 
-                        background: 'rgba(0,0,0,0.05)', 
-                        padding: '8px 12px', 
-                        borderRadius: '8px', 
-                        border: '1px solid rgba(0,0,0,0.08)', 
-                        marginBottom: '6px' 
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        background: 'rgba(0,0,0,0.05)',
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(0,0,0,0.08)',
+                        marginBottom: '6px'
                       }}>
                         <FileText size={20} style={{ color: '#ef4444' }} />
                         <div style={{ overflow: 'hidden' }}>
@@ -447,10 +459,10 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
                             {m.content}
                           </span>
                         </div>
-                        <a 
-                          href={m.fileUrl} 
-                          download 
-                          target="_blank" 
+                        <a
+                          href={m.fileUrl}
+                          download
+                          target="_blank"
                           rel="noreferrer"
                           style={{ color: isOwnMessage ? '#a5f3fc' : '#0891b2', display: 'flex', padding: '4px' }}
                         >
@@ -460,15 +472,15 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
                     )}
 
                     {(m.messageType === 'file' || m.messageType === 'raw') && (
-                      <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '10px', 
-                        background: 'rgba(0,0,0,0.05)', 
-                        padding: '8px 12px', 
-                        borderRadius: '8px', 
-                        border: '1px solid rgba(0,0,0,0.08)', 
-                        marginBottom: '6px' 
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        background: 'rgba(0,0,0,0.05)',
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(0,0,0,0.08)',
+                        marginBottom: '6px'
                       }}>
                         <FileText size={20} style={{ color: isOwnMessage ? '#a5f3fc' : '#0891b2' }} />
                         <div style={{ overflow: 'hidden' }}>
@@ -476,10 +488,10 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
                             {m.content}
                           </span>
                         </div>
-                        <a 
-                          href={m.fileUrl} 
-                          download 
-                          target="_blank" 
+                        <a
+                          href={m.fileUrl}
+                          download
+                          target="_blank"
                           rel="noreferrer"
                           style={{ color: isOwnMessage ? '#a5f3fc' : '#0891b2', display: 'flex', padding: '4px' }}
                         >
@@ -493,13 +505,13 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
                     )}
 
                     {/* Message Bottom row: Timestamp + seen status check ticks */}
-                    <div style={{ 
-                      display: 'flex', 
-                      justifyContent: 'flex-end', 
-                      alignItems: 'center', 
-                      gap: '6px', 
-                      marginTop: '4px', 
-                      fontSize: '0.65rem', 
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      alignItems: 'center',
+                      gap: '6px',
+                      marginTop: '4px',
+                      fontSize: '0.65rem',
                       color: isOwnMessage ? 'rgba(255, 255, 255, 0.7)' : '#6b7280'
                     }}>
                       {isOwnMessage && !isExpired && (
@@ -541,10 +553,10 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
             {/* Animating Typing Status Bubble (WhatsApp style) */}
             {counterpartTyping && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', alignSelf: 'flex-start', margin: '4px 0', animation: 'fadeIn 0.2s ease-out' }}>
-                <img 
-                  src={counterpartPhoto || `https://api.dicebear.com/7.x/adventurer/svg?seed=${counterpartName}`} 
-                  alt={counterpartName} 
-                  style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #e2e8f0' }} 
+                <img
+                  src={counterpartPhoto || `https://api.dicebear.com/7.x/adventurer/svg?seed=${counterpartName}`}
+                  alt={counterpartName}
+                  style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #e2e8f0' }}
                 />
                 <div style={{
                   background: '#ffffff',
@@ -568,15 +580,15 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
 
           {/* Bottom Chat input bar */}
           {!isExpired && (
-            <form onSubmit={handleFormSubmit} style={{ 
-              background: '#ffffff', 
-              borderTop: '1px solid #e2e8f0', 
-              padding: '16px 20px', 
-              display: 'flex', 
-              flexDirection: 'column', 
-              gap: '12px' 
+            <form onSubmit={handleFormSubmit} style={{
+              background: '#ffffff',
+              borderTop: '1px solid #e2e8f0',
+              padding: '16px 20px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
             }}>
-              
+
               {/* Attachment Preview panel */}
               {selectedFile && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '12px', position: 'relative', animation: 'fadeIn 0.2s ease-out' }}>
@@ -603,7 +615,7 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
                   >
                     <X size={14} />
                   </button>
-                  
+
                   {uploading && (
                     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(255,255,255,0.9)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                       <div className="spin-anim" style={{ width: '16px', height: '16px', border: '2px solid #701557', borderTopColor: 'transparent', borderRadius: '50%' }} />
@@ -615,22 +627,22 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
 
               {/* Main Inputs row */}
               <div style={{ display: 'flex', gap: '10px', alignItems: 'center', width: '100%', position: 'relative' }} ref={emojiPickerRef}>
-                <input 
-                  type="file" 
+                <input
+                  type="file"
                   ref={fileInputRef}
                   style={{ display: 'none' }}
                   accept=".png,.jpg,.jpeg,.pdf,.mp4,.webm,.mov,.avi"
                   onChange={handleAttachmentUpload}
                 />
-                
+
                 {/* Input Container Capsule */}
-                <div style={{ 
-                  flex: 1, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  background: '#f3f4f6', 
-                  border: '1px solid #e5e7eb', 
-                  borderRadius: '24px', 
+                <div style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  background: '#f3f4f6',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '24px',
                   padding: '4px 6px 4px 16px',
                   gap: '8px'
                 }}>
@@ -679,7 +691,7 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
                 {/* Emoji Picker Popover */}
                 {showEmojiPicker && (
                   <div style={{ position: 'absolute', bottom: '60px', left: '0', zIndex: 110, boxShadow: '0 8px 32px rgba(0,0,0,0.15)', borderRadius: '12px', overflow: 'hidden' }}>
-                    <EmojiPicker 
+                    <EmojiPicker
                       theme="light"
                       onEmojiClick={(emojiData) => {
                         setMessageText(prev => prev + emojiData.emoji);

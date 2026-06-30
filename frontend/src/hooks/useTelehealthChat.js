@@ -294,7 +294,7 @@ export const useTelehealthChat = ({ socket, user, appointmentId, token, role }) 
     });
 
     socket.on('messages-marked-seen', () => {
-      setMessages(prev => prev.map(m => m.senderId !== user.id && m.senderId !== user._id ? { ...m, seen: true } : m));
+      setMessages(prev => prev.map(m => (m.senderId === user.id || m.senderId === user._id) ? { ...m, isSeen: true } : m));
     });
 
     socket.on('doctor-presence-update', ({ doctorId, isOnline, lastSeen }) => {

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { showFlash } from '../components/FlashMessage';
 
 export const useTelehealthCall = ({ socket, user, counterpartId, counterpartName, counterpartPhoto, isExpired }) => {
   const [callState, setCallState] = useState('idle'); // 'idle' | 'calling' | 'incoming' | 'connected'
@@ -154,6 +155,7 @@ export const useTelehealthCall = ({ socket, user, counterpartId, counterpartName
       });
     } catch (err) {
       console.error(err);
+      showFlash(`Call accept failed: ${err.message}`, 'error');
       cleanupCall();
     }
   };
@@ -320,11 +322,11 @@ export const useTelehealthCall = ({ socket, user, counterpartId, counterpartName
       alert("Call rejected by other user.");
       cleanupCall();
     });
-
+ 
     socket.on("call_ended", () => {
       cleanupCall();
     });
-
+ 
     socket.on("webrtc_offer", async ({ offer, senderId, callId: incomingCallId }) => {
       let stream = localStreamRef.current;
       if (!stream) {
@@ -337,28 +339,28 @@ export const useTelehealthCall = ({ socket, user, counterpartId, counterpartName
           return;
         }
       }
-
+ 
       const pc = createPeerConnection(incomingCallId, senderId, stream);
       pcRef.current = pc;
-
+ 
       await pc.setRemoteDescription(new RTCSessionDescription(offer));
-
+ 
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
-
+ 
       socket.emit("webrtc_answer", {
         callId: incomingCallId,
         answer,
         receiverId: senderId
       });
     });
-
+ 
     socket.on("webrtc_answer", async ({ answer }) => {
       if (pcRef.current) {
         await pcRef.current.setRemoteDescription(new RTCSessionDescription(answer));
       }
     });
-
+ 
     socket.on("webrtc_ice_candidate", async ({ candidate }) => {
       try {
         if (pcRef.current) {
@@ -368,20 +370,20 @@ export const useTelehealthCall = ({ socket, user, counterpartId, counterpartName
         console.error('Error adding remote ice candidate:', err);
       }
     });
-
+ 
     socket.on("remote_toggle_audio", ({ enabled }) => {
       console.log('Remote toggled audio:', enabled);
     });
-
+ 
     socket.on("call_failed", ({ reason }) => {
       alert(`Call failed: ${reason}`);
       cleanupCall();
     });
-
+ 
     socket.on("call_disconnected", () => {
       cleanupCall();
     });
-
+ 
     return () => {
       socket.off("incoming_call");
       socket.off("call_accepted");

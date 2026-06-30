@@ -16,12 +16,6 @@ const paymentSchema = new mongoose.Schema({
     ref: 'Doctor',
     required: true,
   },
-  stripePaymentIntentId: {
-    type: String,
-  },
-  stripeChargeId: {
-    type: String,
-  },
   razorpayOrderId: {
     type: String,
   },
@@ -41,15 +35,12 @@ const paymentSchema = new mongoose.Schema({
   },
   paymentStatus: {
     type: String,
-    enum: ['pending', 'paid', 'failed', 'refunded'],
+    enum: ['pending', 'paid', 'failed'],
     default: 'pending',
   },
 }, {
   timestamps: true,
 });
 
-// Explicit schema-level indexes for performance
-paymentSchema.index({ appointmentId: 1 });
-paymentSchema.index({ patientId: 1 });
 
 module.exports = mongoose.model('Payment', paymentSchema);

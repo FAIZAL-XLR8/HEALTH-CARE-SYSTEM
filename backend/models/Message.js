@@ -43,7 +43,5 @@ const messageSchema = new mongoose.Schema({
   timestamps: true,
 });
 
-// Explicit schema-level index for performance
-messageSchema.index({ appointmentId: 1 });
 
 module.exports = mongoose.model('Message', messageSchema);

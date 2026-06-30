@@ -16,10 +16,8 @@ const executeCronDailyScrape = async () => {
         { name: new RegExp('^' + doc.name + '$', 'i'), specialization: 'ENT' },
         { 
           $set: { 
-            scrapedRating: doc.rating, 
             consultationFee: doc.fee,
             experienceYears: doc.experience,
-            clinicName: doc.clinicName
           } 
         }
       );
@@ -30,13 +28,11 @@ const executeCronDailyScrape = async () => {
     for (const doc of cardDoctors) {
       await Doctor.findOneAndUpdate(
         { name: new RegExp('^' + doc.name + '$', 'i'), specialization: 'Cardiologist' },
-        { 
-          $set: { 
-            scrapedRating: doc.rating, 
+        {
+          $set: {
             consultationFee: doc.fee,
             experienceYears: doc.experience,
-            clinicName: doc.clinicName
-          } 
+          }
         }
       );
     }

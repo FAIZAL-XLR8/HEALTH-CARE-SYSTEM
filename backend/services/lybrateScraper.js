@@ -61,7 +61,6 @@ async function scrapeLybrateDoctors(city, specialty) {
         const nameNode = card.querySelector('[class*="doctorCard_doctorName"]');
         const expNode = card.querySelector('[class*="doctorCard_experience"]');
         const feeNode = card.querySelector('[class*="doctorCard_chargeWrapper"]');
-        const ratingNode = card.querySelector('[class*="doctorCard_docratings"]');
         const clinicNode = card.querySelector('[class*="doctorCard_locationName"]');
 
         const clinicNameText = clinicNode ? clinicNode.innerText.trim() : '';
@@ -98,8 +97,7 @@ async function scrapeLybrateDoctors(city, specialty) {
           }
         }
 
-        let rating = ratingNode ? parseFloat(ratingNode.innerText.replace(/[^0-9.]/g, '')) : null;
-        const clinicName = clinicNameText ? clinicNameText.split('\n')[0] : 'Metro Health Clinic';
+        const address = clinicNameText || '';
 
         if (name) {
           results.push({
@@ -107,8 +105,7 @@ async function scrapeLybrateDoctors(city, specialty) {
             specialty,
             experience: isNaN(experience) ? 10 : experience,
             fee: isNaN(fee) || fee === null ? null : fee,
-            rating: isNaN(rating) || rating === null ? null : rating,
-            clinicName
+            address,
           });
         }
       });

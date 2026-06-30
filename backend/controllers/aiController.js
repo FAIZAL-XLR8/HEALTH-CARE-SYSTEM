@@ -3,7 +3,7 @@ const User = require('../models/User');
 
 // Initialize Gemini client conditionally
 const getGenAIClient = () => {
-  if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'YOUR_GEMINI_API_KEY_HERE') {
+  if (process.env.GEMINI_API_KEY) {
     return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY, apiVersion: 'v1beta' });
   }
   return null;
@@ -55,8 +55,7 @@ exports.analyzeReport = async (req, res) => {
         contents: [fileData, systemPrompt],
       });
 
-      try {
-        // Clean JSON formatting boundaries if the model wrapped it in markdown code-fences
+      try { 
         let cleanedJson = response.text.trim();
         if (cleanedJson.startsWith('```')) {
           cleanedJson = cleanedJson.replace(/^```json|```$/g, '').trim();
@@ -64,47 +63,14 @@ exports.analyzeReport = async (req, res) => {
         analysisResult = JSON.parse(cleanedJson);
       } catch (jsonErr) {
         console.error('Failed to parse Gemini raw response as JSON:', response.text);
-        // Clean backup parser fallback
-        analysisResult = {
-          patientName: 'Verifying...',
-          testsIdentified: ['Extracted Document'],
-          criticalAlerts: ['Review needed: metrics out of range'],
-          medicationsIdentified: [],
-          recommendedSpecialist: 'General Physician',
-          suggestedFollowUpTests: [],
-          fullSummary: response.text.substring(0, 200),
-        };
+        return res.status(500).json({ message: 'AI error, please try again after some time.' });
       }
     } else {
-      console.log('Gemini API key is not configured. Falling back to high-fidelity mock report analysis.');
-      
-      // Premium Mock Analysis (Lipid Cholesterol Report Example)
-      analysisResult = {
-        patientName: 'Aarav Mehta',
-        testsIdentified: ['Lipid Profile Screen', 'Thyroid TSH'],
-        criticalAlerts: [
-          'Total Cholesterol is 245 mg/dL (High, normal is < 200)',
-          'LDL Cholesterol is 162 mg/dL (Elevated, normal is < 100)',
-          'Triglycerides are 180 mg/dL (Borderline High, normal is < 150)',
-        ],
-        medicationsIdentified: [],
-        recommendedSpecialist: 'Cardiologist',
-        suggestedFollowUpTests: ['Apolipoprotein B', 'Fasting Blood Glucose'],
-        fullSummary: 'Your lipid panel shows elevated LDL (bad) cholesterol and total cholesterol levels. The thyroid metrics are completely normal. We highly recommend discussing these values with a cardiologist to review cardiorespiratory habits.',
-      };
+      console.log('Gemini API key is not configured.');
+      return res.status(500).json({ message: 'AI error, please try again after some time.' });
     }
 
-    // Save report analysis to user's history if userId is provided
-    if (userId) {
-      const user = await User.findById(userId);
-      if (user) {
-        user.reports.push({
-          fileName: req.file.originalname,
-          analysis: analysisResult,
-        });
-        await user.save();
-      }
-    }
+
 
     res.status(200).json({
       message: 'Medical report parsed successfully.',
@@ -112,80 +78,12 @@ exports.analyzeReport = async (req, res) => {
     });
   } catch (error) {
     console.error('Error in analyzeReport controller:', error);
-    res.status(500).json({ message: 'Internal Server Error during AI report parsing.' });
+    res.status(500).json({ message: 'AI error, please try again after some time.' });
   }
 };
 
-const TRIAGE_QUESTION_TREES = {
-  Cardiologist: [
-    {
-      text: "Does the chest discomfort spread to your left arm, neck, or jaw?",
-      options: ["Yes, spreads to arm/jaw", "Only in the chest center", "No, feels like acid reflux"]
-    },
-    {
-      text: "Are you also experiencing shortness of breath or dizziness?",
-      options: ["Yes, significant shortness of breath", "Mild dizziness", "No other symptoms"]
-    }
-  ],
-  Dentist: [
-    {
-      text: "Is the tooth pain constant, or does it trigger only when eating/drinking hot or cold items?",
-      options: ["Triggered by hot/cold", "Constant throbbing pain", "Only when chewing", "Mild sensitivity"]
-    },
-    {
-      text: "Do you also have swelling in your gums or a fever?",
-      options: ["Yes, visible swelling", "Mild bleeding gums", "No swelling or fever"]
-    }
-  ],
-  Dermatologist: [
-    {
-      text: "How would you describe the skin issue?",
-      options: ["Dry, itchy red patches", "Pimples/Acne flares", "Sudden hives/swelling", "Mild irritation"]
-    },
-    {
-      text: "How long has the rash or skin issue been present?",
-      options: ["1-3 days", "Over a week", "Months (recurring)"]
-    }
-  ],
-  'ENT Specialist': [
-    {
-      text: "What is the primary concern?",
-      options: ["Severe throat pain / swallow issues", "Earache or fluid discharge", "Nasal congestion / sinus pressure"]
-    },
-    {
-      text: "Is it accompanied by a high fever?",
-      options: ["Yes, high fever", "Mild low-grade fever", "No fever"]
-    }
-  ],
-  Psychiatrist: [
-    {
-      text: "How long have you been having trouble sleeping?",
-      options: ["Less than a week", "1-2 weeks", "A few weeks to a month", "More than a month"]
-    },
-    {
-      text: "And how would you describe the severity — is it mild, moderate, or affecting your daily life significantly?",
-      options: ["Mild — occasional restless nights", "Moderate — losing several hours of sleep", "Severe — barely sleeping at all"]
-    }
-  ],
-  'General Physician': [
-    {
-      text: "How long have you felt these symptoms?",
-      options: ["1-3 days", "4-7 days", "More than a week"]
-    },
-    {
-      text: "How severely is this affecting your daily routine?",
-      options: ["Mild - manageable", "Moderate - struggling", "Severe - bedridden"]
-    }
-  ]
-};
-
-const getQuestionTree = (specialist) => {
-  const key = Object.keys(TRIAGE_QUESTION_TREES).find(k => specialist.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(specialist.toLowerCase()));
-  return TRIAGE_QUESTION_TREES[key] || TRIAGE_QUESTION_TREES['General Physician'];
-};
 
 // POST /api/ai/chat-triage
-// Body: message (symptom string), city (optional, defaults to 'Bengaluru'), stage, specialist, priority, analysis, answers
 exports.chatTriage = async (req, res) => {
   try {
     const { message, city = 'Bengaluru', stage = 'initial', specialist: reqSpecialist, priority: reqPriority, analysis: reqAnalysis, answers = [] } = req.body;
@@ -193,204 +91,235 @@ exports.chatTriage = async (req, res) => {
       return res.status(400).json({ message: 'Message parameter is required.' });
     }
 
+    const ai = getGenAIClient();
+    if (!ai) {
+      return res.status(500).json({ message: 'AI error, please try again after some time.' });
+    }
+
+    const parseGeminiJson = (text) => {
+      let cleaned = text.trim();
+      if (cleaned.startsWith('```')) {
+        cleaned = cleaned.replace(/^```json|```$/g, '').trim();
+      }
+      return JSON.parse(cleaned);
+    };
+
     // Stage 1: Initial user message mapping
     if (stage === 'initial') {
-      const ai = getGenAIClient();
-      let triageResult;
+      console.log('🧠 [Chat Triage] Initial mapping symptom with Gemini...');
+      const prompt = `
+        You are a clinical triage assistant.
+        Analyze the patient's symptom description: "${message}"
 
-      if (ai) {
-        const prompt = `
-          You are a highly analytical clinical triage and symptom mapping assistant.
-          Analyze the following symptom description from a patient:
-          "${message}"
+        1. Map the symptoms to the single most appropriate medical specialty from this exact list:
+           [Dentist, Gynaecologist/obstetrician, General Physician, Dermatologist, ENT Specialist, Homoeopath, Ayurveda, Cardiologist, Neurologist, Pediatrician, Orthopedist, Oncologist, Psychiatrist, Urologist, Gastroenterologist, Pulmonologist, Endocrinologist, Nephrologist, Ophthalmologist, Physiotherapist, Sexologist, Dietitian]
 
-          Determine which medical specialty from the following list matches these symptoms best:
-          [Dentist, Gynaecologist/obstetrician, General Physician, Dermatologist, ENT Specialist, Homoeopath, Ayurveda, Cardiologist, Neurologist, Pediatrician, Orthopedist, Oncologist, Psychiatrist, Urologist, Gastroenterologist, Pulmonologist, Endocrinologist, Nephrologist, Ophthalmologist, Physiotherapist, Sexologist, Dietitian]
+        2. Determine triage priority: High (urgent/severe), Medium (needs attention soon), or Low (non-urgent).
 
-          Return a clean, strict JSON output matching the following key structure exactly. Do not wrap in markdown or add code fences. Return raw JSON.
+        3. Formulate a single, patient-friendly follow-up multiple-choice question to clarify their symptoms or narrow down the concern. Provide exactly 3 or 4 relevant, distinct options.
 
-          JSON structure:
-          {
-            "analysis": "A brief patient-friendly clinical summary of what their symptoms could indicate.",
-            "priority": "High / Medium / Low",
-            "specialist": "The exact matching specialty string from the list above."
-          }
-        `;
-
-        const response = await ai.models.generateContent({
-          model: 'gemini-3.1-flash-lite',
-          contents: prompt,
-        });
-
-        try {
-          let cleanedJson = response.text.trim();
-          if (cleanedJson.startsWith('```')) {
-            cleanedJson = cleanedJson.replace(/^```json|```$/g, '').trim();
-          }
-          triageResult = JSON.parse(cleanedJson);
-        } catch (jsonErr) {
-          console.error('Failed to parse Gemini response as JSON:', response.text);
-          triageResult = fallbackTriage(message);
+        Return a clean, strict JSON object. Do not wrap in markdown or add code fences.
+        JSON structure:
+        {
+          "analysis": "A brief patient-friendly clinical summary of what their symptoms could indicate.",
+          "priority": "High / Medium / Low",
+          "specialist": "The exact specialty name from the list",
+          "questionText": "Follow-up question string",
+          "options": ["Option 1", "Option 2", "Option 3"]
         }
-      } else {
-        triageResult = fallbackTriage(message);
+      `;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.1-flash-lite',
+        contents: prompt,
+      });
+
+      let triageResult;
+      try {
+        triageResult = parseGeminiJson(response.text);
+      } catch (jsonErr) {
+        console.error('Failed to parse Gemini response as JSON:', response.text);
+        return res.status(500).json({ message: 'AI error, please try again after some time.' });
       }
 
-      // Instead of returning doctors immediately, pull the question tree for this specialist
-      const questions = getQuestionTree(triageResult.specialist);
-      
-      // Return first question!
       return res.status(200).json({
         stage: 'question1',
         specialist: triageResult.specialist,
         priority: triageResult.priority,
         analysis: triageResult.analysis,
-        questionText: questions[0].text,
-        options: questions[0].options,
+        questionText: triageResult.questionText,
+        options: triageResult.options,
         answers: []
       });
     }
 
     // Stage 2: Question 1 Answered
     if (stage === 'question1') {
+      console.log('🧠 [Chat Triage] Second stage - generating question 2 with Gemini...');
       const updatedAnswers = [...answers, message];
-      const questions = getQuestionTree(reqSpecialist);
+      const prompt = `
+        You are a clinical triage assistant.
+        The patient described their symptoms as: "${reqAnalysis}"
+        Their matching specialty is: "${reqSpecialist}"
+        The patient's answer to the first follow-up question is: "${message}"
 
-      // Return second question!
+        Formulate a second and final patient-friendly follow-up multiple-choice question to further clarify their condition or symptom severity. Provide exactly 3 or 4 relevant, distinct options.
+
+        Return a clean, strict JSON object. Do not wrap in markdown or add code fences.
+        JSON structure:
+        {
+          "questionText": "Final follow-up question string",
+          "options": ["Option 1", "Option 2", "Option 3"]
+        }
+      `;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.1-flash-lite',
+        contents: prompt,
+      });
+
+      let triageResult;
+      try {
+        triageResult = parseGeminiJson(response.text);
+      } catch (jsonErr) {
+        console.error('Failed to parse Gemini response as JSON:', response.text);
+        return res.status(500).json({ message: 'AI error, please try again after some time.' });
+      }
+
       return res.status(200).json({
         stage: 'question2',
         specialist: reqSpecialist,
         priority: reqPriority || 'Medium',
         analysis: reqAnalysis || '',
-        questionText: questions[1].text,
-        options: questions[1].options,
+        questionText: triageResult.questionText,
+        options: triageResult.options,
         answers: updatedAnswers
       });
     }
 
     // Stage 3: Question 2 Answered -> Completed, Fetch Doctors!
     if (stage === 'question2') {
+      console.log('🧠 [Chat Triage] Final stage - compiling synthesis with Gemini and fetching doctors...');
       const updatedAnswers = [...answers, message];
       const specialty = reqSpecialist;
       const priority = reqPriority || 'Medium';
-      
-      // Generate standard analysis based on user inputs
-      const userAnswersText = updatedAnswers.join(', ');
-      const analysis = reqAnalysis 
-        ? `${reqAnalysis} Details: ${userAnswersText}`
-        : `Consultation recommended for ${specialty} concerns. Symptoms detail: ${userAnswersText}`;
+
+      const prompt = `
+        You are a clinical triage assistant.
+        The patient initially reported symptoms: "${reqAnalysis}"
+        Specialty: "${reqSpecialist}"
+        Answer to follow-up question 1: "${answers[0]}"
+        Answer to follow-up question 2: "${message}"
+
+        Provide a final, consolidated symptom analysis summary (2-3 sentences max) recommending physical consultation or steps, factoring in all of these details.
+
+        Return a clean, strict JSON object. Do not wrap in markdown or add code fences.
+        JSON structure:
+        {
+          "finalSummary": "Consolidated summary string"
+        }
+      `;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.1-flash-lite',
+        contents: prompt,
+      });
+
+      let triageResult;
+      try {
+        triageResult = parseGeminiJson(response.text);
+      } catch (jsonErr) {
+        console.error('Failed to parse Gemini response as JSON:', response.text);
+        return res.status(500).json({ message: 'AI error, please try again after some time.' });
+      }
+
+      const finalAnalysis = triageResult.finalSummary;
 
       // Query Doctors matching specialty
       const Doctor = require('../models/Doctor');
       const { scrapeLybrateDoctors } = require('../services/lybrateScraper');
+      const { geocodeAddress } = require('../utils/geocoder');
 
       const searchCity = city;
-      const userLng = 77.641151;
-      const userLat = 12.971891;
-      const searchRadius = 15000;
 
-      let matchedDoctors = await Doctor.aggregate([
-        {
-          $geoNear: {
-            near: {
-              type: 'Point',
-              coordinates: [userLng, userLat],
-            },
-            distanceField: 'distanceInMeters',
-            maxDistance: searchRadius,
-            spherical: true,
-            query: { specialization: { $regex: new RegExp(specialty, 'i') } },
-          },
-        },
-      ]);
+      let matchedDoctors = await Doctor.find({
+        specialization: { $regex: new RegExp('\\b' + specialty.trim() + '\\b', 'i') },
+        status: 'approved',
+        isVerified: true
+      }).lean();
 
+      // If DB has fewer than 4 matching doctors, crawl Lybrate and insert genuinely new records
       if (matchedDoctors.length < 4) {
         try {
-          console.log(`🕵️ [Chat Triage Crawler] Cache sparse (${matchedDoctors.length} records) for '${specialty}' in '${searchCity}'. Querying Lybrate...`);
-          const scrapedDocs = await scrapeLybrateDoctors('Bengaluru', specialty);
+          console.log(`🕵️ [Chat Triage Crawler] Cache sparse (${matchedDoctors.length} records) for '${specialty}' in '${searchCity}'. Crawling Lybrate...`);
+          const scrapedDocs = await scrapeLybrateDoctors(searchCity || 'Bengaluru', specialty);
 
           if (scrapedDocs && scrapedDocs.length > 0) {
-            const insertPromises = scrapedDocs.map(async (doc) => {
+            // Insert sequentially to avoid race conditions on duplicate checks
+            for (const doc of scrapedDocs) {
               const exists = await Doctor.findOne({
                 name: { $regex: new RegExp('^' + doc.name.trim() + '$', 'i') },
                 specialization: { $regex: new RegExp('^' + doc.specialty.trim() + '$', 'i') }
               });
-              if (!exists) {
-                const offsetLng = (Math.random() - 0.5) * 0.05;
-                const offsetLat = (Math.random() - 0.5) * 0.05;
-                const uniqueSlug = `${doc.name.toLowerCase().replace(/[^a-z]/g, '')}_${Date.now()}`;
-                const mockPhone = `+919${Math.floor(100000000 + Math.random() * 900000000)}`;
 
-                return Doctor.create({
+              if (!exists) {
+                // Generate a deterministic slug-based email from the scraped name (no random)
+                const nameSlug = doc.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                const specialtySlug = doc.specialty.toLowerCase().replace(/[^a-z0-9]/g, '');
+                // Phone is required by schema but not available in scraped data — generate placeholder
+                const placeholderPhone = 9000000000 + Math.floor(Math.random() * 999999999);
+
+                // Geocode real clinic address via shared Mapbox utility
+                const coordinates = await geocodeAddress(doc.address);
+
+                await Doctor.create({
                   name: doc.name,
-                  email: `${uniqueSlug}@health.com`,
-                  password: 'default_scraped_password_123',
-                  phone: mockPhone,
+                  email: `${nameSlug}.${specialtySlug}@lybrate.scraped`,
+                  password: 'scraped_placeholder_not_for_login',
+                  phone: placeholderPhone,
                   specialization: doc.specialty,
-                  experienceYears: doc.experience || 10,
-                  clinicName: doc.clinicName || 'Metro Health Clinic',
-                  consultationFee: doc.fee || 500,
-                  googleRating: null,
-                  scrapedRating: doc.rating,
-                  isOnline: false,
-                  lastSeen: new Date(),
+                  experienceYears: doc.experience || 0,
+                  consultationFee: doc.fee || 0,
                   status: 'approved',
                   isVerified: true,
-                  emailVerified: true,
-                  phoneVerified: true,
                   location: {
                     type: 'Point',
-                    coordinates: [userLng + offsetLng, userLat + offsetLat],
+                    coordinates,
                   },
-                  activeHours: '09:00 AM - 05:00 PM',
                 });
               }
-            });
+            }
 
-            await Promise.all(insertPromises);
-
-            matchedDoctors = await Doctor.aggregate([
-              {
-                $geoNear: {
-                  near: {
-                    type: 'Point',
-                    coordinates: [userLng, userLat],
-                  },
-                  distanceField: 'distanceInMeters',
-                  maxDistance: searchRadius,
-                  spherical: true,
-                  query: { specialization: { $regex: new RegExp(specialty, 'i') } },
-                },
-              },
-            ]);
+            // Re-query DB after inserting crawled doctors
+            matchedDoctors = await Doctor.find({
+              specialization: { $regex: new RegExp('\\b' + specialty.trim() + '\\b', 'i') },
+              status: 'approved',
+              isVerified: true
+            }).lean();
           }
         } catch (scrapeErr) {
           console.error('❌ [Chat Triage Crawler] Scraper failed:', scrapeErr.message);
         }
       }
 
-      const doctors = matchedDoctors.slice(0, 5).map(doc => {
-        const distanceInKm = parseFloat((doc.distanceInMeters / 1000).toFixed(1));
-        return {
-          doctorId: doc._id,
-          name: doc.name,
-          specialty: doc.specialization,
-          specialization: doc.specialization,
-          experience: doc.experienceYears,
-          experienceYears: doc.experienceYears,
-          clinicName: doc.clinicName,
-          fee: doc.consultationFee,
-          consultationFee: doc.consultationFee,
-          scrapedRating: doc.scrapedRating,
-          coordinates: doc.location.coordinates,
-          distanceKm: distanceInKm,
-          activeHours: doc.activeHours,
-        };
-      });
+      const doctors = matchedDoctors.slice(0, 5).map(doc => ({
+        doctorId: doc._id,
+        name: doc.name,
+        specialty: doc.specialization,
+        specialization: doc.specialization,
+        experience: doc.experienceYears,
+        experienceYears: doc.experienceYears,
+        fee: doc.consultationFee,
+        consultationFee: doc.consultationFee,
+        coordinates: doc.location ? doc.location.coordinates : null,
+        activeHours: doc.activeHours,
+        profileImage: doc.profileImage || '',
+        isOnline: doc.isOnline,
+      }));
 
       return res.status(200).json({
         stage: 'completed',
-        analysis,
+        analysis: finalAnalysis,
         priority,
         specialist: specialty,
         doctors
@@ -400,50 +329,6 @@ exports.chatTriage = async (req, res) => {
     res.status(400).json({ message: 'Invalid stage parameter.' });
   } catch (error) {
     console.error('Error in chatTriage controller:', error);
-    res.status(500).json({ message: 'Internal Server Error during AI chat triage.' });
+    res.status(500).json({ message: 'AI error, please try again after some time.' });
   }
 };
-
-// Helper rule-based fallback symptom triage function
-function fallbackTriage(message) {
-  const lower = message.toLowerCase();
-  let specialist = "General Physician";
-  let priority = "Medium";
-  let analysis = "General physical checkup recommended based on described symptoms.";
-
-  if (lower.includes('chest') || lower.includes('heart') || lower.includes('breath') || lower.includes('cardio')) {
-    specialist = "Cardiologist";
-    priority = "High";
-    analysis = "Symptom markers point towards potential cardiorespiratory strain. Urgent cardiological evaluation advised.";
-  } else if (lower.includes('skin') || lower.includes('rash') || lower.includes('acne') || lower.includes('allergy')) {
-    specialist = "Dermatologist";
-    priority = "Low";
-    analysis = "Skin irritation, redness, or lesions observed. Dermatological consult suggested.";
-  } else if (lower.includes('ear') || lower.includes('nose') || lower.includes('throat') || lower.includes('tonsil') || lower.includes('swallow')) {
-    specialist = "ENT Specialist";
-    priority = "Medium";
-    analysis = "Symptoms match standard ear, nose, or upper respiratory track discomfort. ENT specialist evaluation recommended.";
-  } else if (lower.includes('tooth') || lower.includes('teeth') || lower.includes('mouth') || lower.includes('gums') || lower.includes('dentist')) {
-    specialist = "Dentist";
-    priority = "Low";
-    analysis = "Oral discomfort or sensitivity indicated. Dental checkup recommended.";
-  } else if (lower.includes('anxiety') || lower.includes('depression') || lower.includes('sleep') || lower.includes('stress') || lower.includes('mental')) {
-    specialist = "Psychiatrist";
-    priority = "Medium";
-    analysis = "Stress, sleep disturbance, or mood flags detected. Consultation with a psychiatrist or counselor suggested.";
-  } else if (lower.includes('bone') || lower.includes('joint') || lower.includes('fracture') || lower.includes('backache') || lower.includes('knee')) {
-    specialist = "Orthopedist";
-    priority = "Medium";
-    analysis = "Musculoskeletal joint or structural discomfort detected. Orthopedic physical consult advised.";
-  } else if (lower.includes('child') || lower.includes('baby') || lower.includes('kid') || lower.includes('infant')) {
-    specialist = "Pediatrician";
-    priority = "Medium";
-    analysis = "Pediatric health query. General consultation with a pediatrician recommended.";
-  } else if (lower.includes('stomach') || lower.includes('acid') || lower.includes('gut') || lower.includes('constipation') || lower.includes('diarrhea')) {
-    specialist = "Gastroenterologist";
-    priority = "Medium";
-    analysis = "Gastrointestinal tract flags detected. Consultation with a gastroenterologist suggested.";
-  }
-
-  return { analysis, priority, specialist };
-}

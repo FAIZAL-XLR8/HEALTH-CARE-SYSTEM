@@ -49,35 +49,7 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  lifestyleProfile: {
-    sleepingHours: { type: Number, default: 7 },
-    sleepTime: { type: String, default: "11:00 PM" },
-    breakfastTime: { type: String, default: "09:00 AM" },
-    lunchTime: { type: String, default: "01:30 PM" },
-    dinnerTime: { type: String, default: "08:30 PM" },
-    waterIntake: { type: Number, default: 2.0 },
-    activityLevel: { 
-      type: String, 
-      enum: ['sedentary', 'moderate', 'active'],
-      default: 'sedentary' 
-    },
-    location: { type: String, default: "Bengaluru" }
-  },
-  reports: [
-    {
-      fileName: String,
-      uploadedAt: { type: Date, default: Date.now },
-      analysis: {
-        patientName: String,
-        testsIdentified: [String],
-        criticalAlerts: [String],
-        medicationsIdentified: [String],
-        recommendedSpecialist: String,
-        suggestedFollowUpTests: [String],
-        fullSummary: String
-      }
-    }
-  ]
+
 }, {
   timestamps: true,
 });

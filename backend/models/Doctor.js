@@ -58,7 +58,7 @@ const doctorSchema = new mongoose.Schema({
     default: Date.now,
   },
   phone: {
-    type: String,
+    type: Number,
     required: true,
     trim: true,
     match: [/^\+?[\d\s\-()]{10,15}$/, 'Please fill a valid phone number'],
@@ -96,23 +96,24 @@ const doctorSchema = new mongoose.Schema({
     type: Date,
   },
   emailOtp: {
-    type: String,
+    type: Number,
   },
   emailOtpExpires: {
     type: Date,
   },
   phoneOtp: {
-    type: String,
+    type: Number,
   },
   phoneOtpExpires: {
     type: Date,
   },
 
-  // Keep original visual map layout properties
-  clinicName: {
+  // Scraped clinic address text (e.g. "Apollo Clinic, Koramangala, Bangalore")
+  address: {
     type: String,
-    default: 'Metro Health Clinic',
+    default: '',
   },
+
   location: {
     type: {
       type: String,
@@ -122,7 +123,7 @@ const doctorSchema = new mongoose.Schema({
     coordinates: {
       type: [Number], // [longitude, latitude]
       required: true,
-      default: [77.641151, 12.971891],
+      default: [77.641151, 12.971891], //--> centre of bengaluru
     },
   },
   activeHours: {
@@ -134,6 +135,7 @@ const doctorSchema = new mongoose.Schema({
 });
 
 // Pre-save hook to hash password before storing in database
+//attention
 doctorSchema.pre('save', async function (next) {
   if (!this.isModified('password') || (this.password && this.password.startsWith('$2') && this.password.length === 60)) {
     return next();

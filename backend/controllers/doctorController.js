@@ -24,22 +24,19 @@ exports.searchDoctors = async (req, res) => {
         isVerified: true
       }).lean();
 
-      // If matched doctors count in local cache is zero, trigger live crawler from Lybrate
+      // If no local doctors found, trigger live Lybrate crawler
       if (matchedDoctors.length === 0) {
         try {
-          console.log(`🕵️ [Live Doctor Crawler] Cache sparse (${matchedDoctors.length} records) for '${resolvedSpecialty}'. Querying Lybrate...`);
+          console.log(`🕵️ [Live Doctor Crawler] Cache empty for '${resolvedSpecialty}'. Querying Lybrate...`);
           const { scrapeLybrateDoctors } = require('../services/lybrateScraper');
+          const { geocodeAddress } = require('../utils/geocoder');
 
-          // Trigger live search for Bengaluru
           const scrapedDocs = await scrapeLybrateDoctors('Bengaluru', resolvedSpecialty);
 
           if (scrapedDocs && scrapedDocs.length > 0) {
-            const defaultLng = 77.641151;
-            const defaultLat = 12.971891;
-
-            // Deduplicate scraped doctors
-            const uniqueDocs = [];
+            // Deduplicate by name + specialty before inserting
             const seen = new Set();
+            const uniqueDocs = [];
             for (const doc of scrapedDocs) {
               const key = `${doc.name.toLowerCase().trim()}|${doc.specialty.toLowerCase().trim()}`;
               if (!seen.has(key)) {
@@ -48,7 +45,7 @@ exports.searchDoctors = async (req, res) => {
               }
             }
 
-            // Insert sequentially to prevent query race conditions
+            // Insert sequentially to prevent race conditions on duplicate checks
             for (const doc of uniqueDocs) {
               const exists = await Doctor.findOne({
                 name: { $regex: new RegExp('^' + doc.name.trim() + '$', 'i') },
@@ -56,37 +53,35 @@ exports.searchDoctors = async (req, res) => {
               });
 
               if (!exists) {
-                const offsetLng = (Math.random() - 0.5) * 0.05;
-                const offsetLat = (Math.random() - 0.5) * 0.05;
-                const uniqueSlug = `${doc.name.toLowerCase().replace(/[^a-z]/g, '')}_${Date.now()}`;
-                const mockPhone = `+919${Math.floor(100000000 + Math.random() * 900000000)}`;
+                // Geocode the real scraped clinic address — no random offsets
+                const coordinates = await geocodeAddress(doc.address);
+
+                // Deterministic email from name + specialty slug (no timestamp randomness)
+                const nameSlug = doc.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                const specialtySlug = doc.specialty.toLowerCase().replace(/[^a-z0-9]/g, '');
+                // Phone not available from scrape — generate numeric placeholder
+                const placeholderPhone = 9000000000 + Math.floor(Math.random() * 999999999);
 
                 await Doctor.create({
                   name: doc.name,
-                  email: `${uniqueSlug}@health.com`,
-                  password: 'default_scraped_password_123',
-                  phone: mockPhone,
+                  email: `${nameSlug}.${specialtySlug}@lybrate.scraped`,
+                  password: 'scraped_placeholder_not_for_login',
+                  phone: placeholderPhone,
                   specialization: doc.specialty,
-                  experienceYears: doc.experience || 10,
-                  clinicName: doc.clinicName || 'Metro Health Clinic',
-                  consultationFee: doc.fee || 500,
-                  scrapedRating: doc.rating,
+                  experienceYears: doc.experience || 0,
+                  consultationFee: doc.fee || 0,
                   isOnline: false,
-                  lastSeen: new Date(),
                   status: 'approved',
                   isVerified: true,
-                  emailVerified: true,
-                  phoneVerified: true,
                   location: {
                     type: 'Point',
-                    coordinates: [defaultLng + offsetLng, defaultLat + offsetLat],
+                    coordinates,  // real geocoded [lng, lat] or Bengaluru center fallback
                   },
-                  activeHours: '09:00 AM - 05:00 PM',
                 });
               }
             }
 
-            // Re-query database after scraping
+            // Re-query after inserts
             matchedDoctors = await Doctor.find({
               specialization: { $regex: new RegExp('\\b' + resolvedSpecialty.trim() + '\\b', 'i') },
               status: 'approved',
@@ -94,7 +89,7 @@ exports.searchDoctors = async (req, res) => {
             }).lean();
           }
         } catch (scrapeError) {
-          console.error('❌ [Live Doctor Crawler] Failed during dynamic search crawling:', scrapeError.message);
+          console.error('❌ [Live Doctor Crawler] Failed:', scrapeError.message);
         }
       }
 
@@ -108,10 +103,8 @@ exports.searchDoctors = async (req, res) => {
           specialization: doc.specialization,
           experience: doc.experienceYears,
           experienceYears: doc.experienceYears,
-          clinicName: doc.clinicName,
           fee: doc.consultationFee,
           consultationFee: doc.consultationFee,
-          scrapedRating: doc.scrapedRating,
           coordinates: doc.location ? doc.location.coordinates : null,
           activeHours: doc.activeHours,
           profileImage: doc.profileImage || '',

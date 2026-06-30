@@ -27,7 +27,7 @@ const appointmentSchema = new mongoose.Schema({
   },
   paymentStatus: {
     type: String,
-    enum: ['pending', 'paid', 'failed', 'refunded'],
+    enum: ['pending', 'paid', 'failed'],
     default: 'pending',
   },
   appointmentStatus: {
@@ -38,12 +38,12 @@ const appointmentSchema = new mongoose.Schema({
   chatEnabledUntil: {
     type: Date,
   },
-  // Keep original visual queue, Stripe, and lab attributes
-  patient: { // legacy alias for User mapping
+
+  patient: { 
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   },
-  doctor: { // legacy alias for Doctor mapping
+  doctor: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Doctor',
   },
@@ -51,7 +51,7 @@ const appointmentSchema = new mongoose.Schema({
     type: String,
     default: 'doctor',
   },
-  reservedUntil: {
+  reservedUntil: { // block fr 10 mins to avoid race conditions
     type: Date,
   },
   patientName: {
@@ -63,7 +63,7 @@ const appointmentSchema = new mongoose.Schema({
   patientGender: {
     type: String,
   },
-  razorpayOrderId: {
+  razorpayOrderId: { // payment ke baad jo aata hai order ID
     type: String,
   },
 }, {

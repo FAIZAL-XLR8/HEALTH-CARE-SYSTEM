@@ -9,12 +9,18 @@ const initializeSocket = (io) => {
   // Middleware to authenticate JWT connection token
   io.use(async (socket, next) => {
     try {
-      const token = socket.handshake.auth.token || socket.handshake.query.token;
+      let token = socket.handshake.auth.token || socket.handshake.query.token;
+      if (!token && socket.handshake.headers && socket.handshake.headers.cookie) {
+        const match = socket.handshake.headers.cookie.match(/jwt=([^;]+)/);
+        if (match) {
+          token = match[1];
+        }
+      }
       if (!token) {
         return next(new Error('Authentication token required.'));
       }
       
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecretkeyforextrasecurehealthauth12345');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
       
       // Attempt to find in User or Doctor collection
       let account = await User.findById(decoded.id).select('-password');
@@ -43,8 +49,6 @@ const initializeSocket = (io) => {
     const role = socket.role; // 'patient' or 'doctor'
 
     console.log(`🔌 Socket connected: User ${userId} (${role})`);
-    const fs = require('fs');
-    fs.appendFileSync('socket_debug.log', `[Connection Debug] userId: ${userId}, role: ${role}\n`);
 
     // 1. Join Personal Room automatically on connection
     if (role === 'doctor') {
@@ -73,11 +77,9 @@ const initializeSocket = (io) => {
     // 2. Join Appointment Room dynamically
     socket.on('join-appointment-room', async ({ appointmentId }) => {
       try {
-        const fs = require('fs');
-        fs.appendFileSync('socket_debug.log', `[Join Room Start] userId: ${userId}, role: ${role}, appointmentId: ${appointmentId}\n`);
+
         const appointment = await Appointment.findById(appointmentId);
         if (!appointment) {
-          fs.appendFileSync('socket_debug.log', `[Join Room Error] Appt not found for id ${appointmentId}\n`);
           return socket.emit('error', 'Appointment not found.');
         }
 
@@ -85,10 +87,8 @@ const initializeSocket = (io) => {
         const isPatient = appointment.patientId.toString() === userId;
         const isDoctor = appointment.doctorId.toString() === userId;
 
-        fs.appendFileSync('socket_debug.log', `[Join Room Try] userId: ${userId}, role: ${role}, patientId: ${appointment.patientId}, doctorId: ${appointment.doctorId}, isPatient: ${isPatient}, isDoctor: ${isDoctor}\n`);
 
         if (!isPatient && !isDoctor) {
-          fs.appendFileSync('socket_debug.log', `[Join Room Denied] userId ${userId} denied access to room ${appointmentId}\n`);
           return socket.emit('error', 'Access denied to this consultation room.');
         }
 

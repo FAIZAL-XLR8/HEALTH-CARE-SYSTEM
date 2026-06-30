@@ -358,7 +358,7 @@ exports.getPatientAppointments = async (req, res) => {
       return res.status(403).json({ message: 'Forbidden.' });
     }
     const appointments = await Appointment.find({ patientId })
-      .populate('doctorId', 'name specialization clinicName')
+      .populate('doctorId', 'name specialization')
       .sort({ appointmentDate: 1, slotTime: 1 });
     res.status(200).json(appointments);
   } catch (err) {

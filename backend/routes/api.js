@@ -31,15 +31,15 @@ const upload = multer({
   limits: { fileSize: 50 * 1024 * 1024 }, // Max 50MB file sizes
 });
 
-// ==========================================
-// 🩺 Doctor Routes
-// ==========================================
+
+//  Doctor Routes
+
 router.get('/doctors/search', doctorController.searchDoctors);
 router.get('/doctors/compare', doctorController.compareDoctors);
 
-// ==========================================
-// 📅 Appointment Booking & Telemedicine Routes
-// ==========================================
+
+// Appointment Booking & Telemedicine Routes
+
 const paymentController = require('../controllers/paymentController');
 const messageController = require('../controllers/messageController');
 
@@ -50,16 +50,15 @@ router.get('/appointments/patient/dashboard', protect, appointmentController.get
 router.get('/appointments/doctor/dashboard', protect, appointmentController.getDoctorDashboard);
 router.get('/appointments/patient/:patientId', protect, appointmentController.getPatientAppointments);
 
-// ==========================================
-// 💳 Payment Gateways (Razorpay)
-// ==========================================
+
+//Payment Gateways (Razorpay)
+
 router.post('/payments/create-checkout-session', protect, paymentController.createCheckoutSession);
 router.post('/payments/verify-checkout-session', protect, paymentController.verifyCheckoutSession);
 
 
-// ==========================================
-// 💬 Telehealth Consultation Chat & Messaging
-// ==========================================
+//   Chat & Messaging
+
 router.get('/messages/:appointmentId', protect, messageController.getChatHistory);
 router.post('/messages/upload', protect, upload.single('media'), messageController.uploadMediaMessage);
 router.delete('/messages/:messageId', protect, messageController.deleteMessage);
@@ -67,22 +66,20 @@ router.get('/videos/signature/:appointmentId', protect, videoController.generate
 router.post('/videos/metadata', protect, videoController.saveVideoMetadata);
 router.delete('/videos/:appointmentId', protect, videoController.deleteVideo);
 
-// ==========================================
-// 🤖 AI Multimodal, Wizard & Chatbot Routes
-// ==========================================
+//  ai chatbot, analysers
+
 router.post('/reports/analyze', protect, fileAnalyzeLimiter, upload.single('report'), aiController.analyzeReport);
 router.post('/prescriptions/analyze', protect, fileAnalyzeLimiter, upload.single('prescription'), prescriptionController.analyzePrescription);
 router.post('/ai/chatbot', chatbotLimiter, chatbotController.handleChatbotMessage);
 router.post('/ai/chat-triage', chatbotLimiter, aiController.chatTriage);
 
-// ==========================================
-// 👑 Admin Review Panel Routes
-// ==========================================
+
+//  Admin Review Panel Routes
+
 router.get('/admin/doctors', protect, isAdmin, adminController.getPendingDoctors);
 router.post('/admin/doctors/:doctorId/approve', protect, isAdmin, adminController.approveDoctor);
 router.post('/admin/doctors/:doctorId/reject', protect, isAdmin, adminController.rejectDoctor);
 router.post('/admin/doctors/:doctorId/suspend', protect, isAdmin, adminController.suspendDoctor);
-router.get('/admin/suspend-form/:doctorId', adminController.getSuspendForm);
 
 module.exports = router;
 

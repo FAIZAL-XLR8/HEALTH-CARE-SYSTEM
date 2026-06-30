@@ -9,8 +9,17 @@ const { uploadFromBuffer } = require('../services/cloudinaryService');
 
 // Helper to generate JWT Token
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET , {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: '7d',
+  });
+};
+
+const setJwtCookie = (res, token) => {
+  res.cookie('jwt', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   });
 };
 
@@ -23,9 +32,9 @@ const generateOtp = () => {
 // @access  Public
 const register = async (req, res) => {
   try {
-    const { 
-      name, phone, password, email, role = 'patient', 
-      specialty, experience, fee, clinicName, activeHours,
+    const {
+      name, phone, password, email, role = 'patient',
+      specialty, experience, fee, activeHours,
       profileImage, bio
     } = req.body;
 
@@ -34,8 +43,8 @@ const register = async (req, res) => {
     }
 
     if (role === 'doctor') {
-      if (!specialty || !fee || !clinicName || !phone) {
-        return res.status(400).json({ message: 'Phone, specialization, fee, and clinic details are required.' });
+      if (!specialty || !fee || !phone) {
+        return res.status(400).json({ message: 'Phone, specialization, and fee are required.' });
       }
 
       // Check if email already registered and if it is suspended/pending/rejected
@@ -44,9 +53,9 @@ const register = async (req, res) => {
 
       if (docRecord) {
         if (docRecord.status === 'suspended') {
-          return res.status(400).json({ 
-            message: 'Email address is suspended.', 
-            isSuspended: true, 
+          return res.status(400).json({
+            message: 'Email address is suspended.',
+            isSuspended: true,
             email: docRecord.email
           });
         }
@@ -54,7 +63,7 @@ const register = async (req, res) => {
           return res.status(400).json({ message: 'Your doctor application is already under review.' });
         }
         if (docRecord.status === 'rejected') {
-          return res.status(400).json({ 
+          return res.status(400).json({
             message: 'Your previous doctor application was rejected.',
             rejectionReason: docRecord.rejectionReason || 'No specific reasons provided.'
           });
@@ -64,9 +73,9 @@ const register = async (req, res) => {
 
       if (pendingRecord) {
         if (pendingRecord.status === 'suspended') {
-          return res.status(400).json({ 
-            message: 'Email address is suspended.', 
-            isSuspended: true, 
+          return res.status(400).json({
+            message: 'Email address is suspended.',
+            isSuspended: true,
             email: pendingRecord.email
           });
         }
@@ -74,7 +83,7 @@ const register = async (req, res) => {
           return res.status(400).json({ message: 'Your doctor application is already under review.' });
         }
         if (pendingRecord.status === 'rejected') {
-          return res.status(400).json({ 
+          return res.status(400).json({
             message: 'Your previous doctor application was rejected.',
             rejectionReason: pendingRecord.rejectionReason || 'No specific reasons provided.'
           });
@@ -84,7 +93,7 @@ const register = async (req, res) => {
 
       // Check if phone already registered as doctor
       const phoneExists = await Doctor.findOne({ phone: phone.trim() }) ||
-                         await PendingDoctor.findOne({ phone: phone.trim() });
+        await PendingDoctor.findOne({ phone: phone.trim() });
       if (phoneExists) {
         return res.status(400).json({ message: 'Phone number is already registered.' });
       }
@@ -100,7 +109,6 @@ const register = async (req, res) => {
         phone: phone.trim(),
         specialization: specialty,
         experienceYears: Number(experience) || 5,
-        clinicName,
         consultationFee: Number(fee),
         activeHours: activeHours || '09:00 AM - 05:00 PM',
         profileImage: profileImage || '',
@@ -131,9 +139,12 @@ SMS OTP sent to ${doctor.phone}: ${phoneOtp}
       const formattedPhone = doctor.phone.startsWith('+') ? doctor.phone : `+91${doctor.phone}`;
       await twilioService.sendOtpToPhoneNumber(formattedPhone);
 
+      const token = generateToken(doctor._id);
+      setJwtCookie(res, token);
+
       return res.status(201).json({
         message: 'Doctor account created. Please verify your Email and Phone OTPs.',
-        token: generateToken(doctor._id),
+        token,
         email: doctor.email,
         phone: doctor.phone,
         user: {
@@ -171,9 +182,12 @@ SMS OTP sent to ${doctor.phone}: ${phoneOtp}
         phone: phone.trim(),
       });
 
+      const token = generateToken(user._id);
+      setJwtCookie(res, token);
+
       return res.status(201).json({
         message: 'Patient registration successful',
-        token: generateToken(user._id),
+        token,
         user: {
           id: user._id,
           name: user.name,
@@ -216,9 +230,12 @@ const login = async (req, res) => {
         return res.status(401).json({ message: 'Invalid admin credentials.' });
       }
 
+      const token = generateToken(user._id);
+      setJwtCookie(res, token);
+
       return res.status(200).json({
         message: 'Logged in successfully as admin',
-        token: generateToken(user._id),
+        token,
         user: {
           id: user._id,
           name: user.name,
@@ -252,22 +269,25 @@ const login = async (req, res) => {
         return res.status(403).json({ message: 'Your application is under review.' });
       }
       if (doctor.status === 'rejected') {
-        return res.status(403).json({ 
+        return res.status(403).json({
           message: 'Your application was rejected.',
-          rejectionReason: doctor.rejectionReason 
+          rejectionReason: doctor.rejectionReason
         });
       }
       if (doctor.status === 'suspended') {
-        return res.status(403).json({ 
+        return res.status(403).json({
           message: 'Your account has been suspended.',
           isSuspended: true,
           email: doctor.email
         });
       }
 
+      const token = generateToken(doctor._id);
+      setJwtCookie(res, token);
+
       return res.status(200).json({
         message: 'Logged in successfully as doctor',
-        token: generateToken(doctor._id),
+        token,
         user: {
           id: doctor._id,
           name: doctor.name,
@@ -295,9 +315,12 @@ const login = async (req, res) => {
         return res.status(401).json({ message: 'Invalid credentials.' });
       }
 
+      const token = generateToken(user._id);
+      setJwtCookie(res, token);
+
       return res.status(200).json({
         message: 'Logged in successfully as patient',
-        token: generateToken(user._id),
+        token,
         user: {
           id: user._id,
           name: user.name,
@@ -424,8 +447,8 @@ const uploadGovernmentId = async (req, res) => {
 
     const fileInfo = await FileType.fromBuffer(req.file.buffer);
     if (!fileInfo || !['application/pdf', 'image/jpeg', 'image/png'].includes(fileInfo.mime)) {
-      return res.status(400).json({ 
-        message: 'Invalid file signature (magic bytes). Allowed types: PDF, JPG, JPEG, PNG.' 
+      return res.status(400).json({
+        message: 'Invalid file signature (magic bytes). Allowed types: PDF, JPG, JPEG, PNG.'
       });
     }
 
@@ -438,13 +461,13 @@ const uploadGovernmentId = async (req, res) => {
     }
 
     const result = await uploadFromBuffer(req.file.buffer, req.file.originalname);
-    
+
     doctor.governmentIdUrl = result.secure_url;
     await doctor.save();
 
-    res.status(200).json({ 
-      message: 'ID document uploaded successfully.', 
-      governmentIdUrl: result.secure_url 
+    res.status(200).json({
+      message: 'ID document uploaded successfully.',
+      governmentIdUrl: result.secure_url
     });
   } catch (error) {
     console.error('Error uploading government ID:', error);
@@ -477,9 +500,9 @@ const submitDoctorApplication = async (req, res) => {
     doctor.isVerified = false;
     await doctor.save();
 
-    res.status(200).json({ 
-      message: 'Doctor application submitted successfully under review.', 
-      doctor 
+    res.status(200).json({
+      message: 'Doctor application submitted successfully under review.',
+      doctor
     });
   } catch (error) {
     console.error('Error submitting doctor application:', error);
@@ -494,7 +517,7 @@ const getSuspensionDetails = async (req, res) => {
   try {
     const { email } = req.params;
     const doctor = await Doctor.findOne({ email: email.toLowerCase().trim() }) ||
-                   await PendingDoctor.findOne({ email: email.toLowerCase().trim() });
+      await PendingDoctor.findOne({ email: email.toLowerCase().trim() });
 
     if (!doctor || doctor.status !== 'suspended') {
       return res.status(404).send('<h1>Suspension details not found for this account.</h1>');
@@ -640,41 +663,40 @@ const getSuspensionDetails = async (req, res) => {
 // @access  Private
 const logout = async (req, res) => {
   try {
-    let token;
-    if (
-      req.headers.authorization &&
-      req.headers.authorization.startsWith('Bearer')
-    ) {
-      token = req.headers.authorization.split(' ')[1];
-    }
+    const token = req.cookies ? req.cookies.jwt : null;
 
-    if (!token) {
-      return res.status(400).json({ message: 'No token provided for logout.' });
-    }
+    // Clear the JWT cookie
+    res.clearCookie('jwt', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict'
+    });
 
-    // Decode token to retrieve its expiration timestamp
-    const decoded = jwt.decode(token);
-    const redisClient = require('../config/redisClient');
+    if (token) {
+      // Decode token to retrieve its expiration timestamp
+      const decoded = jwt.decode(token);
+      const redisClient = require('../config/redisClient');
 
-    if (decoded && decoded.exp) {
-      const currentTime = Math.floor(Date.now() / 1000);
-      const timeLeft = decoded.exp - currentTime;
+      if (decoded && decoded.exp) {
+        const currentTime = Math.floor(Date.now() / 1000);
+        const timeLeft = decoded.exp - currentTime;
 
-      if (timeLeft > 0) {
-        try {
-          if (redisClient.isOpen) {
-            // Block the token in Redis until its natural expiration
-            await redisClient.set(`token:${token}`, 'blocked', {
-              EX: timeLeft
-            });
+        if (timeLeft > 0) {
+          try {
+            if (redisClient.isOpen) {
+              // Block the token in Redis until its natural expiration
+              await redisClient.set(`token:${token}`, 'blocked', {
+                EX: timeLeft
+              });
+            }
+          } catch (redisErr) {
+            console.warn('Failed to blacklist token in Redis:', redisErr.message);
           }
-        } catch (redisErr) {
-          console.warn('Failed to blacklist token in Redis:', redisErr.message);
         }
       }
     }
 
-    res.status(200).json({ message: 'Logged out successfully. Token blacklisted.' });
+    res.status(200).json({ message: 'Logged out successfully.' });
   } catch (error) {
     console.error('Error in logout:', error);
     res.status(500).json({ message: 'Error during logout process.', error: error.message });

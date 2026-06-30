@@ -103,5 +103,30 @@ const sendSuspensionEmail = async (email, name, reason) => {
   });
 };
 
-module.exports = { sendOtpToEmail, sendApprovalEmail, sendSuspensionEmail };
+const sendRejectionEmail = async (email, name, reason) => {
+  if (!validator.isEmail(email)) return;
+  const html = `
+    <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+      <h2 style="color: #ef4444;">❌ AeroHealth Doctor Application Status Update</h2>
+      <p>Dear Dr. ${name},</p>
+      <p>Thank you for your interest in joining AeroHealth. Your onboarding application has been reviewed by our medical validation panel.</p>
+      <p>Unfortunately, your application was not approved for the following reason:</p>
+      <blockquote style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 12px; margin: 16px 0; border-radius: 4px; color: #7f1d1d; font-style: italic;">
+        "${reason || 'No specific reasons provided.'}"
+      </blockquote>
+      <p>Please log in to your registration wizard, review your credentials, and re-upload a valid ID document matching the requirements (PDF, PNG, JPG).</p>
+      <p>Thanks & Regards,<br/>AeroHealth Admin Team</p>
+      <hr style="margin: 30px 0;" />
+      <small style="color: #777;">This is an automated message. Please do not reply.</small>
+    </div>
+  `;
+  await transporter.sendMail({
+    from: `"AeroHealth" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: "❌ AeroHealth Doctor Application Status Update",
+    html: html
+  });
+};
+
+module.exports = { sendOtpToEmail, sendApprovalEmail, sendSuspensionEmail, sendRejectionEmail };
 

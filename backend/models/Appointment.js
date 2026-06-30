@@ -49,12 +49,7 @@ const appointmentSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['doctor', 'lab'],
     default: 'doctor',
-  },
-  queueNumber: {
-    type: Number,
-    default: 1,
   },
   reservedUntil: {
     type: Date,
@@ -66,9 +61,6 @@ const appointmentSchema = new mongoose.Schema({
     type: String,
   },
   patientGender: {
-    type: String,
-  },
-  stripeSessionId: {
     type: String,
   },
   razorpayOrderId: {

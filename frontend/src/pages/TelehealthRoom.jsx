@@ -138,13 +138,13 @@ const TelehealthRoom = ({ appointmentId, token, user, onBack }) => {
     if (localVideoRef.current && localStream) {
       localVideoRef.current.srcObject = localStream;
     }
-  }, [localStream]);
+  }, [localStream, callState]);
 
   useEffect(() => {
     if (remoteVideoRef.current && remoteStream) {
       remoteVideoRef.current.srcObject = remoteStream;
     }
-  }, [remoteStream]);
+  }, [remoteStream, callState]);
 
   // Close emoji picker on outside click
   const emojiPickerRef = useRef(null);

@@ -310,7 +310,11 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
         }
       } else {
         const msg = data.message || 'Registration failed.';
-        setErrorMsg(msg);
+        if (data.rejectionReason) {
+          setErrorMsg(`Registration failed: ${msg} Reason: "${data.rejectionReason}"`);
+        } else {
+          setErrorMsg(msg);
+        }
         
         const lowerMsg = msg.toLowerCase();
         if (lowerMsg.includes('already exists') || lowerMsg.includes('registered') || data.isSuspended) {

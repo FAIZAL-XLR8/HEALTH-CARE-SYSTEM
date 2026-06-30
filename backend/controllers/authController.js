@@ -38,7 +38,7 @@ const register = async (req, res) => {
         return res.status(400).json({ message: 'Phone, specialization, fee, and clinic details are required.' });
       }
 
-      // Check if email already registered and if it is suspended
+      // Check if email already registered and if it is suspended/pending/rejected
       const docRecord = await Doctor.findOne({ email: email.toLowerCase().trim() });
       const pendingRecord = await PendingDoctor.findOne({ email: email.toLowerCase().trim() });
 
@@ -50,14 +50,33 @@ const register = async (req, res) => {
             email: docRecord.email
           });
         }
+        if (docRecord.status === 'pending') {
+          return res.status(400).json({ message: 'Your doctor application is already under review.' });
+        }
+        if (docRecord.status === 'rejected') {
+          return res.status(400).json({ 
+            message: 'Your previous doctor application was rejected.',
+            rejectionReason: docRecord.rejectionReason || 'No specific reasons provided.'
+          });
+        }
         return res.status(400).json({ message: 'Email address is already registered as a doctor.' });
       }
+
       if (pendingRecord) {
         if (pendingRecord.status === 'suspended') {
           return res.status(400).json({ 
             message: 'Email address is suspended.', 
             isSuspended: true, 
             email: pendingRecord.email
+          });
+        }
+        if (pendingRecord.status === 'pending') {
+          return res.status(400).json({ message: 'Your doctor application is already under review.' });
+        }
+        if (pendingRecord.status === 'rejected') {
+          return res.status(400).json({ 
+            message: 'Your previous doctor application was rejected.',
+            rejectionReason: pendingRecord.rejectionReason || 'No specific reasons provided.'
           });
         }
         return res.status(400).json({ message: 'Email address is already registered as a doctor.' });

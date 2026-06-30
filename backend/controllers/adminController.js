@@ -1,6 +1,6 @@
 const Doctor = require('../models/Doctor');
 const PendingDoctor = require('../models/PendingDoctor');
-const { sendApprovalEmail, sendSuspensionEmail } = require('../services/emailServices');
+const { sendApprovalEmail, sendSuspensionEmail, sendRejectionEmail } = require('../services/emailServices');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
@@ -134,7 +134,10 @@ re-upload a valid ID document matching the requirements (PDF, PNG, JPG).
 ======================================================================
     `);
 
-    res.status(200).json({ message: 'Doctor application rejected. Notification email logged.', doctor });
+    // Send real email notification
+    await sendRejectionEmail(doctor.email, doctor.name, doctor.rejectionReason);
+
+    res.status(200).json({ message: 'Doctor application rejected. Notification email sent.', doctor });
   } catch (error) {
     console.error('Error rejecting doctor:', error);
     res.status(500).json({ message: 'Error rejecting doctor application.' });

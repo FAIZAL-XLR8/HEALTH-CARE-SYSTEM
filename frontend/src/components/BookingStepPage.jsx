@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Calendar, Clock, CreditCard, Shield, AlertTriangle, Ban } from 'lucide-react';
 import { showFlash } from './FlashMessage';
 
@@ -10,6 +10,7 @@ const getLocalDateString = (date = new Date()) => {
 };
 
 const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
+  const containerRef = useRef(null);
   const [selectedDate, setSelectedDate] = useState(() => {
     return getLocalDateString();
   });
@@ -104,19 +105,14 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
       onOpenAuth();
       return;
     }
-    if (!selectedSlot) {
-      setError('Please select a time slot.');
-      showFlash('Please fill all required fields', 'warning');
-      return;
-    }
-    if (!patientName.trim()) {
-      setError('Please enter patient name.');
-      showFlash('Please fill all required fields', 'warning');
-      return;
-    }
-    if (!patientAge.trim()) {
-      setError('Please enter patient age.');
-      showFlash('Please fill all required fields', 'warning');
+    if ((isDoctor && !selectedSlot) || !patientName.trim() || !patientAge.trim() || !patientGender) {
+      setError('Please fill all details.');
+      showFlash('Please fill all details', 'warning');
+      if (containerRef.current) {
+        containerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
       return;
     }
 
@@ -323,7 +319,7 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
   }
 
   return (
-    <div style={{ maxWidth: '650px', margin: '40px auto', padding: '0 24px' }}>
+    <div ref={containerRef} style={{ maxWidth: '650px', margin: '40px auto', padding: '0 24px' }}>
       <div className="glass-panel" style={{ padding: '30px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
         
         <div>
@@ -348,7 +344,7 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600 }}>
-                SELECT DATE
+                APPOINTMENT DATE
               </label>
               <input 
                 type="date" 
@@ -371,7 +367,7 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
 
             <div>
               <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600 }}>
-                PATIENT NAME
+                PATIENT NAME *
               </label>
               <input 
                 type="text" 
@@ -395,13 +391,15 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
             <div style={{ display: 'flex', gap: '12px' }}>
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600 }}>
-                  PATIENT AGE
+                  PATIENT AGE *
                 </label>
                 <input 
                   type="text" 
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   placeholder="e.g., 28"
                   value={patientAge}
-                  onChange={(e) => setPatientAge(e.target.value)}
+                  onChange={(e) => setPatientAge(e.target.value.replace(/\D/g, ''))}
                   style={{
                     width: '100%',
                     background: 'rgba(0,0,0,0.3)',
@@ -418,7 +416,7 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
 
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600 }}>
-                  PATIENT GENDER
+                  PATIENT GENDER *
                 </label>
                 <select 
                   value={patientGender}
@@ -579,7 +577,7 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
             </button>
           ) : (
             <button 
-              disabled={loading || !patientName.trim() || !patientAge.trim() || (isDoctor && !selectedSlot)}
+              disabled={loading}
               onClick={handleReserve}
               style={{
                 flex: 1,
@@ -588,14 +586,14 @@ const BookingStepPage = ({ provider, token, onCancel, onOpenAuth }) => {
                 borderRadius: '8px',
                 padding: '12px',
                 color: '#000',
-                cursor: (patientName.trim() && patientAge.trim() && (!isDoctor || selectedSlot)) ? 'pointer' : 'not-allowed',
+                cursor: loading ? 'not-allowed' : 'pointer',
                 fontSize: '0.85rem',
                 fontWeight: 700,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
-                opacity: (patientName.trim() && patientAge.trim() && (!isDoctor || selectedSlot)) ? 1 : 0.5,
+                opacity: loading ? 0.5 : 1,
                 boxShadow: '0 4px 12px rgba(6, 182, 212, 0.25)'
               }}
             >

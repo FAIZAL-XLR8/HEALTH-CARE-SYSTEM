@@ -34,6 +34,7 @@ const doctorSignupSchema = z.object({
   experience: z.string().refine(val => val !== '' && !isNaN(val) && Number(val) >= 0, 'Experience must be a positive number.'),
   fee: z.string().refine(val => val !== '' && !isNaN(val) && Number(val) >= 0, 'Fee must be a positive number.'),
   activeHours: z.string().trim().min(1, 'Daily available hours are required.'),
+  address: z.string().trim().min(1, 'Clinic address is required.'),
   profileImage: z.string().optional(),
   bio: z.string().optional(),
   latitude: z.any().optional(),
@@ -62,6 +63,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
   const [experience, setExperience] = useState('');
   const [fee, setFee] = useState('');
   const [activeHours, setActiveHours] = useState('09:00 AM - 05:00 PM');
+  const [address, setAddress] = useState('');
   const [profileImage, setProfileImage] = useState('');
   const [bio, setBio] = useState('');
   const [clinicLat, setClinicLat] = useState('');
@@ -114,6 +116,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
         experience: field === 'experience' ? value : experience,
         fee: field === 'fee' ? value : fee,
         activeHours: field === 'activeHours' ? value : activeHours,
+        address: field === 'address' ? value : address,
         profileImage: field === 'profileImage' ? value : profileImage,
         bio: field === 'bio' ? value : bio,
       };
@@ -247,6 +250,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
       payload.experience = experience.toString().trim();
       payload.fee = fee.toString().trim();
       payload.activeHours = activeHours.trim();
+      payload.address = address.trim();
       payload.profileImage = profileImage.trim();
       payload.bio = bio.trim();
       payload.latitude = clinicLat !== '' ? Number(clinicLat) : undefined;
@@ -283,6 +287,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
       backendPayload.experience = Number(experience);
       backendPayload.fee = Number(fee);
       backendPayload.activeHours = activeHours.trim();
+      backendPayload.address = address.trim();
       backendPayload.profileImage = profileImage.trim();
       backendPayload.bio = bio.trim();
       backendPayload.latitude = clinicLat !== '' ? Number(clinicLat) : '';
@@ -471,6 +476,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
     setExperience('');
     setFee('');
     setActiveHours('09:00 AM - 05:00 PM');
+    setAddress('');
     setProfileImage('');
     setBio('');
     setClinicLat('');
@@ -933,6 +939,31 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
                     {errors.fee && (
                       <span style={{ color: 'var(--accent-alert)', fontSize: '0.68rem', marginTop: '4px', display: 'block', textAlign: 'left' }}>
                         {errors.fee}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Clinic Address *</label>
+                    <input
+                      type="text"
+                      required
+                      value={address}
+                      placeholder="e.g. Koramangala, Bengaluru"
+                      onChange={(e) => handleFieldChange('address', setAddress, e.target.value)}
+                      style={{
+                        width: '100%',
+                        background: 'rgba(0,0,0,0.3)',
+                        border: errors.address ? '1px solid var(--accent-alert)' : '1px solid var(--card-border)',
+                        borderRadius: '8px',
+                        padding: '10px',
+                        color: '#fff',
+                        fontSize: '0.8rem',
+                        outline: 'none'
+                      }}
+                    />
+                    {errors.address && (
+                      <span style={{ color: 'var(--accent-alert)', fontSize: '0.68rem', marginTop: '4px', display: 'block', textAlign: 'left' }}>
+                        {errors.address}
                       </span>
                     )}
                   </div>

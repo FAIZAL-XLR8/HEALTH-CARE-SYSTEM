@@ -227,6 +227,11 @@ const SearchHub = ({ searchParams, onBook }) => {
                         <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
                           {p.specialty}
                         </span>
+                        {p.address && (
+                          <span style={{ fontSize: '0.74rem', color: 'rgba(255, 255, 255, 0.7)', display: 'block', marginBottom: '4px', fontStyle: 'italic', wordBreak: 'break-word' }}>
+                            📍 {p.address}
+                          </span>
+                        )}
                       </div>
 
                       {/* Experience Badge instead of rating */}

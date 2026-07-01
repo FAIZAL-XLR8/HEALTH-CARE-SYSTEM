@@ -410,8 +410,11 @@ const DoctorCard = ({ doc, onApprove, onRejectSubmit, rejectionReason, setReject
           />
           <div>
             <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff', margin: '0 0 4px 0' }}>Dr. {doc.name}</h3>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', fontSize: '0.78rem' }}>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', fontSize: '0.78rem', alignItems: 'center' }}>
               <span style={{ color: 'var(--primary-neon)', background: 'rgba(6, 182, 212, 0.1)', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>{doc.specialization}</span>
+              {doc.address && (
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.74rem' }}>📍 {doc.address}</span>
+              )}
             </div>
           </div>
         </div>

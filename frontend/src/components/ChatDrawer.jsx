@@ -488,6 +488,11 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                           <span style={{ fontSize: '0.7rem', color: '#000000', fontWeight: 500 }}>
                             {doc.specialty || doc.specialization}
                           </span>
+                          {doc.address && (
+                            <span style={{ fontSize: '0.68rem', color: '#4b5563', display: 'block', fontStyle: 'italic', wordBreak: 'break-word' }}>
+                              📍 {doc.address}
+                            </span>
+                          )}
 
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px', borderTop: '1px solid #e2e8f0', paddingTop: '6px' }}>
                             <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#10b981' }}>

@@ -249,39 +249,43 @@ async function getRecommendedDoctors(specialty) {
       },
     ]);
 
-    if (matchedDoctors.length < 3) {
+    if (matchedDoctors.length < 4) {
       console.log(`🕵️ [Chatbot Doctor Crawler] Sparse db records (${matchedDoctors.length}). Launching Lybrate crawler...`);
+      const { geocodeAddress } = require('../utils/geocoder');
       const scrapedDocs = await scrapeLybrateDoctors('Bengaluru', specialty);
 
       if (scrapedDocs && scrapedDocs.length > 0) {
+        console.log(`🕵️ [Chatbot Doctor Crawler] Scraped Doctors Data for specialty "${specialty}":`, JSON.stringify(scrapedDocs, null, 2));
         const insertPromises = scrapedDocs.map(async (doc) => {
           const exists = await Doctor.findOne({
             name: { $regex: new RegExp('^' + doc.name.trim() + '$', 'i') },
             specialization: { $regex: new RegExp('^' + doc.specialty.trim() + '$', 'i') }
           });
           if (!exists) {
-            const offsetLng = (Math.random() - 0.5) * 0.05;
-            const offsetLat = (Math.random() - 0.5) * 0.05;
-            const uniqueSlug = `${doc.name.toLowerCase().replace(/[^a-z]/g, '')}_${Date.now()}`;
-            const mockPhone = `+919${Math.floor(100000000 + Math.random() * 900000000)}`;
+            const nameSlug = doc.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const specialtySlug = doc.specialty.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const placeholderPhone = 9000000000 + Math.floor(Math.random() * 999999999);
             
+            const coordinates = await geocodeAddress(doc.address);
+
             return Doctor.create({
               name: doc.name,
-              email: `${uniqueSlug}@health.com`,
-              password: 'default_scraped_password_123',
-              phone: mockPhone,
+              email: `${nameSlug}.${specialtySlug}@lybrate.scraped`,
+              password: 'scraped_placeholder_not_for_login',
+              phone: placeholderPhone,
               specialization: doc.specialty,
-              experienceYears: doc.experience || 10,
-              consultationFee: doc.fee || 500,
+              experienceYears: doc.experience || 0,
+              consultationFee: doc.fee || 0,
               isOnline: false,
               lastSeen: new Date(),
               status: 'approved',
               isVerified: true,
               emailVerified: true,
               phoneVerified: true,
+              address: doc.address || '',
               location: {
                 type: 'Point',
-                coordinates: [userLng + offsetLng, userLat + offsetLat],
+                coordinates,
               },
               activeHours: '09:00 AM - 05:00 PM',
             });
@@ -319,6 +323,7 @@ async function getRecommendedDoctors(specialty) {
         coordinates: doc.location.coordinates,
         distanceKm: distanceInKm,
         activeHours: doc.activeHours,
+        address: doc.address || doc.clinicName || '',
       };
     });
   } catch (error) {

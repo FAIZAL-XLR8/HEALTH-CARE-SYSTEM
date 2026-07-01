@@ -255,6 +255,7 @@ exports.chatTriage = async (req, res) => {
           const scrapedDocs = await scrapeLybrateDoctors(searchCity || 'Bengaluru', specialty);
 
           if (scrapedDocs && scrapedDocs.length > 0) {
+            console.log(`🕵️ [Chat Triage Crawler] Scraped Doctors Data for specialty "${specialty}" in "${searchCity}":`, JSON.stringify(scrapedDocs, null, 2));
             // Insert sequentially to avoid race conditions on duplicate checks
             for (const doc of scrapedDocs) {
               const exists = await Doctor.findOne({
@@ -282,6 +283,7 @@ exports.chatTriage = async (req, res) => {
                   consultationFee: doc.fee || 0,
                   status: 'approved',
                   isVerified: true,
+                  address: doc.address || '',
                   location: {
                     type: 'Point',
                     coordinates,
@@ -315,6 +317,7 @@ exports.chatTriage = async (req, res) => {
         activeHours: doc.activeHours,
         profileImage: doc.profileImage || '',
         isOnline: doc.isOnline,
+        address: doc.address || doc.clinicName || '',
       }));
 
       return res.status(200).json({

@@ -70,6 +70,7 @@ exports.approveDoctor = async (req, res) => {
       approvedBy: req.user?.name || req.user?.id || 'Admin',
       approvedAt: new Date(),
       location: pending.location,
+      address: pending.address,
       activeHours: pending.activeHours
     });
 

@@ -35,7 +35,7 @@ const register = async (req, res) => {
     const {
       name, phone, password, email, role = 'patient',
       specialty, experience, fee, activeHours,
-      profileImage, bio
+      profileImage, bio, address
     } = req.body;
 
     if (!name || !password || !email) {
@@ -43,8 +43,8 @@ const register = async (req, res) => {
     }
 
     if (role === 'doctor') {
-      if (!specialty || !fee || !phone) {
-        return res.status(400).json({ message: 'Phone, specialization, and fee are required.' });
+      if (!specialty || !fee || !phone || !address) {
+        return res.status(400).json({ message: 'Phone, specialization, fee, and clinic address are required.' });
       }
 
       // Check if email already registered and if it is suspended/pending/rejected
@@ -117,6 +117,7 @@ const register = async (req, res) => {
         emailOtpExpires: otpExpires,
         phoneOtp,
         phoneOtpExpires: otpExpires,
+        address: address.trim(),
         location: {
           type: 'Point',
           coordinates: [77.641151 + (Math.random() - 0.5) * 0.05, 12.971891 + (Math.random() - 0.5) * 0.05]

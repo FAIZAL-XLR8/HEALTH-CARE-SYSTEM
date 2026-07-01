@@ -24,16 +24,17 @@ exports.searchDoctors = async (req, res) => {
         isVerified: true
       }).lean();
 
-      // If no local doctors found, trigger live Lybrate crawler
-      if (matchedDoctors.length === 0) {
+      // If DB has fewer than 4 matching doctors, crawl Lybrate and insert genuinely new records
+      if (matchedDoctors.length < 4) {
         try {
-          console.log(`🕵️ [Live Doctor Crawler] Cache empty for '${resolvedSpecialty}'. Querying Lybrate...`);
+          console.log(`🕵️ [Live Doctor Crawler] Cache sparse (${matchedDoctors.length} records) for '${resolvedSpecialty}'. Querying Lybrate...`);
           const { scrapeLybrateDoctors } = require('../services/lybrateScraper');
           const { geocodeAddress } = require('../utils/geocoder');
 
           const scrapedDocs = await scrapeLybrateDoctors('Bengaluru', resolvedSpecialty);
 
           if (scrapedDocs && scrapedDocs.length > 0) {
+            console.log(`🕵️ [Live Doctor Crawler] Scraped Doctors Data for specialty "${resolvedSpecialty}":`, JSON.stringify(scrapedDocs, null, 2));
             // Deduplicate by name + specialty before inserting
             const seen = new Set();
             const uniqueDocs = [];
@@ -73,6 +74,7 @@ exports.searchDoctors = async (req, res) => {
                   isOnline: false,
                   status: 'approved',
                   isVerified: true,
+                  address: doc.address || '',
                   location: {
                     type: 'Point',
                     coordinates,  // real geocoded [lng, lat] or Bengaluru center fallback
@@ -109,6 +111,7 @@ exports.searchDoctors = async (req, res) => {
           activeHours: doc.activeHours,
           profileImage: doc.profileImage || '',
           isOnline: doc.isOnline,
+          address: doc.address || doc.clinicName || '',
         }));
 
         return res.status(200).json({
@@ -155,6 +158,7 @@ exports.compareDoctors = async (req, res) => {
       specialty: doc.specialization,
       experience: doc.experienceYears,
       fee: doc.consultationFee,
+      address: doc.address || doc.clinicName || '',
     }));
 
     res.status(200).json(formattedList);

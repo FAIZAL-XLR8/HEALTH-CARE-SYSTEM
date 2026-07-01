@@ -23,6 +23,11 @@ exports.analyzePrescription = async (req, res) => {
     console.log('🔮 [Prescription Analyzer] Transmitting document to Gemini Vision for OCR...');
     
     // Prepare inline data for Gemini
+    // http requests to gemini --> contents bhejna chah rhe ho as a form of JSOn
+    //aur json cant have values as binary data --> convert karo base64 string me 
+    //since videos/images ko multer --> as a form of binary data store krta hai
+    //RAM me called buffer 
+    // yahan base64 conversion ho rha hai 
     const fileData = {
       inlineData: {
         data: req.file.buffer.toString('base64'),

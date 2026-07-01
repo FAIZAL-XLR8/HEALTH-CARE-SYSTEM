@@ -4,6 +4,8 @@ const router = express.Router();
 
 const doctorController = require('../controllers/doctorController');
 const appointmentController = require('../controllers/appointmentController');
+const patientDashboardController = require('../controllers/patientDashboardController');
+const doctorDashboardController = require('../controllers/doctorDashboardController');
 const aiController = require('../controllers/aiController');
 const chatbotController = require('../controllers/chatbotController');
 const prescriptionController = require('../controllers/prescriptionController');
@@ -41,13 +43,11 @@ router.get('/doctors/compare', doctorController.compareDoctors);
 
 const paymentController = require('../controllers/paymentController');
 const messageController = require('../controllers/messageController');
-
-router.post('/appointments', protect, appointmentController.createAppointment);
 router.get('/appointments/slots/:doctorId', appointmentController.getAvailableSlots);
 router.post('/appointments/reserve', protect, appointmentController.reserveSlot);
-router.get('/appointments/patient/dashboard', protect, appointmentController.getPatientDashboard);
-router.get('/appointments/doctor/dashboard', protect, appointmentController.getDoctorDashboard);
-router.get('/appointments/patient/:patientId', protect, appointmentController.getPatientAppointments);
+router.get('/appointments/patient/dashboard', protect, patientDashboardController.getPatientDashboard);
+router.get('/appointments/doctor/dashboard', protect, doctorDashboardController.getDoctorDashboard);
+router.get('/appointments/patient/:patientId', protect, patientDashboardController.getPatientAppointments);
 
 
 //Payment Gateways (Razorpay)

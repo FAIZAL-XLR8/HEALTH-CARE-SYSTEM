@@ -16,7 +16,6 @@ exports.getChatHistory = async (req, res) => {
       return res.status(404).json({ message: 'Appointment not found.' });
     }
 
-    // Verify user is either the patient or the doctor of the appointment
     const isPatient = appointment.patientId.toString() === userId.toString();
     
     const isDoctor = appointment.doctorId.toString() === userId.toString();
@@ -36,9 +35,7 @@ exports.getChatHistory = async (req, res) => {
   }
 };
 
-// POST /api/messages/upload
-// Body: appointmentId, type
-// File: media
+// uploading media such as files ya video ya pdf
 exports.uploadMediaMessage = async (req, res) => {
   try {
     const { appointmentId, type } = req.body;
@@ -56,7 +53,8 @@ exports.uploadMediaMessage = async (req, res) => {
     if (!appointment) {
       return res.status(404).json({ message: 'Appointment not found.' });
     }
-
+    // logic to see if the user can have access to messages 
+    // within 7 days time frame
     const payment = await Payment.findOne({ appointmentId: appointment._id, paymentStatus: 'paid' });
     const start = payment ? payment.createdAt : appointment.createdAt;
     const expiresAt = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -95,7 +93,7 @@ exports.deleteMessage = async (req, res) => {
     const { messageId } = req.params;
     const userId = req.user.id;
 
-    const message = await Message.findById(messageId);
+    const message = await Message.findById(messageId).lean();
     if (!message) {
       return res.status(404).json({ message: 'Message not found.' });
     }

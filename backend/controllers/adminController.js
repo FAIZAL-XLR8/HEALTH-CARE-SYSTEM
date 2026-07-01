@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 // GET /api/admin/doctors
-// Access: Admin Only
+
 exports.getPendingDoctors = async (req, res) => {
   try {
     const pending = await PendingDoctor.find({}).sort({ createdAt: -1 });
@@ -93,7 +93,7 @@ exports.approveDoctor = async (req, res) => {
 };
 
 // POST /api/admin/doctors/:doctorId/reject
-// Access: Admin Only
+
 exports.rejectDoctor = async (req, res) => {
   try {
     const { doctorId } = req.params;

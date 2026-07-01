@@ -23,7 +23,7 @@ const sendOtpToEmail = async (email, otp) => {
     }
       const html = `
     <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-      <h2 style="color: #06b6d4;">🔐 AeroHealth Verification</h2>
+      <h2 style="color: #06b6d4;"> AeroHealth Verification</h2>
       
       <p>Hi there,</p>
       
@@ -47,7 +47,7 @@ const sendOtpToEmail = async (email, otp) => {
   await transporter.sendMail({
         from: `"AeroHealth" <${process.env.EMAIL_USER}>`,
         to: email,
-        subject: "🔐 AeroHealth Verification OTP",
+        subject: " AeroHealth Verification OTP",
         html: html
     });
 }
@@ -56,15 +56,10 @@ const sendApprovalEmail = async (email, name) => {
   if (!validator.isEmail(email)) return;
   const html = `
     <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-      <h2 style="color: #10b981;">🎉 AeroHealth Account Approved!</h2>
+      <h2 style="color: #10b981;"> AeroHealth Account Approved!</h2>
       <p>Dear Dr. ${name},</p>
       <p>Congratulations! Your onboarding application to join AeroHealth has been reviewed and approved by our medical validation team.</p>
       <p>You can now log in using your registered credentials to set up your clinic, manage slots, and consult with patients.</p>
-      <p style="margin: 24px 0;">
-        <a href="http://localhost:5173/" style="background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
-          Access Doctor Dashboard
-        </a>
-      </p>
       <p>Thanks & Regards,<br/>AeroHealth Admin Team</p>
       <hr style="margin: 30px 0;" />
       <small style="color: #777;">This is an automated message. Please do not reply.</small>
@@ -73,7 +68,7 @@ const sendApprovalEmail = async (email, name) => {
   await transporter.sendMail({
     from: `"AeroHealth" <${process.env.EMAIL_USER}>`,
     to: email,
-    subject: "🎉 AeroHealth Account Approved!",
+    subject: "AeroHealth Account Approved!",
     html: html
   });
 };
@@ -82,7 +77,7 @@ const sendSuspensionEmail = async (email, name, reason) => {
   if (!validator.isEmail(email)) return;
   const html = `
     <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-      <h2 style="color: #ef4444;">⚠️ AeroHealth Account Suspended</h2>
+      <h2 style="color: #ef4444;">AeroHealth Account Suspended</h2>
       <p>Dear Dr. ${name},</p>
       <p>We regret to inform you that your doctor account on AeroHealth has been suspended by the administrator.</p>
       <p><strong>Reason for suspension:</strong></p>
@@ -98,7 +93,7 @@ const sendSuspensionEmail = async (email, name, reason) => {
   await transporter.sendMail({
     from: `"AeroHealth" <${process.env.EMAIL_USER}>`,
     to: email,
-    subject: "⚠️ AeroHealth Account Suspended",
+    subject: "AeroHealth Account Suspended",
     html: html
   });
 };
@@ -107,7 +102,7 @@ const sendRejectionEmail = async (email, name, reason) => {
   if (!validator.isEmail(email)) return;
   const html = `
     <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-      <h2 style="color: #ef4444;">❌ AeroHealth Doctor Application Status Update</h2>
+      <h2 style="color: #ef4444;"> AeroHealth Doctor Application Status Update</h2>
       <p>Dear Dr. ${name},</p>
       <p>Thank you for your interest in joining AeroHealth. Your onboarding application has been reviewed by our medical validation panel.</p>
       <p>Unfortunately, your application was not approved for the following reason:</p>
@@ -123,7 +118,7 @@ const sendRejectionEmail = async (email, name, reason) => {
   await transporter.sendMail({
     from: `"AeroHealth" <${process.env.EMAIL_USER}>`,
     to: email,
-    subject: "❌ AeroHealth Doctor Application Status Update",
+    subject: " AeroHealth Doctor Application Status Update",
     html: html
   });
 };

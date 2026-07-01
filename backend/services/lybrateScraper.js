@@ -99,8 +99,6 @@ async function scrapeLybrateDoctors(city, specialty) {
 
       return results;
     }, specialty);
-
-    console.log(`🕵️ [Lybrate Scraper] Extracted ${doctors.length} doctors from DOM.`);
     return doctors;
 
   } catch (error) {

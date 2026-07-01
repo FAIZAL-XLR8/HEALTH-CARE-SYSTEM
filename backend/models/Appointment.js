@@ -39,14 +39,6 @@ const appointmentSchema = new mongoose.Schema({
     type: Date,
   },
 
-  patient: { 
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-  },
-  doctor: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Doctor',
-  },
   type: {
     type: String,
     default: 'doctor',

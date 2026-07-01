@@ -7,7 +7,6 @@ const appointmentController = require('../controllers/appointmentController');
 const aiController = require('../controllers/aiController');
 const chatbotController = require('../controllers/chatbotController');
 const prescriptionController = require('../controllers/prescriptionController');
-const { registerSSEClient } = require('../services/scraperService');
 const { protect, isAdmin } = require('../middleware/authMiddleware');
 const adminController = require('../controllers/adminController');
 const apiRateLimiter = require('../middleware/rateLimiter');

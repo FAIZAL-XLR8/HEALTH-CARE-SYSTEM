@@ -53,11 +53,8 @@ async function retrieveGuidelinesContext(userQuery) {
 
     if (
       pineconeIndexName &&
-      pineconeIndexName !== 'YOUR_PINECONE_INDEX_NAME_HERE' &&
-      pineconeApiKey &&
-      pineconeApiKey !== 'YOUR_PINECONE_API_KEY_HERE' &&
-      geminiApiKey &&
-      geminiApiKey !== 'YOUR_GEMINI_API_KEY_HERE'
+      pineconeApiKey  &&
+      geminiApiKey
     ) {
       console.log(`🔍 [RAG] Attempting vector retrieval from Pinecone index "${pineconeIndexName}"...`);
       const embeddings = new CommonJSGoogleGenAIEmbeddings();
@@ -230,24 +227,14 @@ exports.handleChatbotMessage = async (req, res) => {
   }
 };
 
-// Query doctors from MongoDB + scrape Lybrate on sparse records (Defaulting to Bangalore coords)
+// Query doctors from MongoDB + scrape Lybrate on sparse records
 async function getRecommendedDoctors(specialty) {
-  const userLng = 77.641151; // central Bangalore
-  const userLat = 12.971891;
-  const searchRadius = 10000; // 10km radius
-
   try {
-    let matchedDoctors = await Doctor.aggregate([
-      {
-        $geoNear: {
-          near: { type: 'Point', coordinates: [userLng, userLat] },
-          distanceField: 'distanceInMeters',
-          maxDistance: searchRadius,
-          spherical: true,
-          query: { specialization: { $regex: new RegExp('\\b' + specialty.trim() + '\\b', 'i') } },
-        },
-      },
-    ]);
+    let matchedDoctors = await Doctor.find({
+      specialization: { $regex: new RegExp('\\b' + specialty.trim() + '\\b', 'i') },
+      status: 'approved',
+      isVerified: true
+    }).lean();
 
     if (matchedDoctors.length < 4) {
       console.log(`🕵️ [Chatbot Doctor Crawler] Sparse db records (${matchedDoctors.length}). Launching Lybrate crawler...`);
@@ -295,37 +282,27 @@ async function getRecommendedDoctors(specialty) {
         await Promise.all(insertPromises);
 
         // Re-query database
-        matchedDoctors = await Doctor.aggregate([
-          {
-            $geoNear: {
-              near: { type: 'Point', coordinates: [userLng, userLat] },
-              distanceField: 'distanceInMeters',
-              maxDistance: searchRadius,
-              spherical: true,
-              query: { specialization: { $regex: new RegExp('\\b' + specialty.trim() + '\\b', 'i') } },
-            },
-          },
-        ]);
+        matchedDoctors = await Doctor.find({
+          specialization: { $regex: new RegExp('\\b' + specialty.trim() + '\\b', 'i') },
+          status: 'approved',
+          isVerified: true
+        }).lean();
       }
     }
 
-    return matchedDoctors.map(doc => {
-      const distanceInKm = parseFloat((doc.distanceInMeters / 1000).toFixed(1));
-      return {
-        doctorId: doc._id,
-        name: doc.name,
-        specialty: doc.specialization,
-        specialization: doc.specialization,
-        experience: doc.experienceYears,
-        experienceYears: doc.experienceYears,
-        fee: doc.consultationFee,
-        consultationFee: doc.consultationFee,
-        coordinates: doc.location.coordinates,
-        distanceKm: distanceInKm,
-        activeHours: doc.activeHours,
-        address: doc.address || doc.clinicName || '',
-      };
-    });
+    return matchedDoctors.map(doc => ({
+      doctorId: doc._id,
+      name: doc.name,
+      specialty: doc.specialization,
+      specialization: doc.specialization,
+      experience: doc.experienceYears,
+      experienceYears: doc.experienceYears,
+      fee: doc.consultationFee,
+      consultationFee: doc.consultationFee,
+      coordinates: doc.location ? doc.location.coordinates : null,
+      activeHours: doc.activeHours,
+      address: doc.address || doc.clinicName || '',
+    }));
   } catch (error) {
     console.error("❌ getRecommendedDoctors error:", error.message);
     return [];

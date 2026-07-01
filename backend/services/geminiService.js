@@ -8,11 +8,6 @@ const getGenAIClient = () => {
   return null;
 };
 
-/**
- * Maps an unsupported medical specialty to at most three specialties from the Lybrate whitelist.
- * @param {string} inputSpecialty - The specialty requested by the user
- * @returns {Promise<string[]>} Array of whitelisted specialties mapped by Gemini
- */
 async function mapSpecialtyWithGemini(inputSpecialty) {
   const ai = getGenAIClient();
   if (!ai) {

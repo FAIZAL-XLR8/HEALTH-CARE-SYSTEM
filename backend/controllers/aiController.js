@@ -303,7 +303,7 @@ exports.chatTriage = async (req, res) => {
           console.error('❌ [Chat Triage Crawler] Scraper failed:', scrapeErr.message);
         }
       }
-
+      // only 5 docs make a card and show to user
       const doctors = matchedDoctors.slice(0, 5).map(doc => ({
         doctorId: doc._id,
         name: doc.name,

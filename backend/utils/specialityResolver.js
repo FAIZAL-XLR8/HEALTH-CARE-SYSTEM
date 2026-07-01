@@ -40,7 +40,7 @@ const resolveSpecialty = async (userInput) => {
 
   // 2. Fuzzy match check using Fuse.js
   const fuzzy = fuse.search(trimmedInput);
-  if (fuzzy.length && fuzzy[0].score <= 0.3) {
+  if (fuzzy.length && fuzzy[0].score <= 0.3) { // this means if >=70 % match then send it
     console.log(`🎯 [Specialty Resolver] Fuzzy matched "${trimmedInput}" to whitelisted "${fuzzy[0].item}" (score: ${fuzzy[0].score})`);
     return [fuzzy[0].item];
   }

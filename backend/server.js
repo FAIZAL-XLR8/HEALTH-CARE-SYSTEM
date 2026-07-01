@@ -46,11 +46,6 @@ app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), pay
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.post('/api/client-log', (req, res) => {
-  const fs = require('fs');
-  fs.appendFileSync('socket_debug.log', `[Client Log] ${req.body.message}\n`);
-  res.sendStatus(200);
-});
 
 // API Routes Configuration
 const apiRoutes = require('./routes/api');
@@ -58,17 +53,7 @@ const authRoutes = require('./routes/auth');
 app.use('/api', apiRoutes);
 app.use('/api/auth', authRoutes);
 
-// Register 2:00 AM Daily Cron Ingestion Scheduler
-const cron = require('node-cron');
-const { executeCronDailyScrape } = require('./services/scraperService');
 
-cron.schedule('0 2 * * *', async () => {
-  try {
-    await executeCronDailyScrape();
-  } catch (err) {
-    console.error('Scheduled cron scraping pipeline failed:', err);
-  }
-});
 
 // Basic Route for verification
 app.get('/api/health', (req, res) => {

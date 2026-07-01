@@ -1,11 +1,4 @@
 const puppeteer = require('puppeteer');
-
-/**
- * Scrapes doctors from Lybrate for a given city and specialty.
- * @param {string} city - The city (e.g. 'Jamshedpur', 'Bangalore')
- * @param {string} specialty - The medical specialty (e.g. 'ENT', 'Cardiologist')
- * @returns {Promise<Array>} List of scraped doctor records
- */
 async function scrapeLybrateDoctors(city, specialty) {
   // Normalize city slug for Lybrate's direct path structure (e.g. 'bengaluru' -> 'bangalore')
   let citySlug = city.toLowerCase().trim().replace(/\s+/g, '-');
@@ -36,6 +29,17 @@ async function scrapeLybrateDoctors(city, specialty) {
   });
 
   try {
+    // 2 j javascript world --> node js and chrome jisme execute krna hai scrapper code
+    // chrome world scrapper wala usko speciality ni pata usko batane ke liye last me likhna pdta
+    
+    //1 --> target url
+    //2 --> broswer --> headless -> visible ni hargag lekn chrome khulega background me
+    //3 --> new page in broswe
+    //4 --> desktop mode 
+    //5 user agent --> chrome taaki lybrate ko lge ki human hai koi robot nai
+    // then go to tagret url --> 30 sec timeout 
+    // 2 sec ruko render 
+    // then start extracting
     const page = await browser.newPage();
     // Emulate a standard screen desktop browser
     await page.setViewport({ width: 1280, height: 800 });
@@ -50,11 +54,10 @@ async function scrapeLybrateDoctors(city, specialty) {
     await new Promise(r => setTimeout(r, 2000));
 
     // Extract elements from browser DOM
-    const doctors = await page.evaluate((specialty, city) => {
+    const doctors = await page.evaluate((specialty) => {
       // Find cards by matching Lybrate's unique CSS namespace
       const cards = document.querySelectorAll('div[class*="doctorCard_cardContainer"]');
       const results = [];
-      const cityLower = city.toLowerCase();
 
       cards.forEach(card => {
         // Match child elements using wildcard selectors
@@ -64,22 +67,6 @@ async function scrapeLybrateDoctors(city, specialty) {
         const clinicNode = card.querySelector('[class*="doctorCard_locationName"]');
 
         const clinicNameText = clinicNode ? clinicNode.innerText.trim() : '';
-        const addressLower = clinicNameText.toLowerCase();
-
-        // Strict local city filtering to prevent listing sponsored doctors from other cities
-        let cityMatches = false;
-        if (cityLower === 'bengaluru' || cityLower === 'bangalore') {
-          cityMatches = addressLower.includes('bangalore') || addressLower.includes('bengaluru');
-        } else if (cityLower === 'delhi' || cityLower === 'new delhi') {
-          cityMatches = addressLower.includes('delhi') || addressLower.includes('new delhi') || addressLower.includes('ncr');
-        } else {
-          cityMatches = addressLower.includes(cityLower);
-        }
-
-        // If the card clinic address is present and doesn't contain our target city name, ignore it!
-        if (clinicNameText && !cityMatches) {
-          return;
-        }
 
         const name = nameNode ? nameNode.innerText.trim().replace(/^Dr\.\s+/i, '') : null;
         const experience = expNode ? parseInt(expNode.innerText.replace(/[^0-9]/g, ''), 10) : 10;
@@ -111,7 +98,7 @@ async function scrapeLybrateDoctors(city, specialty) {
       });
 
       return results;
-    }, specialty, city);
+    }, specialty);
 
     console.log(`🕵️ [Lybrate Scraper] Extracted ${doctors.length} doctors from DOM.`);
     return doctors;

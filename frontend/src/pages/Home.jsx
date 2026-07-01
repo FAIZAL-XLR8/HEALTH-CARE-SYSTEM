@@ -3,8 +3,7 @@ import { Search, MapPin, Stethoscope, TestTube, Brain, HeartPulse, ShieldCheck, 
 import hospital from '../assets/hospital_pic.jpg';
 import { motion } from 'framer-motion';
 import { TypeAnimation } from 'react-type-animation';
-
-
+import './Home.css';
 
 // Reusable Framer Motion variants for structured animation sequence
 const containerVariants = {
@@ -148,30 +147,14 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
         // Sequential matching check (fzf-style fuzzy search)
         let qIdx = 0;
         let matchCount = 0;
-        for (let i = 0; i < specLower.length; i++) {
-          if (specLower[i] === cleanQuery[qIdx]) {
+        for (let char of specLower) {
+          if (qIdx < cleanQuery.length && char === cleanQuery[qIdx]) {
             qIdx++;
-            if (qIdx === cleanQuery.length) {
-              matchCount = cleanQuery.length;
-              break;
-            }
+            matchCount++;
           }
         }
         if (matchCount === cleanQuery.length) {
-          score = 50;
-        } else {
-          // Check for high character intersection (helpful for typos)
-          let matchingChars = 0;
-          const specChars = new Set(specLower);
-          for (const char of cleanQuery) {
-            if (specChars.has(char)) {
-              matchingChars++;
-            }
-          }
-          const similarity = matchingChars / Math.max(cleanQuery.length, 1);
-          if (similarity > 0.75) {
-            score = 30 + Math.floor(similarity * 20);
-          }
+          score = 50 + (matchCount / specLower.length) * 20;
         }
       }
       return { spec, score };
@@ -180,13 +163,14 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
     return scored
       .filter(item => item.score > 0)
       .sort((a, b) => b.score - a.score)
-      .map(item => item.spec);
+      .map(item => item.spec)
+      .slice(0, 7);
   };
 
   const suggestions = getFilteredSpecialties();
 
   const handleSearchSubmit = (e) => {
-    e?.preventDefault();
+    e.preventDefault();
     if (!searchQuery) return;
     let queryVal = searchQuery.trim();
     // Normalize specialty terms for clean database queries
@@ -229,41 +213,25 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        style={{ maxWidth: '1100px', margin: '0 auto', padding: '60px 24px', display: 'flex', flexDirection: 'column', gap: '50px', position: 'relative', zIndex: 10 }}
+        className="home-container"
       >
 
-        {/* 🚀 Hero Headline Section */}
+        {/* Hero Headline Section */}
         <motion.section
           variants={containerVariants}
-          style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '750px', margin: '0 auto' }}
+          className="home-hero"
         >
           <motion.span
             variants={badgeVariants}
-            style={{
-              background: 'rgba(6, 182, 212, 0.1)',
-              border: '1px solid rgba(6, 182, 212, 0.25)',
-              color: 'var(--primary-neon)',
-              padding: '6px 16px',
-              borderRadius: '50px',
-              fontSize: '0.78rem',
-              fontWeight: 600,
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-              alignSelf: 'center',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
+            className="home-badge"
           >
             <HeartPulse size={14} />
            Bengaluru's Leading Healthcare Platform
           </motion.span>
           <motion.h1
             variants={headingVariants}
-            style={{ fontSize: '3.1rem', fontWeight: 800, color: '#fff', lineHeight: '1.2' }}
+            className="home-heading"
           >
-
-
             <TypeAnimation
               sequence={[
                 'Consult Doctors Instantly',
@@ -272,8 +240,6 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
                 2000,
                 'Find the Right Specialist',
                 2000,
-
-
               ]}
               wrapper="span"
               speed={150}
@@ -284,35 +250,33 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
               }}
               repeat={Infinity}
             />
-
           </motion.h1>
           <motion.p
             variants={descriptionVariants}
-            style={{ fontSize: '1.05rem', color: 'var(--text-muted)', lineHeight: '1.6' }}
+            className="home-description"
           >
             Easily find nearby doctors, specialists, and medical clinics. Compare prices in real-time, locate registered clinics close to you, and consult with our helpful AI health assistants.
           </motion.p>
         </motion.section>
 
-        {/* 🔍 Dynamic Skyscanner-Style Search Console */}
+        {/* Dynamic Search Console */}
         <motion.section
           variants={searchCardVariants}
-          className="glass-panel"
-          style={{ padding: '24px', maxWidth: '850px', width: '100%', margin: '0 auto', position: 'relative', zIndex: 10 }}
+          className="glass-panel home-search-panel"
         >
           {/* Section Header */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+          <div className="home-search-header">
             <Stethoscope size={18} style={{ color: 'var(--primary-neon)' }} />
-            <h2 style={{ fontSize: '1.1rem', color: '#ffffff', fontWeight: 700, margin: 0, fontFamily: 'Outfit', letterSpacing: '-0.02em' }}>
+            <h2 className="home-search-title">
               Find Doctors
             </h2>
           </div>
 
           {/* Input Form Grid */}
-          <form onSubmit={handleSearchSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: '12px', alignItems: 'center' }}>
+          <form onSubmit={handleSearchSubmit} className="home-search-form">
 
             {/* Query input */}
-            <div style={{ position: 'relative' }}>
+            <div className="home-search-input-wrapper">
               <Search style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255, 255, 255, 0.3)' }} size={18} />
               <input
                 type="text"
@@ -321,44 +285,17 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
                 onFocus={() => setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 placeholder="Specialty (e.g. ENT, Dentist, Gynaecologist)..."
-                style={{
-                  width: '100%',
-                  background: 'rgba(0,0,0,0.2)',
-                  border: '1px solid var(--card-border)',
-                  borderRadius: '8px',
-                  padding: '14px 16px 14px 40px',
-                  color: '#fff',
-                  fontSize: '0.88rem',
-                  outline: 'none'
-                }}
+                className="home-search-input"
               />
 
-              {/* Practo-style Common Specialties Dropdown suggestions */}
+              {/* Suggestions Dropdown */}
               {showSuggestions && (
-                <div
-                  className="glass-panel"
-                  style={{
-                    position: 'absolute',
-                    top: '100%',
-                    left: 0,
-                    width: '100%',
-                    zIndex: 1000,
-                    marginTop: '8px',
-                    maxHeight: '320px',
-                    overflowY: 'auto',
-                    background: 'rgba(13, 17, 29, 0.95)',
-                    border: '1px solid rgba(6, 182, 212, 0.35)',
-                    boxShadow: '0 8px 30px rgba(6, 182, 212, 0.25)',
-                    borderRadius: '8px',
-                    padding: '8px 0',
-                    textAlign: 'left'
-                  }}
-                >
-                  <div style={{ padding: '8px 16px', fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid var(--card-border)', marginBottom: '4px' }}>
+                <div className="glass-panel home-suggestions-panel">
+                  <div className="home-suggestions-header">
                     {searchQuery.trim() ? 'Suggested Specialities' : 'Common Specialities'}
                   </div>
                   {suggestions.length === 0 ? (
-                    <div style={{ padding: '16px', fontSize: '0.82rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+                    <div className="home-suggestions-empty">
                       No matching specialties found. Try searching anyway!
                     </div>
                   ) : (
@@ -366,23 +303,13 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
                       <div
                         key={spec}
                         onMouseDown={() => handleSpecialtySelect(spec)}
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          padding: '10px 16px',
-                          fontSize: '0.82rem',
-                          color: '#fff',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s'
-                        }}
-                        className="suggestion-item"
+                        className="home-suggestion-item suggestion-item"
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Search size={14} style={{ color: 'var(--text-muted)' }} />
                           <span>{spec}</span>
                         </div>
-                        <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
+                        <span className="home-suggestion-label">
                           SPECIALITY
                         </span>
                       </div>
@@ -392,36 +319,20 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
               )}
             </div>
 
-
-
             {/* Search Button */}
             <motion.button
               variants={searchButtonHoverVariants}
               whileHover="hover"
               type="submit"
-              style={{
-                background: 'linear-gradient(90deg, var(--secondary-neon), #059669)',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '14px',
-                fontSize: '0.88rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px'
-              }}
+              className="home-search-btn"
             >
               Search
             </motion.button>
           </form>
 
           {/* Quick Tags under the search console */}
-          <div style={{ marginTop: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Popular in Bengaluru:</span>
+          <div className="home-quick-tags">
+            <span className="home-quick-tag-label">Popular in Bengaluru:</span>
             {['ENT', 'Cardiologist', 'General Physician'].map(tag => (
               <button
                 key={tag}
@@ -429,15 +340,7 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
                   setSearchQuery(tag);
                   onSearch({ type: 'doctors', query: tag });
                 }}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid var(--card-border)',
-                  color: 'var(--text-muted)',
-                  fontSize: '0.72rem',
-                  padding: '4px 10px',
-                  borderRadius: '50px',
-                  cursor: 'pointer'
-                }}
+                className="home-quick-tag-btn"
               >
                 {tag}
               </button>
@@ -445,87 +348,41 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
           </div>
         </motion.section>
 
-        {/* 🤖 Advanced AI Features Suite */}
+        {/* AI Features Suite */}
         <motion.section
           variants={featuresContainerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
-          style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
+          className="home-features-section"
         >
-          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', fontFamily: 'Outfit' }}>
+          <div className="home-features-header">
+            <h2 className="home-features-title">
               Explore Our AI Powered Health Tools
             </h2>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: '600px', margin: '0 auto' }}>
-              We help you read handwritten prescriptions,know general uses and side effects of Prescribed Medicines and connect you with the right doctor in just a few clicks.
-
+            <p className="home-features-subtitle">
+              We help you read handwritten prescriptions, know general uses and side effects of Prescribed Medicines and connect you with the right doctor in just a few clicks.
             </p>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '80px', marginTop: '40px', width: '100%' }}>
+          <div className="home-features-stack">
 
             {/* Feature 1: Report Analyzer */}
-            <motion.div
-              variants={featureCardVariants}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-                gap: '50px',
-                alignItems: 'center',
-                width: '100%',
-                maxWidth: '1100px',
-                margin: '0 auto'
-              }}
-            >
+            <motion.div variants={featureCardVariants} className="home-feature-card">
               {/* Text Info */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <span style={{
-                  fontSize: '0.72rem',
-                  color: 'var(--primary-neon)',
-                  fontWeight: 700,
-                  background: 'rgba(6, 182, 212, 0.08)',
-                  padding: '6px 12px',
-                  borderRadius: '50px',
-                  alignSelf: 'flex-start',
-                  letterSpacing: '0.08em',
-                  fontFamily: 'Outfit'
-                }}>
+              <div className="home-feature-info">
+                <span className="home-feature-badge-cyan">
                   AI REPORT ANALYZER
                 </span>
-                <h3 style={{ fontSize: '2rem', color: '#fff', fontWeight: 800, fontFamily: 'Outfit', lineHeight: '1.25' }}>
+                <h3 className="home-feature-title">
                   Understand Your Laboratory Reports
                 </h3>
-                <p style={{ fontSize: '0.92rem', color: 'var(--text-muted)', lineHeight: '1.7' }}>
+                <p className="home-feature-desc">
                   Simply upload any blood test, lab PDF, or paper scan. Our AI translates it into simple language, highlights abnormal values, and explains what they mean for your body.
                 </p>
                 <button
                   onClick={() => onNavigate && onNavigate('reports')}
-                  style={{
-                    background: 'var(--primary-neon)',
-                    border: 'none',
-                    color: '#000000',
-                    borderRadius: '50px',
-                    padding: '14px 28px',
-                    fontSize: '0.85rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    width: 'fit-content',
-                    boxShadow: '0 4px 20px rgba(6, 182, 212, 0.25)',
-                    transition: 'all 0.25s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 6px 24px rgba(6, 182, 212, 0.4)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 20px rgba(6, 182, 212, 0.25)';
-                  }}
+                  className="home-feature-btn-cyan"
                 >
                   Analyze My Reports
                   <ArrowRight size={16} />
@@ -533,53 +390,40 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
               </div>
 
               {/* Visual Mockup Column */}
-              <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', height: '360px' }}>
-                {/* Background Glow */}
-                <div className="glow-backdrop" style={{ background: 'rgba(6, 182, 212, 0.25)' }} />
+              <div className="home-feature-visual">
+                <div className="home-glow-backdrop glow-backdrop" style={{ background: 'rgba(6, 182, 212, 0.25)' }} />
 
-                {/* Main Card (Hinged UI mock) */}
-                <div className="glass-panel float-card-anim" style={{
-                  width: '100%',
-                  maxWidth: '380px',
-                  padding: '24px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '16px',
-                  borderRadius: '16px',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
-                  zIndex: 1
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {/* Main Card */}
+                <div className="glass-panel home-mock-card float-card-anim">
+                  <div className="home-mock-card-header">
+                    <div className="home-mock-card-status">
                       <span className="pulse-status" style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
                       <span style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600, letterSpacing: '0.05em' }}>REPORT ANALYSIS ACTIVE</span>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.8rem', color: '#fff' }}>
+                  <div className="home-mock-card-items">
+                    <div className="home-mock-card-item">
                       <span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span>
                       <span>Read blood report scan (PDF)</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.8rem', color: '#fff' }}>
+                    <div className="home-mock-card-item">
                       <span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span>
                       <span>Convert medical metrics to logs</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.8rem', color: '#fff' }}>
+                    <div className="home-mock-card-item">
                       <span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span>
                       <span style={{ color: '#f43f5e', fontWeight: 600 }}>Flag: Cholesterol level (High)</span>
                     </div>
-
                   </div>
 
-                  <div style={{ marginTop: '6px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '12px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#9ca3af', marginBottom: '6px' }}>
+                  <div className="home-mock-progress-wrapper">
+                    <div className="home-mock-progress-info">
                       <span>PARSING COMPLETION</span>
                       <span style={{ color: 'var(--primary-neon)', fontWeight: 'bold' }}>75%</span>
                     </div>
-                    <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.06)', borderRadius: '3px', overflow: 'hidden' }}>
-                      <div style={{ width: '75%', height: '100%', background: 'linear-gradient(to right, var(--primary-neon), var(--secondary-neon))', borderRadius: '3px' }} />
+                    <div className="home-mock-progress-bar">
+                      <div className="home-mock-progress-fill" />
                     </div>
                   </div>
                 </div>
@@ -587,43 +431,17 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
             </motion.div>
 
             {/* Feature 2: Prescription Scanner */}
-            <motion.div
-              variants={featureCardVariants}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-                gap: '50px',
-                alignItems: 'center',
-                width: '100%',
-                maxWidth: '1100px',
-                margin: '0 auto'
-              }}
-            >
-              {/* Visual Mockup Column (Appears on left on desktop due to alternating grid) */}
-              <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', height: '360px' }}>
-                {/* Background Glow */}
-                <div className="glow-backdrop" style={{ background: 'rgba(16, 185, 129, 0.2)' }} />
+            <motion.div variants={featureCardVariants} className="home-feature-card">
+              {/* Visual Mockup Column */}
+              <div className="home-feature-visual">
+                <div className="home-glow-backdrop glow-backdrop" style={{ background: 'rgba(16, 185, 129, 0.2)' }} />
 
                 {/* Main Card */}
-                <div className="glass-panel float-card-anim" style={{
-                  width: '100%',
-                  maxWidth: '380px',
-                  padding: '24px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '16px',
-                  borderRadius: '16px',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
-                  zIndex: 1,
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}>
-                  {/* Sliding green laser line scanner */}
+                <div className="glass-panel home-mock-card float-card-anim">
                   <div className="laser-scanner-line" />
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className="home-mock-card-header">
+                    <div className="home-mock-card-status">
                       <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: 'var(--secondary-neon)', padding: '4px', borderRadius: '6px', display: 'flex' }}><Pill size={14} /></span>
                       <span style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600, letterSpacing: '0.05em' }}>PRESCRIPTION SCANNER</span>
                     </div>
@@ -631,23 +449,23 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <div>
-                      <span style={{ fontSize: '0.65rem', color: 'var(--secondary-neon)', fontWeight: 600, display: 'block', textTransform: 'uppercase', marginBottom: '2px' }}>Extracted Drug</span>
-                      <span style={{ fontSize: '0.92rem', color: '#ffffff', fontWeight: 700 }}>Amoxicillin (500mg)</span>
+                      <span className="home-mock-drug-header">Extracted Drug</span>
+                      <span className="home-mock-drug-val">Amoxicillin (500mg)</span>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '12px' }}>
+                    <div className="home-mock-drug-grid">
                       <div>
-                        <span style={{ fontSize: '0.65rem', color: 'var(--secondary-neon)', fontWeight: 600, display: 'block', textTransform: 'uppercase', marginBottom: '2px' }}>Reason for Use</span>
+                        <span className="home-mock-drug-header">Reason for Use</span>
                         <span style={{ fontSize: '0.78rem', color: '#e5e7eb' }}>Bacterial Infection</span>
                       </div>
                       <div>
-                        <span style={{ fontSize: '0.65rem', color: 'var(--secondary-neon)', fontWeight: 600, display: 'block', textTransform: 'uppercase', marginBottom: '2px' }}>Standard Usage</span>
+                        <span className="home-mock-drug-header">Standard Usage</span>
                         <span style={{ fontSize: '0.78rem', color: '#e5e7eb' }}>1 Capsule every 8h</span>
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', background: 'rgba(0,0,0,0.2)', padding: '10px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      <span style={{ fontSize: '0.65rem', color: 'var(--secondary-neon)', fontWeight: 600, textTransform: 'uppercase' }}>Precautions</span>
+                    <div className="home-mock-drug-safety">
+                      <span className="home-mock-drug-header">Precautions</span>
                       <ul style={{ margin: 0, paddingLeft: '12px', fontSize: '0.7rem', color: '#9ca3af' }}>
                         <li>Take post meals with warm water</li>
                         <li>Avoid dairy products</li>
@@ -658,53 +476,19 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
               </div>
 
               {/* Text Info */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <span style={{
-                  fontSize: '0.72rem',
-                  color: 'var(--secondary-neon)',
-                  fontWeight: 700,
-                  background: 'rgba(16, 185, 129, 0.08)',
-                  padding: '6px 12px',
-                  borderRadius: '50px',
-                  alignSelf: 'flex-start',
-                  letterSpacing: '0.08em',
-                  fontFamily: 'Outfit'
-                }}>
+              <div className="home-feature-info">
+                <span className="home-feature-badge-green">
                   PRESCRIPTION TRANSLATOR
                 </span>
-                <h3 style={{ fontSize: '2rem', color: '#fff', fontWeight: 800, fontFamily: 'Outfit', lineHeight: '1.25' }}>
+                <h3 className="home-feature-title">
                   Scan & Decode Your Prescription
                 </h3>
-                <p style={{ fontSize: '0.92rem', color: 'var(--text-muted)', lineHeight: '1.7' }}>
+                <p className="home-feature-desc">
                   Simply take a snapshot of your written prescription page. Our system scans the image, lists the medicine names clearly, explains dosage frequencies, and provides safety precaution alerts, side effects and general uses of medicince.
                 </p>
                 <button
                   onClick={() => onNavigate && onNavigate('prescription')}
-                  style={{
-                    background: 'var(--secondary-neon)',
-                    border: 'none',
-                    color: '#000000',
-                    borderRadius: '50px',
-                    padding: '14px 28px',
-                    fontSize: '0.85rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    width: 'fit-content',
-                    boxShadow: '0 4px 20px rgba(16, 185, 129, 0.25)',
-                    transition: 'all 0.25s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 6px 24px rgba(16, 185, 129, 0.4)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 20px rgba(16, 185, 129, 0.25)';
-                  }}
+                  className="home-feature-btn-green"
                 >
                   Scan Prescription
                   <ArrowRight size={16} />
@@ -713,67 +497,22 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
             </motion.div>
 
             {/* Feature 3: Symptom Chatbot */}
-            <motion.div
-              variants={featureCardVariants}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-                gap: '50px',
-                alignItems: 'center',
-                width: '100%',
-                maxWidth: '1100px',
-                margin: '0 auto'
-              }}
-            >
+            <motion.div variants={featureCardVariants} className="home-feature-card">
               {/* Text Info */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <span style={{
-                  fontSize: '0.72rem',
-                  color: 'var(--primary-neon)',
-                  fontWeight: 700,
-                  background: 'rgba(6, 182, 212, 0.08)',
-                  padding: '6px 12px',
-                  borderRadius: '50px',
-                  alignSelf: 'flex-start',
-                  letterSpacing: '0.08em',
-                  fontFamily: 'Outfit'
-                }}>
+              <div className="home-feature-info">
+                <span className="home-feature-badge-cyan">
                   VIRTUAL HEALTH CARE
                 </span>
-                <h3 style={{ fontSize: '2rem', color: '#fff', fontWeight: 800, fontFamily: 'Outfit', lineHeight: '1.25' }}>
+                <h3 className="home-feature-title">
                   Consult Your 24/7 AI Health Advisor
                 </h3>
-                <p style={{ fontSize: '0.92rem', color: 'var(--text-muted)', lineHeight: '1.7' }}>
+                <p className="home-feature-desc">
                   Chat with our virtual clinical assistant, AeroBot. Explain how you feel in simple terms, and it will ask follow-up questions to understand your symptoms, advise on standard self-care steps, and recommend slots with matched local doctors.
                 </p>
 
                 <button
                   onClick={() => onOpenChat && onOpenChat()}
-                  style={{
-                    background: 'var(--primary-neon)',
-                    border: 'none',
-                    color: '#000000',
-                    borderRadius: '50px',
-                    padding: '14px 28px',
-                    fontSize: '0.85rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    width: 'fit-content',
-                    boxShadow: '0 4px 20px rgba(6, 182, 212, 0.25)',
-                    transition: 'all 0.25s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 6px 24px rgba(6, 182, 212, 0.4)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 20px rgba(6, 182, 212, 0.25)';
-                  }}
+                  className="home-feature-btn-cyan"
                 >
                   Consult Assistant
                   <ArrowRight size={16} />
@@ -781,25 +520,13 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
               </div>
 
               {/* Visual Mockup Column */}
-              <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', height: '360px' }}>
-                {/* Background Glow */}
-                <div className="glow-backdrop" style={{ background: 'rgba(6, 182, 212, 0.2)' }} />
+              <div className="home-feature-visual">
+                <div className="home-glow-backdrop glow-backdrop" style={{ background: 'rgba(6, 182, 212, 0.2)' }} />
 
                 {/* Main Card */}
-                <div className="glass-panel float-card-anim" style={{
-                  width: '100%',
-                  maxWidth: '380px',
-                  padding: '20px 24px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px',
-                  borderRadius: '16px',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
-                  zIndex: 1
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="glass-panel home-mock-card float-card-anim">
+                  <div className="home-mock-card-header">
+                    <div className="home-mock-card-status">
                       <span className="pulse-status" style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
                       <span style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600, letterSpacing: '0.05em' }}>AEROBOT VIRTUAL HELPER</span>
                     </div>
@@ -807,45 +534,20 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
 
                   {/* Chat Dialog simulation */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '180px', overflowY: 'hidden' }}>
-                    <div style={{
-                      alignSelf: 'flex-start',
-                      background: 'rgba(255,255,255,0.04)',
-                      padding: '8px 12px',
-                      borderRadius: '12px 12px 12px 4px',
-                      fontSize: '0.72rem',
-                      color: '#e5e7eb',
-                      maxWidth: '85%'
-                    }}>
+                    <div className="home-mock-chat-bubble-ai">
                       Hi! Explain your symptoms in simple terms.
                     </div>
-                    <div style={{
-                      alignSelf: 'flex-end',
-                      background: 'var(--primary-neon)',
-                      padding: '8px 12px',
-                      borderRadius: '12px 12px 4px 12px',
-                      fontSize: '0.72rem',
-                      color: '#000000',
-                      fontWeight: 600,
-                      maxWidth: '85%'
-                    }}>
+                    <div className="home-mock-chat-bubble-user">
                       I have a mild fever and a dry cough since yesterday.
                     </div>
-                    <div style={{
-                      alignSelf: 'flex-start',
-                      background: 'rgba(255,255,255,0.04)',
-                      padding: '8px 12px',
-                      borderRadius: '12px 12px 12px 4px',
-                      fontSize: '0.72rem',
-                      color: '#e5e7eb',
-                      maxWidth: '85%'
-                    }}>
+                    <div className="home-mock-chat-bubble-ai">
                       Rest is advised. Let's find you slot bookings with local Physicians?
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                    <span style={{ background: 'rgba(6, 182, 212, 0.1)', color: 'var(--primary-neon)', border: '1px solid rgba(6, 182, 212, 0.25)', borderRadius: '20px', padding: '4px 10px', fontSize: '0.65rem', fontWeight: 600 }}>Book Doctor 📅</span>
-                    <span style={{ background: 'rgba(255,255,255,0.03)', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '20px', padding: '4px 10px', fontSize: '0.65rem' }}>Precautions</span>
+                  <div className="home-mock-chat-tags">
+                    <span style={{ background: 'rgba(6, 182, 212, 0.1)', color: 'var(--primary-neon)', border: '1px solid rgba(6, 182, 212, 0.25)', borderRadius: '20px', padding: '4px 10px', fontSize: '0.65rem', fontWeight: 600 }}>Book Doctor</span>
+                    <span style={{ background: 'rgba(255, 255, 255, 0.03)', color: '#9ca3af', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '20px', padding: '4px 10px', fontSize: '0.65rem' }}>Precautions</span>
                   </div>
                 </div>
               </div>
@@ -853,8 +555,6 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
 
           </div>
         </motion.section>
-
-
 
         <style dangerouslySetInnerHTML={{
           __html: `
@@ -905,16 +605,6 @@ const Home = ({ onSearch, onNavigate, onOpenChat }) => {
         .bar-grow-anim {
           transform-origin: bottom;
           animation: barGrow 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        .glow-backdrop {
-          position: absolute;
-          width: 280px;
-          height: 280px;
-          filter: blur(80px);
-          border-radius: 50%;
-          z-index: 0;
-          pointer-events: none;
-          animation: glowPulse 4.5s ease-in-out infinite alternate;
         }
       `}} />
       </motion.div>

@@ -390,9 +390,9 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                             }`
                           }}
                         >
-                          {msg.triage.priority === 'High' ? '🔴 URGENT ATTENTION' :
-                           msg.triage.priority === 'Medium' ? '🟡 SCHEDULE APPOINTMENT' : 
-                           '🟢 SELF-CARE / ROUTINE'}
+                          {msg.triage.priority === 'High' ? 'URGENT ATTENTION' :
+                           msg.triage.priority === 'Medium' ? 'SCHEDULE APPOINTMENT' : 
+                           'SELF-CARE / ROUTINE'}
                         </span>
                       </div>
 
@@ -490,7 +490,7 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                           </span>
                           {doc.address && (
                             <span style={{ fontSize: '0.68rem', color: '#4b5563', display: 'block', fontStyle: 'italic', wordBreak: 'break-word' }}>
-                              📍 {doc.address}
+                              {doc.address}
                             </span>
                           )}
 

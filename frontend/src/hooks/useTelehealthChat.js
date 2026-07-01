@@ -20,8 +20,8 @@ export const useTelehealthChat = ({ socket, user, appointmentId, role }) => {
 
   const counterpartId = appointment
     ? (role === 'doctor' 
-        ? (appointment.patientId?._id || appointment.patientId || appointment.patient?._id || appointment.patient) 
-        : (appointment.doctorId?._id || appointment.doctorId || appointment.doctor?._id || appointment.doctor)
+        ? (appointment.patientId?._id || appointment.patientId) 
+        : (appointment.doctorId?._id || appointment.doctorId)
       )
     : null;
 
@@ -85,7 +85,7 @@ export const useTelehealthChat = ({ socket, user, appointmentId, role }) => {
   useEffect(() => {
     if (appointment) {
       if (role === 'patient') {
-        const doc = appointment.doctor || appointment.doctorId;
+        const doc = appointment.doctorId;
         if (doc) {
           setCounterpartPresence({
             online: doc.isOnline || false,
@@ -93,7 +93,7 @@ export const useTelehealthChat = ({ socket, user, appointmentId, role }) => {
           });
         }
       } else if (role === 'doctor') {
-        const pat = appointment.patientId || appointment.patient;
+        const pat = appointment.patientId;
         if (pat) {
           setCounterpartPresence({
             online: pat.isOnline || false,

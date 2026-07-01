@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, CheckCircle, XCircle, AlertTriangle, FileText, Phone, Mail, User, Briefcase, IndianRupee, Clock } from 'lucide-react';
+import { showFlash } from '../components/FlashMessage';
+import './AdminDashboard.css';
 
 const AdminDashboard = () => {
   const [doctors, setDoctors] = useState([]);
@@ -44,21 +46,21 @@ const AdminDashboard = () => {
       });
       const data = await res.json();
       if (res.ok) {
-        alert('Doctor application approved successfully.');
+        showFlash('Doctor application approved successfully.', 'success');
         fetchDoctors();
       } else {
-        alert(data.message || 'Failed to approve doctor.');
+        showFlash(data.message || 'Failed to approve doctor.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('Error connecting to approve doctor.');
+      showFlash('Error connecting to approve doctor.', 'error');
     }
   };
 
   const handleRejectSubmit = async (doctorId) => {
     const reason = rejectionReasons[doctorId];
     if (!reason || !reason.trim()) {
-      alert('Please enter a rejection reason.');
+      showFlash('Please enter a rejection reason.', 'warning');
       return;
     }
 
@@ -73,21 +75,19 @@ const AdminDashboard = () => {
       });
       const data = await res.json();
       if (res.ok) {
-        alert('Doctor application rejected. Simulated notification email logged.');
+        showFlash('Doctor application rejected. Simulated notification email logged.', 'success');
         // Clear input states
         setRejectionReasons(prev => ({ ...prev, [doctorId]: '' }));
         setShowRejectInput(prev => ({ ...prev, [doctorId]: false }));
         fetchDoctors();
       } else {
-        alert(data.message || 'Failed to reject doctor.');
+        showFlash(data.message || 'Failed to reject doctor.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('Error connecting to reject doctor.');
+      showFlash('Error connecting to reject doctor.', 'error');
     }
   };
-
-
 
   const pendingDocs = doctors.filter(d => d.status === 'pending');
   const activeDocs = doctors.filter(d => d.status === 'approved');
@@ -95,76 +95,58 @@ const AdminDashboard = () => {
   const suspendedDocs = doctors.filter(d => d.status === 'suspended');
 
   return (
-    <div style={{
-      maxWidth: '1200px',
-      margin: '40px auto',
-      padding: '0 24px',
-      fontFamily: 'Outfit, sans-serif',
-      color: '#fff'
-    }}>
+    <div className="admin-container">
       {/* Header HUD */}
-      <div className="glass-panel" style={{
-        padding: '30px',
-        marginBottom: '30px',
-        background: 'linear-gradient(135deg, rgba(13, 17, 29, 0.75) 0%, rgba(22, 28, 45, 0.75) 100%)',
-        border: '1px solid rgba(244, 63, 94, 0.2)',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
-        borderRadius: '16px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '20px'
-      }}>
+      <div className="admin-header glass-panel">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-            <Shield size={32} style={{ color: '#f43f5e' }} />
-            <h1 style={{ fontSize: '2rem', fontWeight: 800, margin: 0, background: 'linear-gradient(to right, #ffffff, #f43f5e)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          <div className="admin-header-title-row">
+            <Shield size={32} className="admin-header-icon" />
+            <h1 className="admin-header-title">
               Verification Authority Dashboard
             </h1>
           </div>
-          <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.9rem' }}>
+          <p className="admin-header-desc">
             Review, verify credentials, examine uploaded IDs, and approve or reject medical doctor applications.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '15px' }}>
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--card-border)', borderRadius: '10px', padding: '12px 18px', textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary-neon)' }}>{pendingDocs.length}</div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Pending</div>
+        <div className="admin-stats-row">
+          <div className="admin-stat-card">
+            <div className="admin-stat-number" style={{ color: 'var(--primary-neon)' }}>{pendingDocs.length}</div>
+            <div className="admin-stat-label">Pending</div>
           </div>
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--card-border)', borderRadius: '10px', padding: '12px 18px', textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--secondary-neon)' }}>{activeDocs.length}</div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Approved</div>
+          <div className="admin-stat-card">
+            <div className="admin-stat-number" style={{ color: 'var(--secondary-neon)' }}>{activeDocs.length}</div>
+            <div className="admin-stat-label">Approved</div>
           </div>
         </div>
       </div>
 
       {error && (
-        <div style={{ background: 'rgba(244, 63, 94, 0.1)', border: '1px solid rgba(244, 63, 94, 0.25)', color: 'var(--accent-alert)', padding: '15px', borderRadius: '10px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div className="admin-error-banner">
           <AlertTriangle size={20} />
           <span>{error}</span>
         </div>
       )}
 
       {isLoading ? (
-        <div style={{ textAlign: 'center', padding: '80px 0' }}>
-          <div className="spinner" style={{ width: '40px', height: '40px', border: '3px solid rgba(244,63,94,0.1)', borderTopColor: '#f43f5e', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 20px auto' }}></div>
-          <p style={{ color: 'var(--text-muted)' }}>Loading doctor applications matrix...</p>
+        <div className="admin-loading-container">
+          <div className="admin-spinner spinner"></div>
+          <p className="admin-loading-text">Loading doctor applications matrix...</p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+        <div className="admin-sections-stack">
           
-          {/* 🌟 1. Pending Verification Section */}
+          {/* 1. Pending Verification Section */}
           <section>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', color: 'var(--primary-neon)' }}>
-              <span>⏳</span> Pending Applications ({pendingDocs.length})
+            <h2 className="admin-section-heading" style={{ color: 'var(--primary-neon)' }}>
+              Pending Applications ({pendingDocs.length})
             </h2>
             {pendingDocs.length === 0 ? (
-              <div className="glass-panel" style={{ padding: '30px', textAlign: 'center', color: 'var(--text-muted)', borderStyle: 'dashed' }}>
+              <div className="admin-empty-state glass-panel">
                 No pending doctor applications awaiting verification.
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
+              <div className="admin-pending-grid">
                 {pendingDocs.map(doc => (
                   <DoctorCard 
                     key={doc._id} 
@@ -181,17 +163,17 @@ const AdminDashboard = () => {
             )}
           </section>
 
-          {/* 🩺 2. Active Approved Doctors Section */}
+          {/* 2. Active Approved Doctors Section */}
           <section>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', color: 'var(--secondary-neon)' }}>
-              <span>✅</span> Approved Doctors ({activeDocs.length})
+            <h2 className="admin-section-heading" style={{ color: 'var(--secondary-neon)' }}>
+              Approved Doctors ({activeDocs.length})
             </h2>
             {activeDocs.length === 0 ? (
-              <div className="glass-panel" style={{ padding: '30px', textAlign: 'center', color: 'var(--text-muted)', borderStyle: 'dashed' }}>
+              <div className="admin-empty-state glass-panel">
                 No approved doctor accounts found.
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div className="admin-approved-grid">
                 {activeDocs.map(doc => (
                   <DoctorCardMini 
                     key={doc._id} 
@@ -203,24 +185,24 @@ const AdminDashboard = () => {
             )}
           </section>
 
-          {/* ❌ 3. Rejected & Suspended Accounts */}
+          {/* 3. Rejected & Suspended Accounts */}
           {(rejectedDocs.length > 0 || suspendedDocs.length > 0) && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+            <div className="admin-archived-row">
               <section>
-                <h2 style={{ fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: 'var(--accent-alert)' }}>
-                  <span>🚫</span> Rejected ({rejectedDocs.length})
+                <h2 className="admin-section-heading-archive" style={{ color: 'var(--accent-alert)' }}>
+                  Rejected ({rejectedDocs.length})
                 </h2>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div className="admin-flex-col">
                   {rejectedDocs.map(doc => (
                     <DoctorCardArchive key={doc._id} doc={doc} type="rejected" onApprove={handleApprove} />
                   ))}
                 </div>
               </section>
               <section>
-                <h2 style={{ fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: '#eab308' }}>
-                  <span>⚠️</span> Suspended ({suspendedDocs.length})
+                <h2 className="admin-section-heading-archive" style={{ color: '#eab308' }}>
+                  Suspended ({suspendedDocs.length})
                 </h2>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div className="admin-flex-col">
                   {suspendedDocs.map(doc => (
                     <DoctorCardArchive key={doc._id} doc={doc} type="suspended" onApprove={handleApprove} />
                   ))}
@@ -232,55 +214,23 @@ const AdminDashboard = () => {
         </div>
       )}
       <style dangerouslySetInnerHTML={{__html: `
-        .spinner {
-          border-right-color: transparent;
-        }
         @keyframes spin {
           to { transform: rotate(360deg); }
         }
       `}} />
 
       {suspendingDoctor && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.8)',
-          backdropFilter: 'blur(8px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999
-        }}>
-          <div className="glass-panel" style={{
-            background: 'linear-gradient(135deg, rgba(13, 17, 29, 0.95) 0%, rgba(22, 28, 45, 0.95) 100%)',
-            border: '1px solid rgba(234, 179, 8, 0.25)',
-            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.5)',
-            borderRadius: '16px',
-            maxWidth: '500px',
-            width: '100%',
-            padding: '30px',
-            boxSizing: 'border-box'
-          }}>
-            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '0 0 8px 0', color: '#fff', textAlign: 'center' }}>
+        <div className="admin-suspension-modal-overlay">
+          <div className="admin-suspension-modal-card glass-panel">
+            <h3 className="admin-suspension-modal-title">
               Confirm Account Suspension
             </h3>
-            <p style={{ fontSize: '0.95rem', color: '#94a3b8', textAlign: 'center', marginBottom: '24px' }}>
+            <p className="admin-suspension-modal-subtitle">
               Dr. {suspendingDoctor.name} ({suspendingDoctor.specialization || suspendingDoctor.specialty})
             </p>
 
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{
-                display: 'block',
-                fontSize: '0.78rem',
-                color: '#94a3b8',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                marginBottom: '8px'
-              }}>
+            <div className="admin-suspension-textarea-group">
+              <label className="admin-suspension-label">
                 Reason for Suspension *
               </label>
               <textarea
@@ -288,40 +238,18 @@ const AdminDashboard = () => {
                 onChange={(e) => setSuspensionReasonText(e.target.value)}
                 rows={5}
                 placeholder="Please enter the exact reason. This explanation will be included in the notification email sent to the doctor..."
-                style={{
-                  width: '100%',
-                  background: 'rgba(0, 0, 0, 0.3)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '8px',
-                  padding: '12px',
-                  color: '#fff',
-                  fontSize: '0.9rem',
-                  fontFamily: 'inherit',
-                  outline: 'none',
-                  resize: 'none',
-                  boxSizing: 'border-box'
-                }}
+                className="admin-suspension-textarea"
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+            <div className="admin-suspension-modal-footer">
               <button
                 disabled={submittingSuspension}
                 onClick={() => {
                   setSuspendingDoctor(null);
                   setSuspensionReasonText('');
                 }}
-                style={{
-                  flex: 1,
-                  background: 'transparent',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '8px',
-                  color: '#94a3b8',
-                  padding: '12px',
-                  fontSize: '0.85rem',
-                  fontWeight: 700,
-                  cursor: 'pointer'
-                }}
+                className="admin-suspension-btn-cancel"
               >
                 Cancel
               </button>
@@ -329,7 +257,7 @@ const AdminDashboard = () => {
                 disabled={submittingSuspension}
                 onClick={async () => {
                   if (!suspensionReasonText.trim()) {
-                    alert('Please enter a reason for suspension.');
+                    showFlash('Please enter a reason for suspension.', 'warning');
                     return;
                   }
                   if (!window.confirm('Are you sure you want to suspend this doctor account? They will lose access immediately.')) {
@@ -348,34 +276,23 @@ const AdminDashboard = () => {
                     });
                     const data = await res.json();
                     if (res.ok) {
-                      alert('Doctor account suspended successfully and notification email sent.');
+                      showFlash('Doctor account suspended successfully and notification email sent.', 'success');
                       setSuspendingDoctor(null);
                       setSuspensionReasonText('');
                       fetchDoctors();
                     } else {
-                      alert(data.message || 'Failed to suspend doctor.');
+                      showFlash(data.message || 'Failed to suspend doctor.', 'error');
                     }
                   } catch (err) {
                     console.error(err);
-                    alert('Error connecting to server.');
+                    showFlash('Error connecting to server.', 'error');
                   } finally {
                     setSubmittingSuspension(false);
                   }
                 }}
+                className="admin-suspension-btn-confirm"
                 style={{
-                  flex: 1,
-                  background: '#eab308',
-                  border: 'none',
-                  borderRadius: '8px',
-                  color: '#000',
-                  padding: '12px',
-                  fontSize: '0.85rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px'
+                  background: '#eab308'
                 }}
               >
                 {submittingSuspension ? 'Suspending...' : 'Confirm Suspension'}
@@ -391,168 +308,108 @@ const AdminDashboard = () => {
 // Component for a full pending application
 const DoctorCard = ({ doc, onApprove, onRejectSubmit, rejectionReason, setRejectionReason, showRejectInput, setShowRejectInput }) => {
   return (
-    <div className="glass-panel" style={{
-      padding: '24px',
-      background: 'rgba(17, 24, 39, 0.85)',
-      border: '1px solid rgba(6, 182, 212, 0.15)',
-      borderRadius: '12px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '20px'
-    }}>
+    <div className="admin-pending-card glass-panel">
       {/* Profile summary */}
-      <div style={{ display: 'flex', justifyContext: 'space-between', flexWrap: 'wrap', gap: '20px' }}>
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+      <div className="admin-pending-header">
+        <div className="admin-pending-profile-row">
           <img 
             src={doc.profileImage || `https://api.dicebear.com/7.x/adventurer/svg?seed=${doc.name}`} 
             alt="Doctor" 
-            style={{ width: '64px', height: '64px', borderRadius: '12px', objectFit: 'cover', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--card-border)' }}
+            className="admin-pending-avatar"
           />
           <div>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff', margin: '0 0 4px 0' }}>Dr. {doc.name}</h3>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', fontSize: '0.78rem', alignItems: 'center' }}>
-              <span style={{ color: 'var(--primary-neon)', background: 'rgba(6, 182, 212, 0.1)', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>{doc.specialization}</span>
+            <h3 className="admin-pending-name">Dr. {doc.name}</h3>
+            <div className="admin-pending-specialty-row">
+              <span className="admin-pending-specialty">{doc.specialization}</span>
               {doc.address && (
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.74rem' }}>📍 {doc.address}</span>
+                <span className="admin-pending-address">{doc.address}</span>
               )}
             </div>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '12px', alignSelf: 'flex-start', marginLeft: 'auto' }}>
-          <span style={{ fontSize: '0.75rem', padding: '4px 10px', borderRadius: '6px', fontWeight: 700, background: 'rgba(16, 185, 129, 0.1)', color: 'var(--secondary-neon)', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+        <div className="admin-pending-badges">
+          <span className="admin-verified-badge">
             Email Verified: {doc.emailVerified ? 'YES' : 'NO'}
           </span>
-          <span style={{ fontSize: '0.75rem', padding: '4px 10px', borderRadius: '6px', fontWeight: 700, background: 'rgba(16, 185, 129, 0.1)', color: 'var(--secondary-neon)', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+          <span className="admin-verified-badge">
             Phone Verified: {doc.phoneVerified ? 'YES' : 'NO'}
           </span>
         </div>
       </div>
 
-      <hr style={{ border: 'none', borderTop: '1px solid var(--card-border)', margin: 0 }} />
+      <hr className="admin-divider" />
 
       {/* Credentials Matrix */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', fontSize: '0.82rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Briefcase size={16} style={{ color: 'var(--text-muted)' }} />
+      <div className="admin-pending-details-grid">
+        <div className="admin-info-item">
+          <Briefcase size={16} className="admin-pending-detail-icon" />
           <span><strong>Experience:</strong> {doc.experienceYears} Years</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <IndianRupee size={16} style={{ color: 'var(--text-muted)' }} />
+        <div className="admin-info-item">
+          <IndianRupee size={16} className="admin-pending-detail-icon" />
           <span><strong>Fee:</strong> ₹{doc.consultationFee} INR</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Mail size={16} style={{ color: 'var(--text-muted)' }} />
+        <div className="admin-info-item">
+          <Mail size={16} className="admin-pending-detail-icon" />
           <span><strong>Email:</strong> {doc.email}</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Phone size={16} style={{ color: 'var(--text-muted)' }} />
+        <div className="admin-info-item">
+          <Phone size={16} className="admin-pending-detail-icon" />
           <span><strong>Phone:</strong> {doc.phone || 'N/A'}</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Clock size={16} style={{ color: 'var(--text-muted)' }} />
+        <div className="admin-info-item">
+          <Clock size={16} className="admin-pending-detail-icon" />
           <span><strong>Hours:</strong> {doc.activeHours}</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <FileText size={16} style={{ color: 'var(--secondary-neon)' }} />
+        <div className="admin-info-item">
+          <FileText size={16} className="admin-pending-gov-icon" />
           <span>
             <strong>Govt ID Proof:</strong>{' '}
             {doc.governmentIdUrl ? (
-              <a href={doc.governmentIdUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--secondary-neon)', textDecoration: 'underline', fontWeight: 600 }}>
+              <a href={doc.governmentIdUrl} target="_blank" rel="noreferrer" className="admin-pending-doc-link">
                 View Uploaded Document
               </a>
             ) : (
-              <span style={{ color: 'var(--accent-alert)' }}>Missing Upload</span>
+              <span className="admin-pending-doc-missing">Missing Upload</span>
             )}
           </span>
         </div>
       </div>
 
-      <hr style={{ border: 'none', borderTop: '1px solid var(--card-border)', margin: 0 }} />
+      <hr className="admin-divider" />
 
       {/* Actions */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <div style={{ display: 'flex', gap: '12px' }}>
+      <div className="admin-pending-actions-col">
+        <div className="admin-pending-actions-row">
           <button
             onClick={() => onApprove(doc._id)}
-            style={{
-              flex: 1,
-              background: 'var(--secondary-neon)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '10px',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              transition: 'opacity 0.2s'
-            }}
-            onMouseEnter={(e) => e.target.style.opacity = '0.9'}
-            onMouseLeave={(e) => e.target.style.opacity = '1'}
+            className="admin-action-button admin-pending-btn-approve"
           >
             <CheckCircle size={16} /> Approve Doctor
           </button>
           
           <button
             onClick={() => setShowRejectInput(!showRejectInput)}
-            style={{
-              flex: 1,
-              background: 'rgba(244, 63, 94, 0.1)',
-              color: 'var(--accent-alert)',
-              border: '1px solid rgba(244, 63, 94, 0.3)',
-              borderRadius: '8px',
-              padding: '10px',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              transition: 'background 0.2s'
-            }}
-            onMouseEnter={(e) => e.target.style.background = 'rgba(244, 63, 94, 0.15)'}
-            onMouseLeave={(e) => e.target.style.background = 'rgba(244, 63, 94, 0.1)'}
+            className="admin-action-button admin-pending-btn-reject-toggle"
           >
             <XCircle size={16} /> Reject Application
           </button>
         </div>
 
         {showRejectInput && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', animation: 'fadeIn 0.2s' }}>
-            <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Provide Rejection Reason (Email simulation will notify them) *</label>
-            <div style={{ display: 'flex', gap: '10px' }}>
+          <div className="admin-pending-reject-input-group">
+            <label className="admin-pending-reject-label">Provide Rejection Reason (Email simulation will notify them) *</label>
+            <div className="admin-pending-reject-row">
               <input
                 type="text"
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
                 placeholder="e.g. Uploaded government ID proof is blurry / invalid"
-                style={{
-                  flex: 1,
-                  background: 'rgba(0,0,0,0.2)',
-                  border: '1px solid var(--card-border)',
-                  borderRadius: '6px',
-                  padding: '10px',
-                  color: '#fff',
-                  fontSize: '0.8rem',
-                  outline: 'none'
-                }}
+                className="admin-input"
               />
               <button
                 onClick={() => onRejectSubmit(doc._id)}
-                style={{
-                  background: 'var(--accent-alert)',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '10px 16px',
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                  cursor: 'pointer'
-                }}
+                className="admin-pending-btn-reject-submit"
               >
                 Submit Rejection
               </button>
@@ -567,41 +424,21 @@ const DoctorCard = ({ doc, onApprove, onRejectSubmit, rejectionReason, setReject
 // Mini approved doctor card
 const DoctorCardMini = ({ doc, onSuspend }) => {
   return (
-    <div className="glass-panel" style={{
-      padding: '16px',
-      background: 'rgba(255,255,255,0.01)',
-      border: '1px solid rgba(255,255,255,0.05)',
-      borderRadius: '10px',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center'
-    }}>
-      <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+    <div className="admin-mini-card glass-panel">
+      <div className="admin-mini-profile-row">
         <img 
           src={doc.profileImage || `https://api.dicebear.com/7.x/adventurer/svg?seed=${doc.name}`} 
           alt="Doc Mini" 
-          style={{ width: '44px', height: '44px', borderRadius: '8px', objectFit: 'cover' }}
+          className="admin-mini-avatar"
         />
         <div>
-          <h4 style={{ fontSize: '0.92rem', fontWeight: 700, margin: 0 }}>Dr. {doc.name}</h4>
-          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{doc.specialization} • experience: {doc.experienceYears} yrs</span>
+          <h4 className="admin-mini-name">Dr. {doc.name}</h4>
+          <span className="admin-mini-subtitle">{doc.specialization} • experience: {doc.experienceYears} yrs</span>
         </div>
       </div>
       <button
         onClick={onSuspend}
-        style={{
-          background: 'none',
-          border: '1px solid rgba(234, 179, 8, 0.3)',
-          borderRadius: '6px',
-          color: '#eab308',
-          fontSize: '0.72rem',
-          fontWeight: 600,
-          padding: '6px 12px',
-          cursor: 'pointer',
-          transition: 'all 0.2s'
-        }}
-        onMouseEnter={(e) => { e.target.style.background = 'rgba(234,179,8,0.1)'; }}
-        onMouseLeave={(e) => { e.target.style.background = 'none'; }}
+        className="admin-mini-btn-suspend"
       >
         Suspend
       </button>
@@ -612,36 +449,25 @@ const DoctorCardMini = ({ doc, onSuspend }) => {
 // Archived card (rejected / suspended)
 const DoctorCardArchive = ({ doc, type, onApprove }) => {
   return (
-    <div className="glass-panel" style={{
-      padding: '12px 14px',
-      background: 'rgba(255, 255, 255, 0.01)',
-      border: '1px solid rgba(255,255,255,0.04)',
-      borderRadius: '8px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '8px'
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>Dr. {doc.name}</span>
+    <div className="admin-archive-card glass-panel">
+      <div className="admin-archive-header">
+        <span className="admin-archive-name">Dr. {doc.name}</span>
         <button
           onClick={() => onApprove(doc._id)}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--secondary-neon)',
-            fontSize: '0.7rem',
-            fontWeight: 700,
-            cursor: 'pointer',
-            padding: '2px 6px',
-            textDecoration: 'underline'
-          }}
+          className="admin-archive-btn-reapprove"
         >
           Re-Approve
         </button>
       </div>
-      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Specialty: {doc.specialization}</span>
+      <span className="admin-archive-subtitle">Specialty: {doc.specialization}</span>
       {doc.rejectionReason && (
-        <span style={{ fontSize: '0.7rem', color: type === 'rejected' ? 'var(--accent-alert)' : '#eab308', background: type === 'rejected' ? 'rgba(244,63,94,0.05)' : 'rgba(234,179,8,0.05)', padding: '4px 8px', borderRadius: '4px' }}>
+        <span 
+          className="admin-archive-reason"
+          style={{
+            color: type === 'rejected' ? 'var(--accent-alert)' : '#eab308',
+            background: type === 'rejected' ? 'rgba(244,63,94,0.05)' : 'rgba(234,179,8,0.05)'
+          }}
+        >
           <strong>Reason:</strong> "{doc.rejectionReason}"
         </span>
       )}

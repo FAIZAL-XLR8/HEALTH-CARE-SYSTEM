@@ -7,6 +7,7 @@ import {
 import EmojiPicker from 'emoji-picker-react';
 import { useTelehealthCall } from '../hooks/useTelehealthCall';
 import { useTelehealthChat } from '../hooks/useTelehealthChat';
+import './TelehealthRoom.css';
 
 const formatLastSeen = (dateString) => {
   if (!dateString) return 'Offline';
@@ -83,11 +84,11 @@ const TelehealthRoom = ({ appointmentId, user, onBack }) => {
   });
 
   const counterpartName = appointment
-    ? (role === 'doctor' ? (appointment.userId?.name || appointment.patientId?.name || 'Patient') : (appointment.doctor?.name || 'Doctor'))
+    ? (role === 'doctor' ? (appointment.patientId?.name || 'Patient') : (appointment.doctorId?.name || 'Doctor'))
     : 'Consultation Room';
 
   const counterpartPhoto = appointment
-    ? (role === 'doctor' ? (appointment.userId?.profileImage || appointment.patientId?.profileImage) : (appointment.doctor?.profileImage))
+    ? (role === 'doctor' ? (appointment.patientId?.profileImage) : (appointment.doctorId?.profileImage))
     : null;
 
   // Consume Call Hook
@@ -165,83 +166,33 @@ const TelehealthRoom = ({ appointmentId, user, onBack }) => {
   };
 
   return (
-    <div style={{ 
-      height: 'calc(100vh - 72px)', 
-      display: 'flex', 
-      flexDirection: 'column', 
-      background: '#ffffff', 
-      borderRadius: '0px', 
-      border: 'none', 
-      overflow: 'hidden', 
-      margin: '0', 
-      maxWidth: 'none', 
-      width: '100%',
-      boxShadow: 'none',
-      color: '#111827'
-    }}>
+    <div className="tr-container">
       
-      {/* 🟢 TOP ACTION HEADER PANEL (Hinge Style) */}
-      <div style={{ 
-        background: '#ffffff', 
-        borderBottom: '1px solid #e2e8f0', 
-        padding: '18px 24px', 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center' 
-      }}>
+      <div className="tr-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <button 
-            onClick={onBack}
-            style={{ 
-              background: '#f8fafc', 
-              border: '1px solid #e2e8f0', 
-              color: '#64748b', 
-              cursor: 'pointer', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#f1f5f9';
-              e.currentTarget.style.color = '#0f172a';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#f8fafc';
-              e.currentTarget.style.color = '#64748b';
-            }}
-          >
+          <button onClick={onBack} className="tr-header-back-btn">
             <ArrowLeft size={18} />
           </button>
           
-          <div style={{ position: 'relative' }}>
+          <div className="tr-avatar-wrapper">
             <img
               src={counterpartPhoto || `https://api.dicebear.com/7.x/adventurer/svg?seed=${counterpartName}`}
               alt={counterpartName}
-              style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #e2e8f0' }}
+              className="tr-avatar-img"
             />
             {counterpartPresence.online && (
-              <span style={{ 
-                position: 'absolute', 
-                bottom: '1px', 
-                right: '1px', 
-                width: '10px', 
-                height: '10px', 
-                borderRadius: '50%', 
-                background: '#10b981', 
-                border: '2px solid #ffffff' 
-              }} />
+              <span className="tr-avatar-online-indicator" />
             )}
           </div>
 
           <div>
-            <h4 style={{ color: '#1f2937', fontSize: '1rem', fontWeight: 700, fontFamily: 'Outfit' }}>
+            <h4 className="tr-header-title">
               {role === 'doctor' ? counterpartName : `Dr. ${counterpartName.replace(/^(?:Dr\.?\s*)+/i, '')}`}
             </h4>
-            <div style={{ fontSize: '0.72rem', color: counterpartPresence.online ? '#10b981' : '#6b7280', fontWeight: 500, marginTop: '2px' }}>
+            <div 
+              className="tr-header-status"
+              style={{ color: counterpartPresence.online ? '#10b981' : '#6b7280' }}
+            >
               {counterpartPresence.online ? 'Active now' : formatLastSeen(counterpartPresence.lastSeen)}
             </div>
           </div>
@@ -250,99 +201,40 @@ const TelehealthRoom = ({ appointmentId, user, onBack }) => {
         {/* Start consultation voice/video call buttons */}
         {!isExpired && (
           <div style={{ display: 'flex', gap: '10px' }}>
-            <button
-              onClick={() => handleStartCall('voice')}
-              title="Voice Call"
-              style={{ 
-                background: '#f8fafc', 
-                border: '1px solid #e2e8f0', 
-                color: '#701557', 
-                width: '38px', 
-                height: '38px', 
-                borderRadius: '50%', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(112, 21, 87, 0.05)';
-                e.currentTarget.style.borderColor = 'rgba(112, 21, 87, 0.25)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#f8fafc';
-                e.currentTarget.style.borderColor = '#e2e8f0';
-              }}
-            >
+            <button onClick={() => handleStartCall('voice')} title="Voice Call" className="tr-call-btn-voice">
               <Phone size={16} />
             </button>
-            <button
-              onClick={() => handleStartCall('video')}
-              title="Video Call"
-              style={{ 
-                background: '#f8fafc', 
-                border: '1px solid #e2e8f0', 
-                color: '#10b981', 
-                width: '38px', 
-                height: '38px', 
-                borderRadius: '50%', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(16, 185, 129, 0.05)';
-                e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.25)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#f8fafc';
-                e.currentTarget.style.borderColor = '#e2e8f0';
-              }}
-            >
+            <button onClick={() => handleStartCall('video')} title="Video Call" className="tr-call-btn-video">
               <Video size={16} />
             </button>
           </div>
         )}
       </div>
 
-      {/* 🔴 CONSULTATION ROOM MAIN TWO-PANE SECTION */}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
+      {/* CONSULTATION ROOM MAIN TWO-PANE SECTION */}
+      <div className="tr-main-pane">
 
         {/* Left Pane: WhatsApp Chat Messages container */}
-        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, height: '100%' }}>
+        <div className="tr-chat-pane">
 
           {/* Expiration Banner alert */}
           {isExpired && (
-            <div style={{ background: 'rgba(244, 63, 94, 0.15)', borderBottom: '1px solid var(--accent-alert)', color: 'var(--accent-alert)', padding: '12px', textAlign: 'center', fontSize: '0.8rem', fontWeight: 600 }}>
+            <div className="tr-expire-banner">
               Consultation Period Expired
             </div>
           )}
 
           {/* Messages list */}
-          <div ref={messagesContainerRef} style={{ 
-            flex: 1, 
-            overflowY: 'auto', 
-            padding: '24px 20px', 
-            display: 'flex', 
-            flexDirection: 'column', 
-            gap: '16px', 
-            background: '#f5f3f0' 
-          }}>
+          <div ref={messagesContainerRef} className="tr-messages-container">
             {messages.map(m => {
               const isOwnMessage = m.senderId === user.id || m.senderId === user._id;
               
               return (
                 <div 
                   key={m._id} 
+                  className="tr-message-row"
                   style={{
                     alignSelf: isOwnMessage ? 'flex-end' : 'flex-start',
-                    maxWidth: '75%',
-                    display: 'flex',
-                    alignItems: 'flex-end',
-                    gap: '10px',
                     flexDirection: isOwnMessage ? 'row-reverse' : 'row'
                   }}
                 >
@@ -351,29 +243,17 @@ const TelehealthRoom = ({ appointmentId, user, onBack }) => {
                     <img 
                       src={counterpartPhoto || `https://api.dicebear.com/7.x/adventurer/svg?seed=${counterpartName}`} 
                       alt={counterpartName} 
-                      style={{ 
-                        width: '32px', 
-                        height: '32px', 
-                        borderRadius: '50%', 
-                        objectFit: 'cover', 
-                        flexShrink: 0,
-                        border: 'none'
-                      }} 
+                      className="tr-message-avatar"
                     />
                   )}
 
                   {/* Message bubble */}
                   <div
+                    className="tr-message-bubble"
                     style={{
                       background: isOwnMessage ? '#701557' : '#ffffff',
-                      border: 'none',
                       borderRadius: isOwnMessage ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                      padding: '12px 16px',
                       color: isOwnMessage ? '#ffffff' : '#1f2937',
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '4px',
                       animation: 'fadeIn 0.2s ease-out'
                     }}
                   >
@@ -429,19 +309,10 @@ const TelehealthRoom = ({ appointmentId, user, onBack }) => {
                     )}
 
                     {m.messageType === 'pdf' && (
-                      <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '10px', 
-                        background: 'rgba(0,0,0,0.05)', 
-                        padding: '8px 12px', 
-                        borderRadius: '8px', 
-                        border: '1px solid rgba(0,0,0,0.08)', 
-                        marginBottom: '6px' 
-                      }}>
+                      <div className="tr-attachment-pdf">
                         <FileText size={20} style={{ color: '#ef4444' }} />
                         <div style={{ overflow: 'hidden' }}>
-                          <span style={{ fontSize: '0.78rem', display: 'block', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '120px', color: isOwnMessage ? '#fff' : '#1f2937' }}>
+                          <span className="tr-attachment-pdf-name" style={{ color: isOwnMessage ? '#fff' : '#1f2937' }}>
                             {m.content}
                           </span>
                         </div>
@@ -450,543 +321,365 @@ const TelehealthRoom = ({ appointmentId, user, onBack }) => {
                           download 
                           target="_blank" 
                           rel="noreferrer"
-                          style={{ color: isOwnMessage ? '#a5f3fc' : '#0891b2', display: 'flex', padding: '4px' }}
+                          className="tr-attachment-pdf-download-btn"
+                          style={{ color: isOwnMessage ? '#fff' : '#701557' }}
                         >
-                          <Download size={14} />
+                          <Download size={16} />
                         </a>
                       </div>
                     )}
 
-                    {(m.messageType === 'file' || m.messageType === 'raw') && (
-                      <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '10px', 
-                        background: 'rgba(0,0,0,0.05)', 
-                        padding: '8px 12px', 
-                        borderRadius: '8px', 
-                        border: '1px solid rgba(0,0,0,0.08)', 
-                        marginBottom: '6px' 
-                      }}>
-                        <FileText size={20} style={{ color: isOwnMessage ? '#a5f3fc' : '#0891b2' }} />
-                        <div style={{ overflow: 'hidden' }}>
-                          <span style={{ fontSize: '0.78rem', display: 'block', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '120px', color: isOwnMessage ? '#fff' : '#1f2937' }}>
-                            {m.content}
-                          </span>
-                        </div>
-                        <a 
-                          href={m.fileUrl} 
-                          download 
-                          target="_blank" 
-                          rel="noreferrer"
-                          style={{ color: isOwnMessage ? '#a5f3fc' : '#0891b2', display: 'flex', padding: '4px' }}
-                        >
-                          <Download size={14} />
-                        </a>
-                      </div>
-                    )}
-
+                    {/* Text content */}
                     {m.messageType === 'text' && (
-                      <p style={{ fontSize: '0.88rem', lineHeight: '1.45', wordBreak: 'break-word', margin: 0 }}>{m.content}</p>
+                      <p className="tr-message-text">{m.content}</p>
                     )}
 
-                    {/* Message Bottom row: Timestamp + seen status check ticks */}
-                    <div style={{ 
-                      display: 'flex', 
-                      justifyContent: 'flex-end', 
-                      alignItems: 'center', 
-                      gap: '6px', 
-                      marginTop: '4px', 
-                      fontSize: '0.65rem', 
-                      color: isOwnMessage ? 'rgba(255, 255, 255, 0.7)' : '#6b7280'
-                    }}>
+                    {/* Metadata Footer */}
+                    <div className="tr-message-footer">
+                      <span className="tr-message-time" style={{ color: isOwnMessage ? 'rgba(255,255,255,0.6)' : '#9ca3af' }}>
+                        {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      {isOwnMessage && (
+                        <span>
+                          {m.deliveredStatus === 'read' ? (
+                            <CheckCheck size={12} style={{ color: '#60a5fa' }} />
+                          ) : (
+                            <Check size={12} style={{ color: 'rgba(255,255,255,0.6)' }} />
+                          )}
+                        </span>
+                      )}
+                      
+                      {/* Delete option */}
                       {isOwnMessage && !isExpired && (
-                        <button
+                        <button 
                           onClick={() => handleDeleteMessage(m._id)}
-                          title="Delete Message"
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'rgba(255, 255, 255, 0.6)',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            padding: '0',
-                            marginRight: '2px',
-                            transition: 'color 0.2s'
-                          }}
-                          onMouseEnter={(e) => e.target.style.color = '#fecdd3'}
-                          onMouseLeave={(e) => e.target.style.color = 'rgba(255, 255, 255, 0.6)'}
+                          title="Delete message"
+                          className="tr-message-delete-btn"
                         >
-                          <Trash2 size={11} />
+                          <Trash2 size={12} />
                         </button>
                       )}
-                      <span>{new Date(m.createdAt || m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                      {isOwnMessage && (
-                        m.isSeen ? (
-                          <CheckCheck size={11} style={{ color: '#a5f3fc' }} />
-                        ) : (
-                          <Check size={11} style={{ color: 'rgba(255,255,255,0.6)' }} />
-                        )
-                      )}
                     </div>
-
                   </div>
                 </div>
               );
             })}
 
-            {/* Animating Typing Status Bubble (WhatsApp style) */}
+            {/* Counterpart typing indicator */}
             {counterpartTyping && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', alignSelf: 'flex-start', margin: '4px 0', animation: 'fadeIn 0.2s ease-out' }}>
-                <img 
-                  src={counterpartPhoto || `https://api.dicebear.com/7.x/adventurer/svg?seed=${counterpartName}`} 
-                  alt={counterpartName} 
-                  style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #e2e8f0' }} 
-                />
-                <div style={{
-                  background: '#ffffff',
-                  border: 'none',
-                  borderRadius: '16px 16px 16px 4px',
-                  padding: '12px 16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
-                }}>
-                  <span className="dot-blink" style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#6b7280', display: 'inline-block', animation: 'typingBlink 1.4s infinite both', animationDelay: '0s' }} />
-                  <span className="dot-blink" style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#6b7280', display: 'inline-block', animation: 'typingBlink 1.4s infinite both', animationDelay: '0.2s' }} />
-                  <span className="dot-blink" style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#6b7280', display: 'inline-block', animation: 'typingBlink 1.4s infinite both', animationDelay: '0.4s' }} />
-                </div>
+              <div className="tr-typing-indicator">
+                <span className="tr-typing-dot"></span>
+                <span className="tr-typing-dot"></span>
+                <span className="tr-typing-dot"></span>
               </div>
             )}
-
+            
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Bottom Chat input bar */}
-          {!isExpired && (
-            <form onSubmit={handleFormSubmit} style={{ 
-              background: '#ffffff', 
-              borderTop: '1px solid #e2e8f0', 
-              padding: '16px 20px', 
-              display: 'flex', 
-              flexDirection: 'column', 
-              gap: '12px' 
-            }}>
-              
-              {/* Attachment Preview panel */}
-              {selectedFile && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '12px', position: 'relative', animation: 'fadeIn 0.2s ease-out' }}>
+          {/* Interactive Chat Input Area */}
+          <div className="tr-input-form-container">
+            {/* Attachment preview if selected */}
+            {selectedFile && (
+              <div className="tr-attachment-preview">
+                <div className="tr-attachment-preview-img-wrapper">
                   {filePreviewUrl ? (
-                    <img src={filePreviewUrl} alt="Preview" style={{ width: '56px', height: '56px', borderRadius: '10px', objectFit: 'cover' }} />
+                    <img src={filePreviewUrl} alt="Preview" className="tr-attachment-preview-img" />
                   ) : (
-                    <div style={{ width: '56px', height: '56px', borderRadius: '10px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <FileText size={24} style={{ color: '#701557' }} />
-                    </div>
-                  )}
-                  <div style={{ flex: 1, overflow: 'hidden' }}>
-                    <p style={{ color: '#1f2937', fontSize: '0.8rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {selectedFile.name}
-                    </p>
-                    <p style={{ color: '#6b7280', fontSize: '0.7rem' }}>
-                      {(selectedFile.size / 1024).toFixed(1)} KB
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleClearSelectedFile}
-                    disabled={uploading}
-                    style={{ background: '#f1f5f9', border: 'none', color: '#6b7280', width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
-                  >
-                    <X size={14} />
-                  </button>
-                  
-                  {uploading && (
-                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(255,255,255,0.9)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                      <div className="spin-anim" style={{ width: '16px', height: '16px', border: '2px solid #701557', borderTopColor: 'transparent', borderRadius: '50%' }} />
-                      <span style={{ fontSize: '0.78rem', color: '#701557', fontWeight: 600 }}>Uploading file...</span>
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9' }}>
+                      <FileText size={18} style={{ color: '#ef4444' }} />
                     </div>
                   )}
                 </div>
-              )}
-
-              {/* Main Inputs row */}
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', width: '100%', position: 'relative' }} ref={emojiPickerRef}>
-                <input 
-                  type="file" 
-                  ref={fileInputRef}
-                  style={{ display: 'none' }}
-                  accept=".png,.jpg,.jpeg,.pdf,.mp4,.webm,.mov,.avi"
-                  onChange={handleAttachmentUpload}
-                />
-                
-                {/* Input Container Capsule */}
-                <div style={{ 
-                  flex: 1, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  background: '#f3f4f6', 
-                  border: '1px solid #e5e7eb', 
-                  borderRadius: '24px', 
-                  padding: '4px 6px 4px 16px',
-                  gap: '8px'
-                }}>
-                  <input
-                    type="text"
-                    value={messageText}
-                    onChange={handleTyping}
-                    disabled={uploading}
-                    placeholder={selectedFile ? "Add a caption..." : "Type your message..."}
-                    style={{
-                      flex: 1,
-                      background: 'none',
-                      border: 'none',
-                      color: '#1f2937',
-                      fontSize: '0.85rem',
-                      outline: 'none',
-                      padding: '8px 0',
-                      fontFamily: 'inherit'
-                    }}
-                  />
-
-                  <button
-                    type="button"
-                    disabled={uploading}
-                    onClick={() => fileInputRef.current?.click()}
-                    title="Attach file"
-                    style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = '#1f2937'}
-                    onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
-                  >
-                    <Paperclip size={18} />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    title="Select Emoji"
-                    style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = '#1f2937'}
-                    onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
-                  >
-                    <Smile size={18} />
-                  </button>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ fontSize: '0.78rem', color: '#334155', fontWeight: 600, display: 'block', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                    {selectedFile.name}
+                  </span>
+                  <span style={{ fontSize: '0.65rem', color: '#64748b' }}>
+                    {(selectedFile.size / 1024).toFixed(1)} KB • Ready to send
+                  </span>
                 </div>
-
-                {/* Emoji Picker Popover */}
-                {showEmojiPicker && (
-                  <div style={{ position: 'absolute', bottom: '60px', left: '0', zIndex: 110, boxShadow: '0 8px 32px rgba(0,0,0,0.15)', borderRadius: '12px', overflow: 'hidden' }}>
-                    <EmojiPicker 
-                      theme="light"
-                      onEmojiClick={(emojiData) => {
-                        setMessageText(prev => prev + emojiData.emoji);
-                      }}
-                      height={350}
-                      width={320}
-                    />
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={!messageText.trim() && !selectedFile}
-                  style={{
-                    background: (messageText.trim() || selectedFile) ? '#701557' : '#f3f4f6',
-                    border: 'none',
-                    color: (messageText.trim() || selectedFile) ? '#ffffff' : '#9ca3af',
-                    width: '38px',
-                    height: '38px',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: (messageText.trim() || selectedFile) ? 'pointer' : 'default',
-                    transition: 'all 0.25s',
-                    boxShadow: (messageText.trim() || selectedFile) ? '0 4px 12px rgba(112, 21, 87, 0.2)' : 'none'
-                  }}
-                >
-                  <Send size={15} />
+                <button onClick={handleClearSelectedFile} className="tr-attachment-preview-clear-btn">
+                  <X size={12} />
                 </button>
               </div>
+            )}
+
+            <form onSubmit={handleFormSubmit} className="tr-input-bar">
+              {/* Emoji Picker toggle button */}
+              {!isExpired && (
+                <button 
+                  type="button"
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  className="tr-input-emoji-btn"
+                >
+                  <Smile size={20} />
+                </button>
+              )}
+
+              {/* Attachment selector */}
+              {!isExpired && (
+                <button 
+                  type="button" 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="tr-input-attach-btn"
+                >
+                  <Paperclip size={20} />
+                </button>
+              )}
+
+              {/* Hidden file input */}
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleAttachmentUpload}
+                accept="image/*,video/*,application/pdf"
+                style={{ display: 'none' }}
+              />
+
+              <input 
+                type="text" 
+                value={messageText}
+                onChange={(e) => {
+                  setMessageText(e.target.value);
+                  handleTyping();
+                }}
+                disabled={isExpired || uploading}
+                placeholder={isExpired ? "Consultation period has closed." : (uploading ? "Uploading attachment..." : "Type a message...")}
+                className="tr-input-text"
+              />
+
+              {!isExpired && (
+                <button 
+                  type="submit" 
+                  disabled={(!messageText.trim() && !selectedFile) || uploading}
+                  className="tr-input-send-btn"
+                  style={{
+                    opacity: (!messageText.trim() && !selectedFile) || uploading ? 0.5 : 1,
+                    cursor: (!messageText.trim() && !selectedFile) || uploading ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  <Send size={16} />
+                </button>
+              )}
             </form>
-          )}
+
+            {/* Emoji Picker Popover */}
+            {showEmojiPicker && (
+              <div ref={emojiPickerRef} className="tr-emoji-picker-popover">
+                <EmojiPicker 
+                  onEmojiClick={(emojiData) => setMessageText(prev => prev + emojiData.emoji)}
+                  width={320}
+                  height={350}
+                  skinTonesDisabled
+                  searchDisabled
+                />
+              </div>
+            )}
+          </div>
 
         </div>
 
-        {/* Right Pane: Telehealth Consultation Video Overlay Call Pane */}
-        {callState !== 'idle' && (
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            width: '100%',
-            height: '100%',
-            background: 'rgba(5, 6, 12, 0.95)',
-            zIndex: 100,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '24px',
-            animation: 'fadeIn 0.3s ease-out'
-          }}>
-
-            {/* Incoming call screen dialog */}
-            {callState === 'incoming' && incomingCallData && (
-              <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
-                <img
-                  src={incomingCallData.callerAvatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${incomingCallData.callerName}`}
-                  alt="Caller"
-                  style={{ width: '96px', height: '96px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--primary-neon)', animation: 'ring 1.5s infinite' }}
-                />
-                <div>
-                  <h3 style={{ fontSize: '1.4rem', color: '#fff', fontWeight: 800 }}>Incoming {callType === 'video' ? 'Video' : 'Voice'} Call</h3>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginTop: '6px' }}>
-                    {role === 'doctor' ? incomingCallData.callerName : `Dr. ${incomingCallData.callerName.replace(/^Dr\.\s*/, '')}`} is calling...
-                  </p>
-                </div>
-
-                <div style={{ display: 'flex', gap: '20px' }}>
-                  <button
-                    onClick={handleRejectCall}
-                    style={{ background: 'var(--accent-alert)', border: 'none', color: '#fff', padding: '12px 28px', borderRadius: '30px', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
-                  >
-                    <PhoneOff size={16} />
-                    Reject
-                  </button>
-                  <button
-                    onClick={handleAcceptCall}
-                    style={{ background: 'var(--secondary-neon)', border: 'none', color: '#fff', padding: '12px 28px', borderRadius: '30px', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
-                  >
-                    <Video size={16} />
-                    Accept
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Outgoing Ring call screen */}
-            {callState === 'calling' && (
-              <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
-                <img
-                  src={counterpartPhoto || `https://api.dicebear.com/7.x/adventurer/svg?seed=${counterpartName}`}
-                  alt="Recipient"
-                  style={{ width: '96px', height: '96px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--primary-neon)' }}
-                />
-                <div>
-                  <h3 style={{ fontSize: '1.4rem', color: '#fff', fontWeight: 800 }}>Ringing...</h3>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginTop: '6px' }}>
-                    Calling {role === 'doctor' ? counterpartName : `Dr. ${counterpartName.replace(/^Dr\.\s*/, '')}`}
-                  </p>
-                </div>
-                <button
-                  onClick={handleEndCall}
-                  style={{ background: 'var(--accent-alert)', border: 'none', color: '#fff', width: '56px', height: '56px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(244, 63, 94, 0.3)' }}
-                >
-                  <PhoneOff size={24} />
-                </button>
-              </div>
-            )}
-
-            {/* Connected Consult stream active call view overlay */}
-            {callState === 'connected' && (
-              <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative' }}>
-
-                {/* Visual Video feeds */}
-                {callType === 'video' ? (
-                  <div style={{ flex: 1, display: 'flex', gap: '16px', minHeight: 0, position: 'relative' }}>
-
-                    {/* Remote screen */}
-                    <div style={{ flex: 1, background: '#1c1917', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--card-border)', position: 'relative' }}>
-                      <video
-                        ref={remoteVideoRef}
-                        autoPlay
-                        playsInline
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                      <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(0,0,0,0.5)', padding: '4px 8px', borderRadius: '6px', fontSize: '0.7rem' }}>
-                        {role === 'doctor' ? counterpartName : `Dr. ${counterpartName.replace(/^Dr\.\s*/, '')}`}
-                      </div>
-                    </div>
-
-                    {/* Local picture-in-picture stream */}
-                    <div style={{ width: '160px', height: '120px', background: '#292524', borderRadius: '12px', overflow: 'hidden', border: '2px solid var(--primary-neon)', position: 'absolute', top: '16px', right: '16px', zIndex: 10 }}>
-                      <video
-                        ref={localVideoRef}
-                        autoPlay
-                        playsInline
-                        muted
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                      <div style={{ position: 'absolute', bottom: '6px', left: '6px', background: 'rgba(0,0,0,0.5)', padding: '2px 4px', borderRadius: '4px', fontSize: '0.55rem' }}>
-                        You
-                      </div>
-                    </div>
-
-                  </div>
-                ) : (
-                  // Voice Stream UI
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ width: '96px', height: '96px', borderRadius: '50%', background: 'rgba(6, 182, 212, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
-                      <Phone size={36} style={{ color: 'var(--primary-neon)' }} />
-                    </div>
-                    <h4 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 700 }}>
-                      {role === 'doctor' ? counterpartName : `Dr. ${counterpartName.replace(/^Dr\.\s*/, '')}`}
-                    </h4>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '6px' }}>Voice streaming active...</p>
-                  </div>
-                )}
-
-                {/* Call Header info: timer duration */}
-                <div style={{ position: 'absolute', top: '16px', left: '16px', background: 'rgba(0,0,0,0.6)', padding: '8px 16px', borderRadius: '20px', border: '1px solid var(--card-border)', display: 'flex', alignItems: 'center', gap: '8px', zIndex: 5 }}>
-                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-alert)', display: 'inline-block' }} />
-                  <span style={{ fontSize: '0.78rem', color: '#fff', fontWeight: 600 }}>{formatCallTime(callDuration)}</span>
-                </div>
-
-                {/* Stream media control panel buttons */}
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', background: 'rgba(0,0,0,0.4)', padding: '16px', borderRadius: '16px', border: '1px solid var(--card-border)' }}>
-                  <button
-                    onClick={toggleMute}
-                    style={{ background: micMuted ? 'var(--accent-alert)' : 'rgba(255,255,255,0.08)', border: 'none', color: '#fff', width: '44px', height: '44px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                  >
-                    {micMuted ? <MicOff size={18} /> : <Mic size={18} />}
-                  </button>
-
-                  {callType === 'video' && (
-                    <>
-                      <button
-                        onClick={toggleCam}
-                        style={{ background: camOff ? 'var(--accent-alert)' : 'rgba(255,255,255,0.08)', border: 'none', color: '#fff', width: '44px', height: '44px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                      >
-                        {camOff ? <VideoOff size={18} /> : <Video size={18} />}
-                      </button>
-
-                      <button
-                        onClick={handleToggleScreenShare}
-                        style={{ background: isScreenSharing ? 'var(--secondary-neon)' : 'rgba(255,255,255,0.08)', border: 'none', color: isScreenSharing ? '#000' : '#fff', width: '44px', height: '44px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                      >
-                        <Monitor size={18} />
-                      </button>
-                    </>
-                  )}
-
-                  <button
-                    onClick={handleEndCall}
-                    style={{ background: 'var(--accent-alert)', border: 'none', color: '#fff', padding: '0 24px', borderRadius: '22px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}
-                  >
-                    <PhoneOff size={18} />
-                    End Call
-                  </button>
-                </div>
-
-              </div>
-            )}
-
-          </div>
-        )}
-
       </div>
 
-      {/* 🖼️ Fullscreen Media Lightbox Modal */}
-      {fullscreenImageUrl && (() => {
-        const isVideo = fullscreenImageUrl.includes('/video/') ||
-          fullscreenImageUrl.endsWith('.mp4') ||
-          fullscreenImageUrl.endsWith('.webm') ||
-          fullscreenImageUrl.endsWith('.mov') ||
-          fullscreenImageUrl.endsWith('.avi');
-        return (
-          <div
-            onClick={() => setFullscreenImageUrl(null)}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              width: '100vw',
-              height: '100vh',
-              background: 'rgba(5, 6, 12, 0.95)',
-              zIndex: 1000,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'zoom-out',
-              animation: 'fadeIn 0.25s ease-out'
-            }}
-          >
-            <button
+      {/* WebRTC Video Call Screen Overlay */}
+      {callState !== 'idle' && callState !== 'calling' && (
+        <div className="tr-video-call-overlay">
+          <div className="tr-video-call-window">
+            
+            {/* Header info bar */}
+            <div className="tr-video-call-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Video size={18} style={{ color: '#10b981' }} />
+                <span style={{ fontSize: '0.85rem', color: '#f8fafc', fontWeight: 600 }}>
+                  Active Consult: {counterpartName}
+                </span>
+              </div>
+              <span className="tr-video-call-time">
+                {formatCallTime(callDuration)}
+              </span>
+            </div>
+
+            {/* Main view screens */}
+            <div className="tr-video-call-feed-container">
+              {callType === 'video' ? (
+                <div className="tr-video-feed-remote-wrapper">
+                  <video 
+                    ref={remoteVideoRef} 
+                    autoPlay 
+                    playsInline 
+                    className="tr-video-feed-remote"
+                  />
+                  
+                  {/* PiP Local Video feed */}
+                  <div className="tr-video-feed-local-wrapper">
+                    <video 
+                      ref={localVideoRef} 
+                      autoPlay 
+                      playsInline 
+                      muted 
+                      className="tr-video-feed-local"
+                    />
+                  </div>
+                </div>
+              ) : (
+                /* Voice call UI banner */
+                <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
+                  <img 
+                    src={counterpartPhoto || `https://api.dicebear.com/7.x/adventurer/svg?seed=${counterpartName}`} 
+                    alt={counterpartName} 
+                    style={{ width: '120px', height: '120px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #10b981' }} 
+                  />
+                  <div style={{ textAlign: 'center' }}>
+                    <h3 style={{ color: '#fff', fontSize: '1.5rem', fontWeight: 700 }}>{counterpartName}</h3>
+                    <p style={{ color: '#10b981', fontSize: '0.82rem', marginTop: '6px', fontWeight: 600, letterSpacing: '0.05em' }}>
+                      VOICE CONSULTATION ACTIVE
+                    </p>
+                  </div>
+                  {/* Hidden stream players */}
+                  <audio ref={remoteVideoRef} autoPlay />
+                  <audio ref={localVideoRef} autoPlay muted />
+                </div>
+              )}
+            </div>
+
+            {/* Call action buttons bar */}
+            <div className="tr-video-call-controls">
+              <button 
+                onClick={toggleMute}
+                title={micMuted ? "Unmute Mic" : "Mute Mic"}
+                className="tr-video-call-btn"
+                style={{ background: micMuted ? '#ef4444' : 'rgba(255,255,255,0.08)' }}
+              >
+                {micMuted ? <MicOff size={20} /> : <Mic size={20} />}
+              </button>
+
+              {callType === 'video' && (
+                <button 
+                  onClick={toggleCam}
+                  title={camOff ? "Turn Cam On" : "Turn Cam Off"}
+                  className="tr-video-call-btn"
+                  style={{ background: camOff ? '#ef4444' : 'rgba(255,255,255,0.08)' }}
+                >
+                  {camOff ? <VideoOff size={20} /> : <Video size={20} />}
+                </button>
+              )}
+
+              {callType === 'video' && (
+                <button 
+                  onClick={handleToggleScreenShare}
+                  title={isScreenSharing ? "Stop Screen Share" : "Share Screen"}
+                  className="tr-video-call-btn"
+                  style={{ background: isScreenSharing ? '#10b981' : 'rgba(255,255,255,0.08)' }}
+                >
+                  <Monitor size={20} />
+                </button>
+              )}
+
+              <button 
+                onClick={handleEndCall}
+                title="Hang Up"
+                className="tr-video-call-btn tr-video-call-btn-hangup"
+              >
+                <PhoneOff size={20} />
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* Incoming Call Screen overlay */}
+      {callState === 'calling' && incomingCallData && (
+        <div className="tr-incoming-call-modal">
+          <div className="tr-incoming-call-card">
+            <img 
+              src={counterpartPhoto || `https://api.dicebear.com/7.x/adventurer/svg?seed=${counterpartName}`} 
+              alt={counterpartName} 
+              className="tr-incoming-call-avatar"
+            />
+            <div>
+              <h3 className="tr-incoming-call-title">Incoming {callType.toUpperCase()} Call</h3>
+              <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginTop: '4px' }}>{counterpartName}</p>
+            </div>
+            
+            <div className="tr-incoming-call-buttons">
+              <button 
+                onClick={handleAcceptCall}
+                className="tr-incoming-call-btn-accept"
+              >
+                <Phone size={16} />
+                Accept
+              </button>
+              <button 
+                onClick={handleRejectCall}
+                className="tr-incoming-call-btn-reject"
+              >
+                <PhoneOff size={16} />
+                Decline
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Outgoing Calling state overlay */}
+      {callState === 'calling' && !incomingCallData && (
+        <div className="tr-incoming-call-modal">
+          <div className="tr-incoming-call-card">
+            <img 
+              src={counterpartPhoto || `https://api.dicebear.com/7.x/adventurer/svg?seed=${counterpartName}`} 
+              alt={counterpartName} 
+              className="tr-incoming-call-avatar"
+              style={{ animation: 'pulse 2s infinite' }}
+            />
+            <div>
+              <h3 className="tr-incoming-call-title">Calling...</h3>
+              <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginTop: '4px' }}>{counterpartName}</p>
+            </div>
+            
+            <button 
+              onClick={handleEndCall}
+              className="tr-incoming-call-btn-reject"
+              style={{ width: '100%', marginTop: '10px' }}
+            >
+              <PhoneOff size={16} />
+              Cancel Call
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Fullscreen Media Lightbox Modal */}
+      {fullscreenImageUrl && (
+        <div className="tr-lightbox-overlay">
+          <div className="tr-lightbox-card">
+            <button 
               onClick={() => setFullscreenImageUrl(null)}
-              style={{
-                position: 'absolute',
-                top: '24px',
-                right: '24px',
-                background: 'rgba(255,255,255,0.1)',
-                border: 'none',
-                color: '#fff',
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                zIndex: 1001
-              }}
+              className="tr-lightbox-close-btn"
             >
               <X size={20} />
             </button>
-            {isVideo ? (
-              <video
-                src={fullscreenImageUrl}
-                controls
-                autoPlay
-                style={{
-                  maxWidth: '90%',
-                  maxHeight: '90%',
-                  borderRadius: '8px',
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-                  cursor: 'default',
-                  background: '#000'
-                }}
-                onClick={(e) => e.stopPropagation()}
-              />
-            ) : (
-              <img
-                src={fullscreenImageUrl}
-                alt="Fullscreen Attachment"
-                style={{
-                  maxWidth: '90%',
-                  maxHeight: '90%',
-                  objectFit: 'contain',
-                  borderRadius: '8px',
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-                  cursor: 'default'
-                }}
-                onClick={(e) => e.stopPropagation()}
-              />
-            )}
-          </div>
-        );
-      })()}
 
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        @keyframes ring {
-          0% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.4); }
-          70% { box-shadow: 0 0 0 15px rgba(6, 182, 212, 0); }
-          100% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0); }
-        }
-        .ring-anim {
-          animation: ring 1.5s infinite;
-        }
-        @keyframes typingBlink {
-          0% { opacity: 0.2; transform: scale(1); }
-          20% { opacity: 1; transform: scale(1.2); }
-          100% { opacity: 0.2; transform: scale(1); }
-        }
-        .dot-blink {
-          animation: typingBlink 1.4s infinite both;
-        }
-      `}} />
+            {fullscreenImageUrl.toLowerCase().includes('.mp4') || fullscreenImageUrl.includes('video') ? (
+              <video src={fullscreenImageUrl} controls className="tr-lightbox-img" autoPlay />
+            ) : (
+              <img src={fullscreenImageUrl} alt="Attachment Fullscreen" className="tr-lightbox-img" />
+            )}
+
+            <a 
+              href={fullscreenImageUrl} 
+              download 
+              target="_blank" 
+              rel="noreferrer"
+              className="tr-lightbox-download-btn"
+            >
+              <Download size={14} />
+              Download Attachment File
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

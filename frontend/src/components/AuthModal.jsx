@@ -625,7 +625,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
                 gap: '4px'
               }}
             >
-              👤 Patient
+              Patient
             </button>
             <button
               type="button"
@@ -645,7 +645,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
                 gap: '4px'
               }}
             >
-              🩺 Doctor
+              Doctor
             </button>
             <button
               type="button"
@@ -665,7 +665,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
                 gap: '4px'
               }}
             >
-              🛡️ Admin
+              Admin
             </button>
           </div>
         )}
@@ -1260,7 +1260,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
         {/* ================= STEP 4: SUCCESS HUDS ================= */}
         {wizardStep === 4 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'center', padding: '10px' }}>
-            <div style={{ fontSize: '3rem' }}>⏳</div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}><CheckCircle size={48} style={{ color: 'var(--secondary-neon)' }} /></div>
             <h4 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--secondary-neon)' }}>Verification Profile Filed!</h4>
             <p style={{ fontSize: '0.85rem', color: '#fff', lineHeight: 1.6 }}>
               Thank you, Dr. <strong>{name}</strong>. Your application credentials have been successfully logged under review.

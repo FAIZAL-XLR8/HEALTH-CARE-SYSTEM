@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, ArrowDownUp, RefreshCw, Sparkles, Navigation, Briefcase } from 'lucide-react';
 import MapView from '../components/MapView';
+import './SearchHub.css';
 
 const SearchHub = ({ searchParams, onBook }) => {
   const [providers, setProviders] = useState([]);
@@ -77,17 +78,17 @@ const SearchHub = ({ searchParams, onBook }) => {
   const sortedList = getSortedProviders();
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 16px' }}>
+    <div className="sh-container">
 
       {/* 📡 Skyscanner Loading Tracker HUD */}
       {isVerifying && (
-        <div style={{ margin: '16px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div className="sh-loading-container">
           <div className="progress-bar-container">
             <div className="progress-bar-fill" style={{ width: `${progressWidth}%` }} />
           </div>
-          <span style={{ fontSize: '0.75rem', color: 'var(--primary-neon)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span className="sh-loading-label">
             <RefreshCw size={12} className="glow-indicator" style={{ animation: 'spin 2s linear infinite' }} />
-            📡 Searching active clinic partners... fetching doctor profiles matching "{query}"
+            Searching active clinic partners... fetching doctor profiles matching "{query}"
           </span>
         </div>
       )}
@@ -96,57 +97,34 @@ const SearchHub = ({ searchParams, onBook }) => {
       <div className="skyscanner-layout" style={{ marginTop: '24px' }}>
 
         {/* Left Side: Sorting Tabs & Listings */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div className="sh-left-column">
 
           {/* Header Dashboard Info */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="sh-listings-header">
             <div>
-              <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#fff' }}>
+              <h2 className="sh-listings-title">
                 Clinics matching: {query}
               </h2>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              <span className="sh-listings-subtitle">
                 Showing all active doctors in Bengaluru • {providers.length} found
               </span>
             </div>
 
             {/* Force Refresh Manual Hook */}
-            <button
-              onClick={() => fetchInitialResults(true)}
-              style={{
-                background: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid var(--card-border)',
-                borderRadius: '8px',
-                color: 'var(--primary-neon)',
-                padding: '6px 12px',
-                fontSize: '0.72rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-            >
+            <button onClick={() => fetchInitialResults(true)} className="sh-resync-btn">
               <RefreshCw size={12} />
               Re-sync List
             </button>
           </div>
 
           {/* Skyscanner Sorting Tabs */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', background: 'var(--card-border)', borderRadius: '12px', overflow: 'hidden', padding: '1px' }}>
+          <div className="sh-sorting-tabs">
             <button
               onClick={() => setSortTab('best')}
+              className="sh-sorting-tab"
               style={{
-                padding: '12px',
-                border: 'none',
-                cursor: 'pointer',
                 background: sortTab === 'best' ? 'rgba(6, 182, 212, 0.15)' : 'var(--bg-obsidian)',
-                color: sortTab === 'best' ? 'var(--primary-neon)' : 'var(--text-muted)',
-                fontWeight: 600,
-                fontSize: '0.8rem',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '2px'
+                color: sortTab === 'best' ? 'var(--primary-neon)' : 'var(--text-muted)'
               }}
             >
               <Sparkles size={14} />
@@ -154,18 +132,10 @@ const SearchHub = ({ searchParams, onBook }) => {
             </button>
             <button
               onClick={() => setSortTab('cheapest')}
+              className="sh-sorting-tab"
               style={{
-                padding: '12px',
-                border: 'none',
-                cursor: 'pointer',
                 background: sortTab === 'cheapest' ? 'rgba(16, 185, 129, 0.12)' : 'var(--bg-obsidian)',
-                color: sortTab === 'cheapest' ? 'var(--secondary-neon)' : 'var(--text-muted)',
-                fontWeight: 600,
-                fontSize: '0.8rem',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '2px'
+                color: sortTab === 'cheapest' ? 'var(--secondary-neon)' : 'var(--text-muted)'
               }}
             >
               <ArrowDownUp size={14} />
@@ -173,18 +143,10 @@ const SearchHub = ({ searchParams, onBook }) => {
             </button>
             <button
               onClick={() => setSortTab('fastest')}
+              className="sh-sorting-tab"
               style={{
-                padding: '12px',
-                border: 'none',
-                cursor: 'pointer',
                 background: sortTab === 'fastest' ? 'rgba(244, 63, 94, 0.08)' : 'var(--bg-obsidian)',
-                color: sortTab === 'fastest' ? 'var(--accent-alert)' : 'var(--text-muted)',
-                fontWeight: 600,
-                fontSize: '0.8rem',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '2px'
+                color: sortTab === 'fastest' ? 'var(--accent-alert)' : 'var(--text-muted)'
               }}
             >
               <Navigation size={14} />
@@ -193,7 +155,7 @@ const SearchHub = ({ searchParams, onBook }) => {
           </div>
 
           {/* 📂 Listings Stack */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div className="sh-listings-stack">
             {sortedList.length === 0 ? (
               <div className="glass-panel" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
                 No active specialist clinics found matching this query in Bengaluru.
@@ -205,37 +167,25 @@ const SearchHub = ({ searchParams, onBook }) => {
                 return (
                   <div
                     key={p.doctorId}
-                    className="glass-panel"
+                    className="glass-panel sh-listing-card"
                     onMouseEnter={() => setActiveProviderId(p.doctorId)}
                     style={{
-                      padding: '20px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '14px',
-                      transition: 'all 0.3s ease',
-                      borderWidth: isActive ? '1px' : '1px',
                       borderColor: isActive ? 'var(--primary-neon)' : 'var(--card-border)',
                       boxShadow: isActive ? '0 0 15px rgba(6, 182, 212, 0.08)' : 'none'
                     }}
                   >
                     {/* Top Row: Provider Name & Credentials */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div className="sh-listing-header">
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <h3 style={{ color: '#fff', fontSize: '1.05rem', fontWeight: 600 }}>{p.name}</h3>
+                          <h3 className="sh-listing-header-title">{p.name}</h3>
                         </div>
-                        <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
-                          {p.specialty}
-                        </span>
-                        {p.address && (
-                          <span style={{ fontSize: '0.74rem', color: 'rgba(255, 255, 255, 0.7)', display: 'block', marginBottom: '4px', fontStyle: 'italic', wordBreak: 'break-word' }}>
-                            📍 {p.address}
-                          </span>
-                        )}
+                        <span className="sh-listing-specialty">{p.specialty}</span>
+                        {p.address && <span className="sh-listing-address">{p.address}</span>}
                       </div>
 
                       {/* Experience Badge instead of rating */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(16, 185, 129, 0.1)', padding: '6px 12px', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
+                      <div className="sh-experience-badge">
                         <Briefcase size={12} style={{ color: 'var(--secondary-neon)' }} />
                         <span style={{ fontSize: '0.74rem', fontWeight: 'bold', color: 'var(--secondary-neon)' }}>
                           {p.experience || p.experienceYears || 10} Yrs Exp
@@ -244,21 +194,21 @@ const SearchHub = ({ searchParams, onBook }) => {
                     </div>
 
                     {/* Middle Row: Distance, Timings and Pricing */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', background: 'rgba(0,0,0,0.15)', padding: '12px', borderRadius: '8px', border: '1px solid var(--card-border)' }}>
+                    <div className="sh-listing-details-grid">
                       <div>
-                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block' }}>LOCATION</span>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff' }}>{getAreaName(p.coordinates)}</span>
+                        <span className="sh-details-col-label">LOCATION</span>
+                        <span className="sh-details-col-val">{getAreaName(p.coordinates)}</span>
                       </div>
                       <div>
-                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block' }}>TIMINGS</span>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff' }} title={p.activeHours}>
+                        <span className="sh-details-col-label">TIMINGS</span>
+                        <span className="sh-details-col-val" title={p.activeHours}>
                           {p.activeHours}
                         </span>
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center' }}>
+                      <div className="sh-details-charges-wrapper">
                         <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>CHARGES</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--secondary-neon)', transition: 'all 0.3s' }}>
+                          <span className="sh-details-charges-val">
                             ₹{p.fee || p.consultationFee}
                           </span>
                         </div>
@@ -266,37 +216,13 @@ const SearchHub = ({ searchParams, onBook }) => {
                     </div>
 
                     {/* Booking Action CTA */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                        🏥 Clinic Visit Consultation
+                    <div className="sh-booking-row">
+                      <span className="sh-consultation-type">
+                        Clinic Visit Consultation
                       </span>
 
                       <div style={{ display: 'flex', gap: '8px' }}>
-                        <button
-                          onClick={() => onBook(p)}
-                          style={{
-                            background: 'rgba(6, 182, 212, 0.1)',
-                            border: '1px solid rgba(6, 182, 212, 0.35)',
-                            borderRadius: '8px',
-                            color: 'var(--primary-neon)',
-                            padding: '8px 16px',
-                            fontSize: '0.8rem',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            transition: 'all 0.2s'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.target.style.background = 'var(--primary-neon)';
-                            e.target.style.color = '#000';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.background = 'rgba(6, 182, 212, 0.1)';
-                            e.target.style.color = 'var(--primary-neon)';
-                          }}
-                        >
+                        <button onClick={() => onBook(p)} className="sh-book-btn">
                           Book Appointment
                           <ArrowRight size={14} />
                         </button>
@@ -311,7 +237,7 @@ const SearchHub = ({ searchParams, onBook }) => {
         </div>
 
         {/* Right Side: Geolocation Interactive MapHUD */}
-        <div style={{ position: 'sticky', top: '24px', height: 'fit-content' }}>
+        <div className="sh-map-container">
           <MapView
             providers={providers}
             activeProviderId={activeProviderId}

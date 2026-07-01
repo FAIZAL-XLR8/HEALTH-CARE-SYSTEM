@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Upload, AlertOctagon, Heart, BrainCircuit, Activity, Calendar, ArrowRight, Loader } from 'lucide-react';
 import reportBg from '../assets/report.jpg';
 import { motion } from 'framer-motion';
+import { showFlash } from '../components/FlashMessage';
+import './ReportAnalyzer.css';
 
 // Framer Motion variants — same pattern as Home.jsx
 const containerVariants = {
@@ -60,12 +62,13 @@ const ReportAnalyzer = ({ onSearchDoctor, user, onOpenAuth }) => {
       
       if (response.ok) {
         setAnalysis(data.analysis);
+        showFlash('Report analyzed successfully.', 'success');
       } else {
-        alert(data.message || 'Error parsing report file.');
+        showFlash(data.message || 'Error parsing report file.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('Internal Server Error connecting to report analyzer.');
+      showFlash('Internal Server Error connecting to report analyzer.', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -91,56 +94,42 @@ const ReportAnalyzer = ({ onSearchDoctor, user, onOpenAuth }) => {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        style={{ maxWidth: '850px', margin: '0 auto', padding: '40px 24px', display: 'flex', flexDirection: 'column', gap: '30px', position: 'relative', zIndex: 10 }}
+        className="report-container"
       >
 
       {/* Header Banner */}
       <motion.section
         variants={containerVariants}
-        style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '10px' }}
+        className="report-header"
       >
-        <motion.h2 variants={headingVariants} style={{ fontSize: '2rem', color: 'var(--text-primary)', fontWeight: 800 }}>
+        <motion.h2 variants={headingVariants} className="report-title">
           Multimodal AI Laboratory Report Locker
         </motion.h2>
-        <motion.p variants={descriptionVariants} style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+        <motion.p variants={descriptionVariants} className="report-subtitle">
           Drop any diagnostic PDF or image (CBC, Lipid Panel, Thyroid) and let Gemini read, analyze, and map your metrics instantly.
         </motion.p>
       </motion.section>
 
       {/* Main Console */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
+      <div className="report-console-grid">
         
         {/* Lockscreen Panel for Unauthenticated Users */}
         {!user && (
           <motion.div
             variants={cardVariants}
             whileHover="hover"
-            className="glass-panel"
-            style={{ padding: '50px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px', textAlign: 'center' }}
+            className="glass-panel report-auth-card"
           >
-            <div style={{ background: 'rgba(244, 63, 94, 0.1)', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+            <div className="report-auth-icon-wrapper">
               <Upload style={{ color: 'var(--accent-alert)' }} size={28} />
             </div>
             <div>
-              <h3 style={{ fontSize: '1.2rem', color: 'var(--text-primary)', fontWeight: 700 }}>Authentication Required</h3>
-              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '6px', maxWidth: '360px' }}>
+              <h3 className="report-auth-title">Authentication Required</h3>
+              <p className="report-auth-desc">
                 Please login or sign up to access your personal AI medical report locker.
               </p>
             </div>
-            <button 
-              onClick={onOpenAuth}
-              style={{
-                background: 'var(--primary-neon)',
-                color: '#000',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '12px 24px',
-                fontSize: '0.85rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                boxShadow: '0 4px 15px rgba(6, 182, 212, 0.25)'
-              }}
-            >
+            <button onClick={onOpenAuth} className="report-auth-btn">
               Login / Sign Up
             </button>
           </motion.div>
@@ -152,17 +141,19 @@ const ReportAnalyzer = ({ onSearchDoctor, user, onOpenAuth }) => {
             variants={cardVariants}
             whileHover="hover"
             onSubmit={handleUploadSubmit}
-            className="glass-panel"
-            style={{ padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px', borderStyle: 'dashed', borderWidth: '2px', borderColor: file ? 'var(--primary-neon)' : 'var(--card-border)' }}
+            className="glass-panel report-upload-form"
+            style={{
+              borderColor: file ? 'var(--primary-neon)' : 'var(--card-border)'
+            }}
           >
-            <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyCenter: 'center', padding: '16px' }}>
+            <div className="report-upload-icon-wrapper">
               <Upload style={{ color: 'var(--primary-neon)' }} size={28} />
             </div>
 
-            <div style={{ textAlign: 'center' }}>
+            <div className="report-upload-text-wrapper">
               <label htmlFor="file-upload" style={{ cursor: 'pointer', display: 'inline-block' }}>
-                <span style={{ color: 'var(--primary-neon)', fontWeight: 'bold', fontSize: '0.9rem' }}>Click to upload report</span>
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.88rem', display: 'block', marginTop: '4px' }}>
+                <span className="report-upload-label-main">Click to upload report</span>
+                <span className="report-upload-label-sub">
                   Supports PDFs, PNGs, and JPEGs up to 5MB
                 </span>
                 <input 
@@ -176,7 +167,7 @@ const ReportAnalyzer = ({ onSearchDoctor, user, onOpenAuth }) => {
             </div>
 
             {file && (
-              <div style={{ background: 'var(--bg-obsidian)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '8px 16px', fontSize: '0.8rem', color: 'var(--text-primary)' }}>
+              <div className="report-selected-doc-badge">
                 Selected Document: <strong>{file.name}</strong>
               </div>
             )}
@@ -184,19 +175,11 @@ const ReportAnalyzer = ({ onSearchDoctor, user, onOpenAuth }) => {
             <button 
               type="submit"
               disabled={!file || isLoading}
+              className="report-submit-btn"
               style={{
-                marginTop: '10px',
                 background: file && !isLoading ? 'var(--primary-neon)' : 'var(--card-border)',
                 color: file && !isLoading ? 'var(--bg-dark)' : 'var(--text-muted)',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '12px 24px',
-                fontSize: '0.88rem',
-                fontWeight: 700,
-                cursor: file && !isLoading ? 'pointer' : 'default',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
+                cursor: file && !isLoading ? 'pointer' : 'default'
               }}
             >
               {isLoading ? (
@@ -205,7 +188,7 @@ const ReportAnalyzer = ({ onSearchDoctor, user, onOpenAuth }) => {
                   Gemini Parsing Document...
                 </>
               ) : (
-                'Trigger AI Analysis'
+                'Submit'
               )}
             </button>
           </motion.form>
@@ -216,50 +199,38 @@ const ReportAnalyzer = ({ onSearchDoctor, user, onOpenAuth }) => {
           <motion.div
             variants={cardVariants}
             whileHover="hover"
-            className="glass-panel"
-            style={{ padding: '30px', display: 'flex', flexDirection: 'column', gap: '24px', position: 'relative' }}
+            className="glass-panel report-analysis-card"
           >
             
             {/* Header patient profile info */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--card-border)', paddingBottom: '16px' }}>
+            <div className="report-analysis-header">
               <div>
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>PATIENT LOCKER SUMMARY</span>
-                <h3 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: 700 }}>Patient: {analysis.patientName || 'Aarav Mehta'}</h3>
+                <span className="report-analysis-label">PATIENT LOCKER SUMMARY</span>
+                <h3 className="report-analysis-patient-title">Patient: {analysis.patientName || 'Aarav Mehta'}</h3>
               </div>
               
-              <button 
-                onClick={() => setAnalysis(null)}
-                style={{
-                  background: 'none',
-                  border: '1px solid var(--card-border)',
-                  borderRadius: '6px',
-                  color: 'var(--text-muted)',
-                  fontSize: '0.72rem',
-                  padding: '6px 12px',
-                  cursor: 'pointer'
-                }}
-              >
+              <button onClick={() => setAnalysis(null)} className="report-analysis-clear-btn">
                 Clear Analysis
               </button>
             </div>
 
             {/* Simple patient-friendly brief summary */}
             <div>
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', lineHeight: '1.6', fontStyle: 'italic', background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '10px', borderLeft: '3px solid var(--primary-neon)' }}>
+              <p className="report-analysis-summary-quote">
                 "{analysis.fullSummary}"
               </p>
             </div>
 
             {/* Dual Grid: Identified Tests & High Risk Critical Flags */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div className="report-analysis-dual-grid">
               
               {/* Identified tests */}
-              <div className="glass-panel" style={{ padding: '16px', background: 'var(--bg-dark)' }}>
-                <h4 style={{ fontSize: '0.85rem', color: 'var(--primary-neon)', fontWeight: 600, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div className="glass-panel report-analysis-panel-card">
+                <h4 className="report-analysis-panel-title" style={{ color: 'var(--primary-neon)' }}>
                   <Activity size={14} />
                   Identified Tests
                 </h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div className="report-analysis-panel-items">
                   {analysis.testsIdentified.map((test, index) => (
                     <span key={index} style={{ fontSize: '0.78rem', color: 'var(--text-primary)', display: 'block' }}>
                       • {test}
@@ -269,18 +240,18 @@ const ReportAnalyzer = ({ onSearchDoctor, user, onOpenAuth }) => {
               </div>
 
               {/* Critical out of bounds lights */}
-              <div className="glass-panel" style={{ padding: '16px', background: 'var(--bg-dark)', borderColor: 'rgba(244, 63, 94, 0.15)' }}>
-                <h4 style={{ fontSize: '0.85rem', color: 'var(--accent-alert)', fontWeight: 600, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div className="glass-panel report-analysis-panel-card" style={{ borderColor: 'rgba(244, 63, 94, 0.15)' }}>
+                <h4 className="report-analysis-panel-title" style={{ color: 'var(--accent-alert)' }}>
                   <AlertOctagon size={14} />
                   Out-of-Range Metrics
                 </h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div className="report-analysis-panel-items">
                   {analysis.criticalAlerts.length === 0 ? (
-                    <span style={{ fontSize: '0.78rem', color: 'var(--secondary-neon)' }}>🟢 All metrics within normal thresholds.</span>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--secondary-neon)' }}>All metrics within normal thresholds.</span>
                   ) : (
                     analysis.criticalAlerts.map((alert, index) => (
                       <span key={index} style={{ fontSize: '0.78rem', color: '#fda4af', display: 'block' }}>
-                        🔴 {alert}
+                        {alert}
                       </span>
                     ))
                   )}
@@ -290,14 +261,14 @@ const ReportAnalyzer = ({ onSearchDoctor, user, onOpenAuth }) => {
             </div>
 
             {/* Dynamic AI Triage Recommendation Panel */}
-            <div style={{ background: 'rgba(6, 182, 212, 0.05)', border: '1px solid rgba(6, 182, 212, 0.2)', borderRadius: '12px', padding: '20px', display: 'flex', justifyBetween: 'space-between', alignItems: 'center', gap: '16px' }}>
+            <div className="report-recommendation-panel">
               
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <span style={{ fontSize: '0.7rem', color: 'var(--primary-neon)', fontWeight: 600, letterSpacing: '0.05em' }}>AI RECOMMENDATION</span>
-                <h4 style={{ fontSize: '1.05rem', color: 'var(--text-primary)', fontWeight: 700 }}>
+              <div className="report-recommendation-content">
+                <span className="report-recommendation-label">AI RECOMMENDATION</span>
+                <h4 className="report-recommendation-title">
                   Consult a {analysis.recommendedSpecialist}
                 </h4>
-                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                <p className="report-recommendation-desc">
                   Based on flagged out-of-range metrics, scheduling a physical consultation with a local {analysis.recommendedSpecialist} is highly advised.
                 </p>
               </div>
@@ -305,20 +276,7 @@ const ReportAnalyzer = ({ onSearchDoctor, user, onOpenAuth }) => {
               {/* Skyscanner style CTA linking report to Spatial Doctor search instantly */}
               <button 
                 onClick={() => onSearchDoctor(analysis.recommendedSpecialist)}
-                style={{
-                  background: 'var(--primary-neon)',
-                  color: '#000',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '12px 18px',
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  boxShadow: '0 4px 15px rgba(6, 182, 212, 0.25)'
-                }}
+                className="report-find-doc-btn"
               >
                 Find Nearby {analysis.recommendedSpecialist}
                 <ArrowRight size={14} />

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Upload, AlertOctagon, Heart, BrainCircuit, Activity, ArrowRight, Loader, Pill, ShieldAlert, CheckCircle } from 'lucide-react';
 import reportBg from '../assets/prescription.jpg';
 import { motion } from 'framer-motion';
+import { showFlash } from '../components/FlashMessage';
+import './PrescriptionAnalyzer.css';
 
 // Framer Motion variants — same pattern as ReportAnalyzer / Home.jsx
 const containerVariants = {
@@ -58,12 +60,13 @@ const PrescriptionAnalyzer = ({ user, onOpenAuth }) => {
       
       if (response.ok) {
         setResult(data);
+        showFlash('Prescription analyzed successfully.', 'success');
       } else {
-        alert(data.message || 'Error analyzing prescription file.');
+        showFlash(data.message || 'Error analyzing prescription file.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('Internal Server Error connecting to prescription analyzer.');
+      showFlash('Internal Server Error connecting to prescription analyzer.', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -89,56 +92,42 @@ const PrescriptionAnalyzer = ({ user, onOpenAuth }) => {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        style={{ maxWidth: '850px', margin: '0 auto', padding: '40px 24px', display: 'flex', flexDirection: 'column', gap: '30px', position: 'relative', zIndex: 10 }}
+        className="rx-container"
       >
 
         {/* Header Banner */}
         <motion.section
           variants={containerVariants}
-          style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '10px' }}
+          className="rx-header"
         >
-          <motion.h2 variants={headingVariants} style={{ fontSize: '2rem', color: '#fff', fontWeight: 800, fontFamily: 'Outfit' }}>
+          <motion.h2 variants={headingVariants} className="rx-title">
             AI Prescription Analyzer
           </motion.h2>
-          <motion.p variants={descriptionVariants} style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+          <motion.p variants={descriptionVariants} className="rx-subtitle">
             Scan your doctor's handwritten or digital prescriptions. Our system uses Gemini Vision to decode medicine names, usages, and side effects.
           </motion.p>
         </motion.section>
 
         {/* Main Console */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
+        <div className="rx-console-grid">
 
           {/* Lockscreen Panel for Unauthenticated Users */}
           {!user && (
             <motion.div
               variants={cardVariants}
               whileHover="hover"
-              className="glass-panel"
-              style={{ padding: '50px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px', textAlign: 'center' }}
+              className="glass-panel rx-auth-card"
             >
-              <div style={{ background: 'rgba(244, 63, 94, 0.1)', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+              <div className="rx-auth-icon-wrapper">
                 <Upload style={{ color: 'var(--accent-alert)' }} size={28} />
               </div>
               <div>
-                <h3 style={{ fontSize: '1.2rem', color: '#fff', fontWeight: 700 }}>Authentication Required</h3>
-                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '6px', maxWidth: '360px' }}>
+                <h3 className="rx-auth-title">Authentication Required</h3>
+                <p className="rx-auth-desc">
                   Please login or sign up to analyze medical prescriptions.
                 </p>
               </div>
-              <button 
-                onClick={onOpenAuth}
-                style={{
-                  background: 'var(--primary-neon)',
-                  color: '#000',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '12px 24px',
-                  fontSize: '0.85rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 15px rgba(6, 182, 212, 0.25)'
-                }}
-              >
+              <button onClick={onOpenAuth} className="rx-auth-btn">
                 Login / Sign Up
               </button>
             </motion.div>
@@ -150,17 +139,19 @@ const PrescriptionAnalyzer = ({ user, onOpenAuth }) => {
               variants={cardVariants}
               whileHover="hover"
               onSubmit={handleUploadSubmit}
-              className="glass-panel"
-              style={{ padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px', borderStyle: 'dashed', borderWidth: '2px', borderColor: file ? 'var(--primary-neon)' : 'var(--card-border)', maxWidth: '550px', width: '100%', margin: '40px auto 0' }}
+              className="glass-panel rx-upload-form"
+              style={{
+                borderColor: file ? 'var(--primary-neon)' : 'var(--card-border)'
+              }}
             >
-              <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+              <div className="rx-upload-icon-wrapper">
                 <Pill style={{ color: 'var(--primary-neon)' }} size={28} />
               </div>
 
-              <div style={{ textAlign: 'center' }}>
+              <div className="rx-upload-text-wrapper">
                 <label htmlFor="prescription-upload" style={{ cursor: 'pointer', display: 'inline-block' }}>
-                  <span style={{ color: 'var(--primary-neon)', fontWeight: 'bold', fontSize: '0.9rem' }}>Click to upload prescription</span>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.88rem', display: 'block', marginTop: '4px' }}>
+                  <span className="rx-upload-label-main">Click to upload prescription</span>
+                  <span className="rx-upload-label-sub">
                     Supports PDFs, PNGs, and JPEGs up to 5MB
                   </span>
                   <input 
@@ -174,7 +165,7 @@ const PrescriptionAnalyzer = ({ user, onOpenAuth }) => {
               </div>
 
               {file && (
-                <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '8px 16px', fontSize: '0.8rem', color: '#fff' }}>
+                <div className="rx-selected-doc-badge">
                   Selected Document: <strong>{file.name}</strong>
                 </div>
               )}
@@ -182,19 +173,11 @@ const PrescriptionAnalyzer = ({ user, onOpenAuth }) => {
               <button 
                 type="submit"
                 disabled={!file || isLoading}
+                className="rx-submit-btn"
                 style={{
-                  marginTop: '10px',
                   background: file && !isLoading ? 'var(--primary-neon)' : 'rgba(255, 255, 255, 0.05)',
                   color: file && !isLoading ? '#000' : 'var(--text-muted)',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '12px 24px',
-                  fontSize: '0.88rem',
-                  fontWeight: 700,
-                  cursor: file && !isLoading ? 'pointer' : 'default',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
+                  cursor: file && !isLoading ? 'pointer' : 'default'
                 }}
               >
                 {isLoading ? (
@@ -203,7 +186,7 @@ const PrescriptionAnalyzer = ({ user, onOpenAuth }) => {
                     Extracting &amp; Analyzing...
                   </>
                 ) : (
-                  'Trigger Prescription Analysis'
+                  'Submit'
                 )}
               </button>
             </motion.form>
@@ -214,15 +197,14 @@ const PrescriptionAnalyzer = ({ user, onOpenAuth }) => {
             <motion.div
               variants={cardVariants}
               whileHover="hover"
-              className="glass-panel"
-              style={{ padding: '30px', display: 'flex', flexDirection: 'column', gap: '24px' }}
+              className="glass-panel rx-result-card"
             >
               
               {/* Header / Actions */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--card-border)', paddingBottom: '16px' }}>
+              <div className="rx-result-header">
                 <div>
-                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>DIGITIZED PRESCRIPTION DATA</span>
-                  <h3 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 700 }}>AI Analysis Dashboard</h3>
+                  <span className="rx-result-label">DIGITIZED PRESCRIPTION DATA</span>
+                  <h3 className="rx-result-title">AI Analysis Dashboard</h3>
                 </div>
                 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -231,15 +213,7 @@ const PrescriptionAnalyzer = ({ user, onOpenAuth }) => {
                       setResult(null);
                       setFile(null);
                     }}
-                    style={{
-                      background: 'none',
-                      border: '1px solid var(--card-border)',
-                      borderRadius: '6px',
-                      color: 'var(--text-muted)',
-                      fontSize: '0.72rem',
-                      padding: '6px 12px',
-                      cursor: 'pointer'
-                    }}
+                    className="rx-result-clear-btn"
                   >
                     Analyze New
                   </button>
@@ -247,14 +221,14 @@ const PrescriptionAnalyzer = ({ user, onOpenAuth }) => {
               </div>
 
               {/* Medicine Breakdown */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <h4 style={{ fontSize: '0.95rem', color: '#fff', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="rx-med-list-container">
+                <h4 className="rx-med-list-title">
                   <Activity size={16} style={{ color: 'var(--primary-neon)' }} />
                   Prescribed Medications ({result.analysis.medicines.length})
                 </h4>
 
                 {result.analysis.medicines.length === 0 ? (
-                  <div style={{ padding: '20px', textAlign: 'center', background: 'rgba(255,255,255,0.01)', borderRadius: '8px', border: '1px solid var(--card-border)', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                  <div className="rx-med-empty-state">
                     No medications were identified. Try uploading a clearer picture or document.
                   </div>
                 ) : (
@@ -263,62 +237,54 @@ const PrescriptionAnalyzer = ({ user, onOpenAuth }) => {
                       key={index}
                       variants={cardVariants}
                       whileHover="hover"
-                      className="glass-panel"
-                      style={{ 
-                        padding: '24px', 
-                        background: 'rgba(0,0,0,0.15)', 
-                        borderColor: 'rgba(255,255,255,0.05)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '16px'
-                      }}
+                      className="glass-panel rx-med-card"
                     >
                       {/* Medicine Header */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div className="rx-med-header">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <div style={{ background: 'rgba(6, 182, 212, 0.1)', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <div className="rx-med-icon-wrapper">
                             <Pill size={16} style={{ color: 'var(--primary-neon)' }} />
                           </div>
                           <div>
-                            <h5 style={{ fontSize: '1.05rem', color: '#fff', fontWeight: 700 }}>{med.name}</h5>
+                            <h5 className="rx-med-name">{med.name}</h5>
                           </div>
                         </div>
                       </div>
 
                       {/* Drug Information Grid */}
-                      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '20px' }}>
+                      <div className="rx-med-details-grid">
                         
                         {/* Reason & Description */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <div className="rx-med-info-col">
                           <div>
-                            <span style={{ fontSize: '0.7rem', color: 'var(--primary-neon)', fontWeight: 600, display: 'block', textTransform: 'uppercase' }}>Reason for Prescription</span>
-                            <span style={{ fontSize: '0.85rem', color: '#fff', fontWeight: 500 }}>{med.reason}</span>
+                            <span className="rx-med-info-label">Reason for Prescription</span>
+                            <span className="rx-med-info-val">{med.reason}</span>
                           </div>
                           <div>
-                            <span style={{ fontSize: '0.7rem', color: 'var(--primary-neon)', fontWeight: 600, display: 'block', textTransform: 'uppercase' }}>Clinical Description</span>
-                            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>{med.description}</p>
+                            <span className="rx-med-info-label">Clinical Description</span>
+                            <p className="rx-med-info-desc">{med.description}</p>
                           </div>
                           <div>
-                            <span style={{ fontSize: '0.7rem', color: 'var(--primary-neon)', fontWeight: 600, display: 'block', textTransform: 'uppercase' }}>Standard Administration</span>
-                            <span style={{ fontSize: '0.8rem', color: '#fff' }}>{med.usage}</span>
+                            <span className="rx-med-info-label">Standard Administration</span>
+                            <span className="rx-med-info-val">{med.usage}</span>
                           </div>
                         </div>
 
                         {/* Safety: Precautions & Side Effects */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '8px', border: '1px solid var(--card-border)' }}>
+                        <div className="rx-med-safety-panel">
                           <div>
-                            <span style={{ fontSize: '0.7rem', color: 'var(--secondary-neon)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', textTransform: 'uppercase', marginBottom: '4px' }}>
+                            <span className="rx-med-safety-label-green">
                               <CheckCircle size={10} /> Precautions
                             </span>
-                            <ul style={{ margin: 0, paddingLeft: '14px', fontSize: '0.78rem', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                            <ul className="rx-med-safety-list">
                               {med.precautions.map((p, i) => <li key={i}>{p}</li>)}
                             </ul>
                           </div>
                           <div>
-                            <span style={{ fontSize: '0.7rem', color: 'var(--accent-alert)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', textTransform: 'uppercase', marginBottom: '4px' }}>
+                            <span className="rx-med-safety-label-red">
                               <ShieldAlert size={10} /> Common Side Effects
                             </span>
-                            <ul style={{ margin: 0, paddingLeft: '14px', fontSize: '0.78rem', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                            <ul className="rx-med-safety-list">
                               {med.sideEffects.map((s, i) => <li key={i}>{s}</li>)}
                             </ul>
                           </div>
@@ -333,13 +299,13 @@ const PrescriptionAnalyzer = ({ user, onOpenAuth }) => {
 
               {/* Overall Advice Box */}
               {result.analysis.overallAdvice && (
-                <div style={{ background: 'rgba(6, 182, 212, 0.05)', border: '1px solid rgba(6, 182, 212, 0.2)', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--primary-neon)', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>PHARMACIST'S ADVISORY</span>
-                  <p style={{ fontSize: '0.82rem', color: 'var(--text-primary)', lineHeight: '1.6', margin: 0 }}>
+                <div className="rx-overall-advice-panel">
+                  <span className="rx-overall-advice-label">PHARMACIST'S ADVISORY</span>
+                  <p className="rx-overall-advice-desc">
                     {result.analysis.overallAdvice}
                   </p>
-                  <div style={{ marginTop: '4px', fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                    ⚠️ Disclaimer: This analysis is for educational purposes only. Always consult your prescribing doctor before changing any medication schedules.
+                  <div className="rx-overall-advice-disclaimer">
+                    Disclaimer: This analysis is for educational purposes only. Always consult your prescribing doctor before changing any medication schedules.
                   </div>
                 </div>
               )}

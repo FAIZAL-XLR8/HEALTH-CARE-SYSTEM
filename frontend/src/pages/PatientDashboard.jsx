@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, CreditCard, MessageSquare, Video, AlertCircle, RefreshCw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { showFlash } from '../components/FlashMessage';
+import './PatientDashboard.css';
 
 // Framer Motion variants — same pattern as Home.jsx
 const containerVariants = {
@@ -29,7 +30,6 @@ const PatientDashboard = ({ onOpenAuth, onStartConsultation }) => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [activeView, setActiveView] = useState('ongoing'); // 'ongoing' | 'past'
 
   const fetchAppointments = async () => {
     setLoading(true);
@@ -164,21 +164,16 @@ const PatientDashboard = ({ onOpenAuth, onStartConsultation }) => {
     return !isExpired;
   });
 
-  const pastAppointments = appointments.filter(appt => {
-    const isExpired = appt.remainingValidity === 'Expired' || (appt.chatEnabledUntil && new Date() >= new Date(appt.chatEnabledUntil));
-    return isExpired;
-  });
-
   return (
-    <div style={{ maxWidth: '1000px', margin: '40px auto', padding: '0 24px' }}>
+    <div className="pat-container">
       
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div className="pat-header-row">
         <div>
           <motion.h2
             initial="hidden"
             animate="visible"
             variants={headingVariants}
-            style={{ fontSize: '1.8rem', fontWeight: 800, color: '#fff' }}
+            className="pat-title"
           >
             Patient Dashboard
           </motion.h2>
@@ -186,7 +181,7 @@ const PatientDashboard = ({ onOpenAuth, onStartConsultation }) => {
             initial="hidden"
             animate="visible"
             variants={descriptionVariants}
-            style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}
+            className="pat-subtitle"
           >
             Manage your booked consultations, payments, and active telehealth rooms.
           </motion.p>
@@ -195,20 +190,7 @@ const PatientDashboard = ({ onOpenAuth, onStartConsultation }) => {
         <button
           onClick={fetchAppointments}
           disabled={loading}
-          style={{
-            background: 'none',
-            border: '1px solid var(--card-border)',
-            color: '#fff',
-            padding: '8px 16px',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontSize: '0.8rem',
-            fontWeight: 600,
-            transition: 'all 0.2s'
-          }}
+          className="pat-refresh-btn"
         >
           <RefreshCw size={14} className={loading ? 'spin-anim' : ''} />
           Refresh
@@ -216,7 +198,7 @@ const PatientDashboard = ({ onOpenAuth, onStartConsultation }) => {
       </div>
 
       {error && (
-        <div style={{ background: 'rgba(244, 63, 94, 0.1)', border: '1px solid var(--accent-alert)', borderRadius: '8px', padding: '16px', color: 'var(--accent-alert)', marginBottom: '20px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div className="pat-error-panel">
           <AlertCircle size={18} />
           <span>{error}</span>
         </div>
@@ -225,248 +207,114 @@ const PatientDashboard = ({ onOpenAuth, onStartConsultation }) => {
       {loading && appointments.length === 0 ? (
         <div style={{ color: 'var(--primary-neon)', fontSize: '0.9rem' }}>Loading appointments...</div>
       ) : appointments.length === 0 ? (
-        <div className="glass-panel" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+        <div className="glass-panel pat-empty-state">
           <Calendar size={48} style={{ color: 'var(--card-border)', marginBottom: '12px' }} />
-          <p style={{ fontSize: '0.9rem' }}>No appointments or reservations found.</p>
-          <p style={{ fontSize: '0.8rem', marginTop: '4px' }}>Search for doctors on the homepage to book a consultation slot.</p>
+          <p className="pat-empty-title">No appointments or reservations found.</p>
+          <p className="pat-empty-desc">Search for doctors on the homepage to book a consultation slot.</p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+        <div className="pat-main-stack">
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#fff', margin: 0 }}>
-              {activeView === 'ongoing' ? 'Ongoing Appointments' : 'Past Appointments'}
+          <div className="pat-section-header">
+            <h3 className="pat-section-title">
+              Ongoing Appointments
             </h3>
-            <button
-              onClick={() => setActiveView(activeView === 'ongoing' ? 'past' : 'ongoing')}
-              style={{
-                background: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid var(--card-border)',
-                color: 'var(--primary-neon)',
-                padding: '6px 12px',
-                borderRadius: '6px',
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-            >
-              {activeView === 'ongoing' ? 'View Past Appointments' : 'Back to Ongoing'}
-            </button>
           </div>
 
-          {activeView === 'ongoing' ? (
-            /* Ongoing Appointments List */
-            activeAppointments.length === 0 ? (
-              <div className="glass-panel" style={{ padding: '24px', minHeight: '108px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.92rem' }}>
-                No active appointments.
-              </div>
-            ) : (
-              <motion.div
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
-              >
-                {[...activeAppointments].sort((a, b) => new Date(b.appointmentDate || b.date) - new Date(a.appointmentDate || a.date)).map(appt => {
-                  const doc = appt.doctorId || appt.doctor || {};
-                  const isPaid = appt.paymentStatus === 'paid';
-                  const isExpired = appt.remainingValidity === 'Expired' || (appt.chatEnabledUntil && new Date() >= new Date(appt.chatEnabledUntil));
-                  
-                  return (
-                    <motion.div
-                      key={appt._id}
-                      variants={cardVariants}
-                      whileHover="hover"
-                      className="glass-panel"
-                      style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}
-                    >
-                      {/* Doctor Profile Info */}
-                      <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                        <img
-                          src={doc.profileImage || doc.profilePhoto || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=200&auto=format&fit=crop'}
-                          alt={doc.name}
-                          style={{ width: '60px', height: '60px', borderRadius: '12px', objectFit: 'cover', border: '1px solid var(--card-border)' }}
-                        />
-                        <div>
-                          <h4 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff' }}>{doc.name || 'Seeded Doctor'}</h4>
-                          <p style={{ fontSize: '0.8rem', color: 'var(--primary-neon)', fontWeight: 600 }}>
-                            {doc.specialization || doc.specialty || 'General Practitioner'}
-                          </p>
-                          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '6px', color: 'var(--text-muted)', fontSize: '0.78rem' }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <Calendar size={12} />
-                              {new Date(appt.appointmentDate || appt.date).toLocaleDateString('en-GB')}
-                            </span>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <Clock size={12} />
-                              {appt.slotTime}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Status Column */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
-                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>STATUS</span>
-                        {getStatusBadge(appt)}
-                      </div>
-
-                      {/* Pricing / Payments */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>CONSULTATION FEE</span>
-                        <strong style={{ fontSize: '1.15rem', color: 'var(--secondary-neon)' }}>₹{appt.amountPaid || appt.amount}</strong>
-                      </div>
-
-                      {/* Actions */}
-                      <div style={{ display: 'flex', gap: '10px' }}>
-                        {!isPaid ? (
-                          <button
-                            onClick={() => handlePayNow(appt._id)}
-                            disabled={loading}
-                            style={{
-                              background: 'var(--primary-neon)',
-                              border: 'none',
-                              color: '#000',
-                              padding: '10px 20px',
-                              borderRadius: '8px',
-                              fontWeight: 700,
-                              fontSize: '0.8rem',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                              boxShadow: '0 4px 12px rgba(6, 182, 212, 0.2)'
-                            }}
-                          >
-                            <CreditCard size={14} />
-                            Pay Now
-                          </button>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() => onStartConsultation(appt._id)}
-                              disabled={isExpired}
-                              style={{
-                                background: isExpired ? 'rgba(255,255,255,0.05)' : 'var(--secondary-neon)',
-                                border: 'none',
-                                color: isExpired ? 'var(--text-muted)' : '#fff',
-                                padding: '10px 20px',
-                                borderRadius: '8px',
-                                fontWeight: 700,
-                                fontSize: '0.8rem',
-                                cursor: isExpired ? 'not-allowed' : 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                boxShadow: isExpired ? 'none' : '0 4px 12px rgba(16, 185, 129, 0.2)'
-                              }}
-                            >
-                              <MessageSquare size={14} />
-                              Chat & Consultation
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </motion.div>
-            )
+          {activeAppointments.length === 0 ? (
+            <div className="glass-panel pat-active-empty">
+              No active appointments.
+            </div>
           ) : (
-            /* Expired / Past Appointments List */
-            pastAppointments.length === 0 ? (
-              <div className="glass-panel" style={{ padding: '24px', minHeight: '108px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.92rem' }}>
-                No expired or past consultations.
-              </div>
-            ) : (
-              <motion.div
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
-              >
-                {[...pastAppointments].sort((a, b) => new Date(b.appointmentDate || b.date) - new Date(a.appointmentDate || a.date)).map(appt => {
-                  const doc = appt.doctorId || appt.doctor || {};
-                  const isPaid = appt.paymentStatus === 'paid';
-                  const isExpired = true;
-                  
-                  return (
-                    <motion.div
-                      key={appt._id}
-                      variants={cardVariants}
-                      whileHover="hover"
-                      className="glass-panel"
-                      style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}
-                    >
-                      {/* Doctor Profile Info */}
-                      <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                        <img
-                          src={doc.profileImage || doc.profilePhoto || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=200&auto=format&fit=crop'}
-                          alt={doc.name}
-                          style={{ width: '60px', height: '60px', borderRadius: '12px', objectFit: 'cover', border: '1px solid var(--card-border)' }}
-                        />
-                        <div>
-                          <h4 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff' }}>{doc.name || 'Seeded Doctor'}</h4>
-                          <p style={{ fontSize: '0.8rem', color: 'var(--primary-neon)', fontWeight: 600 }}>
-                            {doc.specialization || doc.specialty || 'General Practitioner'}
-                          </p>
-                          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '6px', color: 'var(--text-muted)', fontSize: '0.78rem' }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <Calendar size={12} />
-                              {new Date(appt.appointmentDate || appt.date).toLocaleDateString('en-GB')}
-                            </span>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <Clock size={12} />
-                              {appt.slotTime}
-                            </span>
-                          </div>
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="pat-active-list"
+            >
+              {[...activeAppointments].sort((a, b) => new Date(b.appointmentDate || b.date) - new Date(a.appointmentDate || a.date)).map(appt => {
+                const doc = appt.doctorId || {};
+                const isPaid = appt.paymentStatus === 'paid';
+                const isExpired = appt.remainingValidity === 'Expired' || (appt.chatEnabledUntil && new Date() >= new Date(appt.chatEnabledUntil));
+                
+                return (
+                  <motion.div
+                    key={appt._id}
+                    variants={cardVariants}
+                    whileHover="hover"
+                    className="glass-panel pat-card"
+                  >
+                    {/* Doctor Profile Info */}
+                    <div className="pat-doctor-info">
+                      <img
+                        src={doc.profileImage || doc.profilePhoto || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=200&auto=format&fit=crop'}
+                        alt={doc.name}
+                        className="pat-doctor-avatar"
+                      />
+                      <div>
+                        <h4 className="pat-doctor-name">{doc.name || 'Seeded Doctor'}</h4>
+                        <p className="pat-doctor-specialty">
+                          {doc.specialization || doc.specialty || 'General Practitioner'}
+                        </p>
+                        <div className="pat-appointment-time">
+                          <span className="pat-time-badge">
+                            <Calendar size={12} />
+                            {new Date(appt.appointmentDate || appt.date).toLocaleDateString('en-GB')}
+                          </span>
+                          <span className="pat-time-badge">
+                            <Clock size={12} />
+                            {appt.slotTime}
+                          </span>
                         </div>
                       </div>
+                    </div>
 
-                      {/* Status Column */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
-                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>STATUS</span>
-                        {getStatusBadge(appt)}
-                      </div>
+                    {/* Status Column */}
+                    <div className="pat-status-col">
+                      <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>STATUS</span>
+                      {getStatusBadge(appt)}
+                    </div>
 
-                      {/* Pricing / Payments */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>CONSULTATION FEE</span>
-                        <strong style={{ fontSize: '1.15rem', color: 'var(--secondary-neon)' }}>₹{appt.amountPaid || appt.amount}</strong>
-                      </div>
+                    {/* Pricing / Payments */}
+                    <div className="pat-charges-col">
+                      <span className="pat-charges-title">CONSULTATION FEE</span>
+                      <strong className="pat-charges-val">₹{appt.amountPaid || appt.amount}</strong>
+                    </div>
 
-                      {/* Actions */}
-                      <div style={{ display: 'flex', gap: '10px' }}>
-                        {!isPaid ? (
-                          <span style={{ fontSize: '0.88rem', color: 'var(--text-muted)', fontWeight: 600 }}>Unpaid</span>
-                        ) : (
+                    {/* Actions */}
+                    <div className="pat-actions-col">
+                      {!isPaid ? (
+                        <button
+                          onClick={() => handlePayNow(appt._id)}
+                          disabled={loading}
+                          className="pat-pay-btn"
+                        >
+                          <CreditCard size={14} />
+                          Pay Now
+                        </button>
+                      ) : (
+                        <>
                           <button
-                            disabled
+                            onClick={() => onStartConsultation(appt._id)}
+                            disabled={isExpired}
+                            className="pat-chat-btn"
                             style={{
-                              background: 'rgba(255,255,255,0.05)',
-                              border: 'none',
-                              color: 'var(--text-muted)',
-                              padding: '10px 20px',
-                              borderRadius: '8px',
-                              fontWeight: 700,
-                              fontSize: '0.8rem',
-                              cursor: 'not-allowed',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '6px'
+                              background: isExpired ? 'rgba(255,255,255,0.05)' : 'var(--secondary-neon)',
+                              color: isExpired ? 'var(--text-muted)' : '#fff',
+                              cursor: isExpired ? 'not-allowed' : 'pointer',
+                              boxShadow: isExpired ? 'none' : '0 4px 12px rgba(16, 185, 129, 0.2)'
                             }}
                           >
                             <MessageSquare size={14} />
-                            Expired
+                            Chat & Consultation
                           </button>
-                        )}
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </motion.div>
-            )
+                        </>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
           )}
         </div>
       )}

@@ -254,7 +254,7 @@ function App() {
                 className="hover-opacity"
                 title="View My Profile Details"
               >
-                {user.role === 'admin' ? '🛡️' : (user.role === 'doctor' ? '🩺' : '👤')} {user.name}
+                {user.name} ({user.role.toUpperCase()})
               </span>
               <button 
                 onClick={() => setIsLogoutConfirmOpen(true)}

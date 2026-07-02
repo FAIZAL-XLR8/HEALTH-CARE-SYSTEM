@@ -35,7 +35,7 @@ const register = async (req, res) => {
     const {
       name, phone, password, email, role = 'patient',
       specialty, experience, fee, activeHours,
-      profileImage, bio, address
+      profileImage, bio, address, latitude, longitude
     } = req.body;
 
     if (!name || !password || !email) {
@@ -102,6 +102,23 @@ const register = async (req, res) => {
       const phoneOtp = generateOtp();
       const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
+      const { geocodeAddress } = require('../utils/geocoder');
+      let coordinates;
+
+      // Use manually typed latitude and longitude if they exist
+      if (latitude !== undefined && latitude !== '' && longitude !== undefined && longitude !== '') {
+        const lat = Number(latitude);
+        const lng = Number(longitude);
+        if (!isNaN(lat) && !isNaN(lng)) {
+          coordinates = [lng, lat];
+        }
+      }
+
+      // Fallback to geocoding the address if custom coordinates aren't provided
+      if (!coordinates) {
+        coordinates = await geocodeAddress(address);
+      }
+
       const doctor = await PendingDoctor.create({
         name,
         email: email.toLowerCase().trim(),
@@ -120,18 +137,11 @@ const register = async (req, res) => {
         address: address.trim(),
         location: {
           type: 'Point',
-          coordinates: [77.641151 + (Math.random() - 0.5) * 0.05, 12.971891 + (Math.random() - 0.5) * 0.05]
+          coordinates
         }
       });
 
-      console.log(`
-======================================================================
-[OTP VERIFICATION CODES]
-Doctor: ${doctor.name}
-Email OTP sent to ${doctor.email}: ${emailOtp}
-SMS OTP sent to ${doctor.phone}: ${phoneOtp}
-======================================================================
-      `);
+
 
       // Send real verification email
       await sendOtpToEmail(doctor.email, emailOtp);

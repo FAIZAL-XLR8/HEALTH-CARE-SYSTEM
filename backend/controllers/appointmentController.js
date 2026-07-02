@@ -2,10 +2,9 @@ const Appointment = require('../models/Appointment');
 const Doctor = require('../models/Doctor');
 const DoctorAvailability = require('../models/DoctorAvailability');
 
-// Shared 24-hour slots constant
+// Shared 9 AM - 5 PM slots constant
 const DEFAULT_SLOTS = [
-  '12:00 AM', '01:00 AM', '02:00 AM', '03:00 AM', '04:00 AM', '05:00 AM', '06:00 AM', '07:00 AM', '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM',
-  '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM', '06:00 PM', '07:00 PM', '08:00 PM', '09:00 PM', '10:00 PM', '11:00 PM'
+  '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM'
 ];
 
 // HELPER: Convert slot time to minutes
@@ -123,21 +122,23 @@ exports.getAvailableSlots = async (req, res) => {
       reservationMap.set(r.slotTime, r);
     });
 
-    const slotDetails = availability.slots.map(s => {
-      const reservation = reservationMap.get(s.time);
-      const isReserved = !!reservation;
-      const passed = isSlotPassed(date, s.time);
-      const isAvailable = !s.isBooked && !isReserved && !passed;
+    const slotDetails = availability.slots
+      .filter(s => DEFAULT_SLOTS.includes(s.time))
+      .map(s => {
+        const reservation = reservationMap.get(s.time);
+        const isReserved = !!reservation;
+        const passed = isSlotPassed(date, s.time);
+        const isAvailable = !s.isBooked && !isReserved && !passed;
 
-      return {
-        slot: s.time,
-        isAvailable,
-        reason: s.isBooked ? 'booked' : (isReserved ? 'reserved' : (passed ? 'passed' : null)),
-        expiresInSeconds: isReserved
-          ? Math.max(0, Math.floor((reservation.reservedUntil.getTime() - now.getTime()) / 1000))
-          : null
-      };
-    });
+        return {
+          slot: s.time,
+          isAvailable,
+          reason: s.isBooked ? 'booked' : (isReserved ? 'reserved' : (passed ? 'passed' : null)),
+          expiresInSeconds: isReserved
+            ? Math.max(0, Math.floor((reservation.reservedUntil.getTime() - now.getTime()) / 1000))
+            : null
+        };
+      });
 
     res.status(200).json(slotDetails);
   } catch (error) {
@@ -246,5 +247,36 @@ exports.reserveSlot = async (req, res) => {
   } catch (error) {
     console.error('Error in reserveSlot:', error.message);
     res.status(500).json({ message: error.message || 'Error reserving slot.' });
+  }
+};
+
+// POST /api/appointments/cancel-reservation
+// Body: appointmentId
+exports.cancelReservation = async (req, res) => {
+  try {
+    const { appointmentId } = req.body;
+    const userId = req.user.id;
+
+    if (!appointmentId) {
+      return res.status(400).json({ message: 'Appointment ID is required.' });
+    }
+
+    const appointment = await Appointment.findOne({
+      _id: appointmentId,
+      patientId: userId,
+      paymentStatus: 'pending'
+    });
+
+    if (!appointment) {
+      return res.status(404).json({ message: 'Active pending appointment not found.' });
+    }
+
+    // Release the slot by deleting the pending appointment record
+    await Appointment.findByIdAndDelete(appointmentId);
+
+    res.status(200).json({ message: 'Reservation cancelled and slot released.' });
+  } catch (error) {
+    console.error('Error in cancelReservation:', error.message);
+    res.status(500).json({ message: error.message || 'Error cancelling reservation.' });
   }
 };

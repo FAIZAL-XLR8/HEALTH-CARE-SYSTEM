@@ -45,6 +45,7 @@ const paymentController = require('../controllers/paymentController');
 const messageController = require('../controllers/messageController');
 router.get('/appointments/slots/:doctorId', appointmentController.getAvailableSlots);
 router.post('/appointments/reserve', protect, appointmentController.reserveSlot);
+router.post('/appointments/cancel-reservation', protect, appointmentController.cancelReservation);
 router.get('/appointments/patient/dashboard', protect, patientDashboardController.getPatientDashboard);
 router.get('/appointments/doctor/dashboard', protect, doctorDashboardController.getDoctorDashboard);
 router.get('/appointments/patient/:patientId', protect, patientDashboardController.getPatientAppointments);

@@ -15,10 +15,10 @@ const geocodeAddress = async (address) => {
       return data.features[0].geometry.coordinates;
     }
 
-    console.warn(`⚠️ [Mapbox Geocoder] No results for address: "${address}". Using Bengaluru center.`);
+    console.warn(` [Mapbox Geocoder] No results for address: "${address}". Using Bengaluru center.`);
     return BENGALURU_CENTER;
   } catch (err) {
-    console.warn(`⚠️ [Mapbox Geocoder] Request failed for "${address}": ${err.message}. Using Bengaluru center.`);
+    console.warn(` [Mapbox Geocoder] Request failed for "${address}": ${err.message}. Using Bengaluru center.`);
     return BENGALURU_CENTER;
   }
 };

@@ -280,7 +280,7 @@ exports.chatTriage = async (req, res) => {
                   phone: placeholderPhone,
                   specialization: doc.specialty,
                   experienceYears: doc.experience || 0,
-                  consultationFee: doc.fee || 0,
+                  consultationFee: doc.fee || 500,
                   status: 'approved',
                   isVerified: true,
                   address: doc.address || '',

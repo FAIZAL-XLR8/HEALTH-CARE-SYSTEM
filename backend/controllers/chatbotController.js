@@ -262,7 +262,7 @@ async function getRecommendedDoctors(specialty) {
               phone: placeholderPhone,
               specialization: doc.specialty,
               experienceYears: doc.experience || 0,
-              consultationFee: doc.fee || 0,
+              consultationFee: doc.fee || 500,
               isOnline: false,
               lastSeen: new Date(),
               status: 'approved',

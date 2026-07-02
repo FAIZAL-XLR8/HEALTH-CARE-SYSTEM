@@ -21,10 +21,7 @@ const doctorSchema = new mongoose.Schema({
     minlength: [6, 'Password must be at least 6 characters'],
     select: false, // Hidden by default
   },
-  profileImage: {
-    type: String,
-    default: '',
-  },
+  
   specialization: {
     type: String,
     required: true,

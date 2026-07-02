@@ -26,10 +26,7 @@ const userSchema = new mongoose.Schema({
     trim: true,
     match: [/^\+?[\d\s\-()]{10,15}$/, 'Please fill a valid phone number'],
   },
-  profileImage: {
-    type: String,
-    default: '',
-  },
+ 
   dateOfBirth: {
     type: Date,
   },

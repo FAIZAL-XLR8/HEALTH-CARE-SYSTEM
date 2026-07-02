@@ -70,7 +70,7 @@ exports.searchDoctors = async (req, res) => {
                   phone: placeholderPhone,
                   specialization: doc.specialty,
                   experienceYears: doc.experience || 0,
-                  consultationFee: doc.fee || 0,
+                  consultationFee: doc.fee || 500,
                   isOnline: false,
                   status: 'approved',
                   isVerified: true,

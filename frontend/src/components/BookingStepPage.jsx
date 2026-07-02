@@ -181,6 +181,39 @@ const BookingStepPage = ({ provider, user, onCancel, onOpenAuth }) => {
     }
   };
 
+  const handleCancelReservation = async () => {
+    if (!reservedAppt) return;
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch('/api/appointments/cancel-reservation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          appointmentId: reservedAppt._id
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setReservedAppt(null);
+        setSelectedSlot(null);
+        setTimeLeft(0);
+        showFlash('Reservation cancelled successfully', 'info');
+        fetchSlots();
+      } else {
+        setError(data.message || 'Failed to cancel reservation.');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Error cancelling slot reservation.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handlePayment = async () => {
     if (!reservedAppt) return;
     setLoading(true);
@@ -649,29 +682,49 @@ const BookingStepPage = ({ provider, user, onCancel, onOpenAuth }) => {
                 </button>
               )}
               {reservedAppt ? (
-                <button 
-                  disabled={loading}
-                  onClick={handlePayment}
-                  style={{
-                    flex: 1,
-                    background: 'var(--secondary-neon)',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '12px',
-                    color: '#fff',
-                    cursor: 'pointer',
-                    fontSize: '0.85rem',
-                    fontWeight: 700,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)'
-                  }}
-                >
-                  <CreditCard size={16} />
-                  Pay with Razorpay
-                </button>
+                <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
+                  <button 
+                    disabled={loading}
+                    onClick={handleCancelReservation}
+                    style={{
+                      flex: 1,
+                      background: 'none',
+                      border: '1px solid var(--accent-alert)',
+                      borderRadius: '8px',
+                      padding: '12px',
+                      color: 'var(--accent-alert)',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    Cancel Reservation
+                  </button>
+                  <button 
+                    disabled={loading}
+                    onClick={handlePayment}
+                    style={{
+                      flex: 1,
+                      background: 'var(--secondary-neon)',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '12px',
+                      color: '#fff',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)'
+                    }}
+                  >
+                    <CreditCard size={16} />
+                    Pay with Razorpay
+                  </button>
+                </div>
               ) : (
                 <button 
                   disabled={loading || (isDoctor && !selectedSlot)}

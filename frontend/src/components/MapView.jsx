@@ -15,7 +15,9 @@ const MapView = ({
   const searchCenterMarkerRef = useRef(null);
 
 
-  // Helper to compute average center of coordinates dynamically
+  // Helper to compute average center of coordinates dynamically --
+  // used to show all the markers in the map centered at the average location
+  //seen when doctors list page renders
   const getCenterCoords = () => {
     const validCoords = providers
       .filter(p => p.coordinates && p.coordinates.length === 2)

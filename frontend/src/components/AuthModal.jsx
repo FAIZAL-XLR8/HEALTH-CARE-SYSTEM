@@ -301,7 +301,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
       if (res.ok) {
         if (role === 'doctor') {
           setTempToken(data.token);
-          setSuccessMsg('Basic info registered. Please verify your OTP verification codes (view backend console).');
+          setSuccessMsg('Basic info registered. Please verify your OTP verification codes');
           setWizardStep(2);
         } else {
           setSuccessMsg('Account registered successfully! Logging you in...');
@@ -1097,7 +1097,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <h4 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', textAlign: 'center' }}>Step 2: Verify Contact Channels</h4>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'center', lineHeight: '1.4' }}>
-              We simulated 6-digit OTP verification codes. Check your <strong>backend console terminal logs</strong> to retrieve them.
+              Check your email and phone for verification codes
             </p>
 
             <div style={{ background: 'rgba(255,255,255,0.02)', padding: '15px', borderRadius: '10px', border: '1px solid var(--card-border)' }}>
@@ -1127,7 +1127,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
             </div>
 
             <div style={{ background: 'rgba(255,255,255,0.02)', padding: '15px', borderRadius: '10px', border: '1px solid var(--card-border)' }}>
-              <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>Phone Verification Code (Twilio) *</label>
+              <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>Phone Verification Code *</label>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input
                   type="text"
@@ -1172,7 +1172,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <h4 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', textAlign: 'center' }}>Step 3: Upload Government ID</h4>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'center', lineHeight: '1.4' }}>
-              To ensure safety, upload proof of your medical registration card or ID (PDF, JPG, JPEG, or PNG). Magic byte check will inspect file buffers.
+              To ensure safety, upload proof of your medical registration card or ID (PDF, JPG, JPEG, or PNG).
             </p>
 
             <div style={{ border: '2px dashed var(--card-border)', padding: '24px', borderRadius: '10px', textAlign: 'center', background: 'rgba(255,255,255,0.01)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
@@ -1210,7 +1210,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
                 border: 'none', borderRadius: '8px', padding: '12px', fontSize: '0.85rem', fontWeight: 700, cursor: idUploaded ? 'default' : 'pointer'
               }}
             >
-              {isUploading ? 'Inspecting magic bytes & uploading...' : (idUploaded ? '✓ Upload Successful' : 'Upload ID Proof')}
+              {isUploading ? 'Uploading...' : (idUploaded ? '✓ Upload Successful' : 'Upload ID Proof')}
             </button>
 
             <button

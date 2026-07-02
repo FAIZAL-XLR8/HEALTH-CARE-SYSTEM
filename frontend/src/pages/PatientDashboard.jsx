@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, CreditCard, MessageSquare, Video, AlertCircle, RefreshCw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { showFlash } from '../components/FlashMessage';
-import './PatientDashboard.css';
+import '../styles/PatientDashboard.css';
 
 // Framer Motion variants — same pattern as Home.jsx
 const containerVariants = {
@@ -247,12 +247,14 @@ const PatientDashboard = ({ onOpenAuth, onStartConsultation }) => {
                     {/* Doctor Profile Info */}
                     <div className="pat-doctor-info">
                       <img
-                        src={doc.profileImage || doc.profilePhoto || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=200&auto=format&fit=crop'}
+                        src={ 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=200&auto=format&fit=crop'}
                         alt={doc.name}
                         className="pat-doctor-avatar"
                       />
                       <div>
-                        <h4 className="pat-doctor-name">{doc.name || 'Seeded Doctor'}</h4>
+                        <h4 className="pat-doctor-name">
+                          {doc.name ? (doc.name.startsWith('Dr.') || doc.name.startsWith('Dr ') ? doc.name : `Dr. ${doc.name}`) : 'Seeded Doctor'}
+                        </h4>
                         <p className="pat-doctor-specialty">
                           {doc.specialization || doc.specialty || 'General Practitioner'}
                         </p>

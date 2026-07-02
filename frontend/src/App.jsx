@@ -254,7 +254,7 @@ function App() {
                 className="hover-opacity"
                 title="View My Profile Details"
               >
-                {user.name} ({user.role.toUpperCase()})
+                {user.role === 'doctor' && !(user.name.startsWith('Dr.') || user.name.startsWith('Dr ')) ? `Dr. ${user.name}` : user.name}
               </span>
               <button 
                 onClick={() => setIsLogoutConfirmOpen(true)}

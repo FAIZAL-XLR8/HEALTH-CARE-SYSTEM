@@ -360,7 +360,7 @@ const BookingStepPage = ({ provider, user, onCancel, onOpenAuth }) => {
             Book Consultation Slot
           </h3>
           <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-            Consultation with <strong>{provider.name}</strong> • fee: <strong style={{ color: 'var(--secondary-neon)' }}>₹{provider.fee || provider.price}</strong>
+            Consultation with <strong>{provider.name.startsWith('Dr.') || provider.name.startsWith('Dr ') ? provider.name : `Dr. ${provider.name}`}</strong> • fee: <strong style={{ color: 'var(--secondary-neon)' }}>₹{provider.fee || provider.price}</strong>
           </p>
         </div>
 

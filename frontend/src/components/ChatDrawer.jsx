@@ -59,11 +59,7 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
       const data = await response.json();
       setIsRagActive(!!data.isRagUsed);
 
-      // Log to browser developer console if RAG was used
-      if (data.isRagUsed) {
-        console.log("🤖 [AeroBot AI RAG] Chatbot query parsed using Retrieval-Augmented Generation (RAG) context.");
-      }
-      
+    
       // Update state with AI response, including triage & recommended doctors
       setMessages(prev => [...prev, {
         sender: 'ai',
@@ -476,7 +472,7 @@ const ChatDrawer = ({ isOpen, onClose, onSearchSpecialty, onBook }) => {
                         >
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                             <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#000000' }}>
-                              Dr. {doc.name}
+                              {doc.name.startsWith('Dr.') || doc.name.startsWith('Dr ') ? doc.name : `Dr. ${doc.name}`}
                             </span>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: 'rgba(16, 185, 129, 0.1)', padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
                               <span style={{ fontSize: '0.68rem', color: '#10b981', fontWeight: 'bold' }}>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, ArrowDownUp, RefreshCw, Sparkles, Navigation, Briefcase } from 'lucide-react';
 import MapView from '../components/MapView';
-import './SearchHub.css';
+import '../styles/SearchHub.css';
 
 const SearchHub = ({ searchParams, onBook }) => {
   const [providers, setProviders] = useState([]);
@@ -10,16 +10,7 @@ const SearchHub = ({ searchParams, onBook }) => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [progressWidth, setProgressWidth] = useState(0);
 
-  const getAreaName = (coords) => {
-    if (!coords || coords.length !== 2) return 'Bengaluru';
-    const [lng, lat] = coords;
-    if (lng > 77.630 && lng < 77.650 && lat > 12.965 && lat < 12.980) return 'Indiranagar';
-    if (lng > 77.610 && lng < 77.630 && lat > 12.925 && lat < 12.945) return 'Koramangala';
-    if (lng > 77.625 && lng < 77.645 && lat > 12.900 && lat < 12.920) return 'HSR Layout';
-    if (lng > 77.630 && lng < 77.645 && lat > 12.950 && lat < 12.965) return 'Domlur';
-    if (lng > 77.700) return 'Whitefield';
-    return 'Bengaluru';
-  };
+
 
   const { query } = searchParams;
 
@@ -46,9 +37,38 @@ const SearchHub = ({ searchParams, onBook }) => {
     fetchInitialResults();
   }, [searchParams]);
 
-  // Skyscanner Smart Sorting Engine for Doctors
   const getSortedProviders = () => {
     if (!providers || providers.length === 0) return [];
+
+    // Calculate min/max values for min-max scaling of experience and fee
+    const fees = providers.map(p => p.fee || p.consultationFee || 500);
+    const exps = providers.map(p => p.experience || 0);
+    const minFee = Math.min(...fees);
+    const maxFee = Math.max(...fees);
+    const minExp = Math.min(...exps);
+    const maxExp = Math.max(...exps);
+
+    const getScore = (doctor) => {
+      const fee =  doctor.consultationFee || 500;
+      const exp = doctor.experience || 0;
+
+      // Higher experience = higher score
+      const experienceScore =
+        maxExp === minExp
+          ? 100
+          : ((exp - minExp) / (maxExp - minExp)) * 100;
+
+      // Lower fee = higher score
+      const priceScore =
+        maxFee === minFee
+          ? 100
+          : ((maxFee - fee) / (maxFee - minFee)) * 100;
+
+      return (
+        experienceScore * 0.7 +
+        priceScore * 0.3
+      );
+    };
 
     return [...providers].sort((a, b) => {
       if (sortTab === 'cheapest') {
@@ -58,19 +78,10 @@ const SearchHub = ({ searchParams, onBook }) => {
       }
 
       if (sortTab === 'fastest') {
-        return b.experience - a.experience; // Doctor next slot proxy: Experience
+        return b.experience - a.experience;
       }
 
-      // 'BEST' Tab: Dynamic Weighted Scoring (Price 60%, Experience 40%)
-      const getScore = (p) => {
-        const price = p.fee || p.consultationFee || 500;
-        const priceScore = Math.max(0, 100 - (price / 10)); // cheaper is better
-
-        const credentialScore = p.experience > 15 ? 100 : 50;
-
-        return (priceScore * 0.60) + (credentialScore * 0.40);
-      };
-
+      // 'BEST' Tab: Dynamic Weighted Scoring (Experience 70%, Price 30%) using min-max scaling
       return getScore(b) - getScore(a);
     });
   };
@@ -80,7 +91,7 @@ const SearchHub = ({ searchParams, onBook }) => {
   return (
     <div className="sh-container">
 
-      {/* 📡 Skyscanner Loading Tracker HUD */}
+     
       {isVerifying && (
         <div className="sh-loading-container">
           <div className="progress-bar-container">
@@ -93,7 +104,7 @@ const SearchHub = ({ searchParams, onBook }) => {
         </div>
       )}
 
-      {/* Skyscanner Split Screen Grid */}
+      
       <div className="skyscanner-layout" style={{ marginTop: '24px' }}>
 
         {/* Left Side: Sorting Tabs & Listings */}
@@ -117,7 +128,6 @@ const SearchHub = ({ searchParams, onBook }) => {
             </button>
           </div>
 
-          {/* Skyscanner Sorting Tabs */}
           <div className="sh-sorting-tabs">
             <button
               onClick={() => setSortTab('best')}
@@ -154,7 +164,7 @@ const SearchHub = ({ searchParams, onBook }) => {
             </button>
           </div>
 
-          {/* 📂 Listings Stack */}
+          {/*  Listings Stack */}
           <div className="sh-listings-stack">
             {sortedList.length === 0 ? (
               <div className="glass-panel" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
@@ -168,17 +178,20 @@ const SearchHub = ({ searchParams, onBook }) => {
                   <div
                     key={p.doctorId}
                     className="glass-panel sh-listing-card"
-                    onMouseEnter={() => setActiveProviderId(p.doctorId)}
+                    onClick={() => setActiveProviderId(p.doctorId)}
                     style={{
                       borderColor: isActive ? 'var(--primary-neon)' : 'var(--card-border)',
-                      boxShadow: isActive ? '0 0 15px rgba(6, 182, 212, 0.08)' : 'none'
+                      boxShadow: isActive ? '0 0 15px rgba(6, 182, 212, 0.08)' : 'none',
+                      cursor: 'pointer'
                     }}
                   >
                     {/* Top Row: Provider Name & Credentials */}
                     <div className="sh-listing-header">
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <h3 className="sh-listing-header-title">{p.name}</h3>
+                          <h3 className="sh-listing-header-title">
+                            {p.name.startsWith('Dr.') || p.name.startsWith('Dr ') ? p.name : `Dr. ${p.name}`}
+                          </h3>
                         </div>
                         <span className="sh-listing-specialty">{p.specialty}</span>
                         {p.address && <span className="sh-listing-address">{p.address}</span>}
@@ -193,12 +206,8 @@ const SearchHub = ({ searchParams, onBook }) => {
                       </div>
                     </div>
 
-                    {/* Middle Row: Distance, Timings and Pricing */}
+                    {/* Middle Row: Timings and Pricing */}
                     <div className="sh-listing-details-grid">
-                      <div>
-                        <span className="sh-details-col-label">LOCATION</span>
-                        <span className="sh-details-col-val">{getAreaName(p.coordinates)}</span>
-                      </div>
                       <div>
                         <span className="sh-details-col-label">TIMINGS</span>
                         <span className="sh-details-col-val" title={p.activeHours}>
@@ -209,7 +218,7 @@ const SearchHub = ({ searchParams, onBook }) => {
                         <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>CHARGES</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <span className="sh-details-charges-val">
-                            ₹{p.fee || p.consultationFee}
+                            ₹{p.fee || p.consultationFee || 500}
                           </span>
                         </div>
                       </div>
@@ -236,7 +245,7 @@ const SearchHub = ({ searchParams, onBook }) => {
 
         </div>
 
-        {/* Right Side: Geolocation Interactive MapHUD */}
+        {/* Right Side: Geolocation Interactive Map */}
         <div className="sh-map-container">
           <MapView
             providers={providers}

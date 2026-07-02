@@ -3,7 +3,7 @@ import { Search, MapPin, Stethoscope, TestTube, Brain, HeartPulse, ShieldCheck, 
 import hospital from '../assets/hospital_pic.jpg';
 import { motion } from 'framer-motion';
 import { TypeAnimation } from 'react-type-animation';
-import './Home.css';
+import '../styles/Home.css';
 
 // Reusable Framer Motion variants for structured animation sequence
 const containerVariants = {

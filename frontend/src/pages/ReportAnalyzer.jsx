@@ -3,7 +3,7 @@ import { Upload, AlertOctagon, Heart, BrainCircuit, Activity, Calendar, ArrowRig
 import reportBg from '../assets/report.jpg';
 import { motion } from 'framer-motion';
 import { showFlash } from '../components/FlashMessage';
-import './ReportAnalyzer.css';
+import '../styles/ReportAnalyzer.css';
 
 // Framer Motion variants — same pattern as Home.jsx
 const containerVariants = {
@@ -185,7 +185,7 @@ const ReportAnalyzer = ({ onSearchDoctor, user, onOpenAuth }) => {
               {isLoading ? (
                 <>
                   <Loader size={16} style={{ animation: 'spin 2s linear infinite' }} />
-                  Gemini Parsing Document...
+                  Analyzing Document...
                 </>
               ) : (
                 'Submit'
@@ -205,8 +205,8 @@ const ReportAnalyzer = ({ onSearchDoctor, user, onOpenAuth }) => {
             {/* Header patient profile info */}
             <div className="report-analysis-header">
               <div>
-                <span className="report-analysis-label">PATIENT LOCKER SUMMARY</span>
-                <h3 className="report-analysis-patient-title">Patient: {analysis.patientName || 'Aarav Mehta'}</h3>
+                <span className="report-analysis-label">PATIENT SUMMARY</span>
+                <h3 className="report-analysis-patient-title">Patient: {analysis.patientName }</h3>
               </div>
               
               <button onClick={() => setAnalysis(null)} className="report-analysis-clear-btn">
@@ -273,7 +273,6 @@ const ReportAnalyzer = ({ onSearchDoctor, user, onOpenAuth }) => {
                 </p>
               </div>
 
-              {/* Skyscanner style CTA linking report to Spatial Doctor search instantly */}
               <button 
                 onClick={() => onSearchDoctor(analysis.recommendedSpecialist)}
                 className="report-find-doc-btn"

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, CheckCircle, XCircle, AlertTriangle, FileText, Phone, Mail, User, Briefcase, IndianRupee, Clock } from 'lucide-react';
 import { showFlash } from '../components/FlashMessage';
-import './AdminDashboard.css';
+import '../styles/AdminDashboard.css';
 
 const AdminDashboard = () => {
   const [doctors, setDoctors] = useState([]);
@@ -313,7 +313,7 @@ const DoctorCard = ({ doc, onApprove, onRejectSubmit, rejectionReason, setReject
       <div className="admin-pending-header">
         <div className="admin-pending-profile-row">
           <img 
-            src={doc.profileImage || `https://api.dicebear.com/7.x/adventurer/svg?seed=${doc.name}`} 
+            src={ `https://api.dicebear.com/7.x/adventurer/svg?seed=${doc.name}`} 
             alt="Doctor" 
             className="admin-pending-avatar"
           />
@@ -427,7 +427,7 @@ const DoctorCardMini = ({ doc, onSuspend }) => {
     <div className="admin-mini-card glass-panel">
       <div className="admin-mini-profile-row">
         <img 
-          src={doc.profileImage || `https://api.dicebear.com/7.x/adventurer/svg?seed=${doc.name}`} 
+          src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${doc.name}`} 
           alt="Doc Mini" 
           className="admin-mini-avatar"
         />

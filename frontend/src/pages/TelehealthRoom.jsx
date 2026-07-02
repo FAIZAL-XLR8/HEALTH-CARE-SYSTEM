@@ -7,7 +7,7 @@ import {
 import EmojiPicker from 'emoji-picker-react';
 import { useTelehealthCall } from '../hooks/useTelehealthCall';
 import { useTelehealthChat } from '../hooks/useTelehealthChat';
-import './TelehealthRoom.css';
+import '../styles/TelehealthRoom.css';
 
 const formatLastSeen = (dateString) => {
   if (!dateString) return 'Offline';
@@ -214,7 +214,7 @@ const TelehealthRoom = ({ appointmentId, user, onBack }) => {
       {/* CONSULTATION ROOM MAIN TWO-PANE SECTION */}
       <div className="tr-main-pane">
 
-        {/* Left Pane: WhatsApp Chat Messages container */}
+        {/* Left Pane: Chat Messages container */}
         <div className="tr-chat-pane">
 
           {/* Expiration Banner alert */}

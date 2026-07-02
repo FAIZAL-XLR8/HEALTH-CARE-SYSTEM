@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, MessageSquare, Users, CheckCircle, RefreshCw, AlertCircle, FileText, CreditCard, Shield, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
-import './DoctorDashboard.css';
+import '../styles/DoctorDashboard.css';
 
 // Framer Motion variants — same pattern as Home.jsx
 const containerVariants = {
@@ -25,17 +25,7 @@ const cardVariants = {
   hover: { y: -5, transition: { duration: 0.22, ease: 'easeInOut' } },
 };
 
-const calculateAge = (dateOfBirth) => {
-  if (!dateOfBirth) return 'N/A';
-  const birthDate = new Date(dateOfBirth);
-  const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const m = today.getMonth() - birthDate.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
-  }
-  return `${age} yrs`;
-};
+
 
 const DoctorDashboard = ({ onStartConsultation }) => {
   const [appointments, setAppointments] = useState([]);
@@ -132,7 +122,7 @@ const DoctorDashboard = ({ onStartConsultation }) => {
               animate="visible"
               className="doc-title"
             >
-              Welcome, {doctorProfile.name}
+              Welcome, {doctorProfile.name.startsWith('Dr.') || doctorProfile.name.startsWith('Dr ') ? doctorProfile.name : `Dr. ${doctorProfile.name}`}
             </motion.h2>
           )}
           <motion.p
@@ -206,7 +196,7 @@ const DoctorDashboard = ({ onStartConsultation }) => {
               {patientsList.map(p => (
                 <motion.div key={p._id} variants={cardVariants} whileHover="hover" className="doc-patient-card">
                   <img
-                    src={p.profilePhoto || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop'}
+                    src={p.profileImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop'}
                     alt={p.name}
                     className="doc-patient-avatar"
                   />
@@ -249,17 +239,17 @@ const DoctorDashboard = ({ onStartConsultation }) => {
                     {/* Patient detail */}
                     <div className="doc-appt-patient-info">
                       <img
-                        src={patient.profilePhoto || patient.profileImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop'}
+                        src={ 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop'}
                         alt={appt.patientName || patient.name}
                         className="doc-appt-patient-avatar"
                       />
                       <div>
                         <h4 className="doc-appt-patient-name">
-                          {appt.patientName || patient.name || 'Seeded Patient'}
+                          {appt.patientName || patient.name }
                         </h4>
                         <div className="doc-appt-patient-meta">
                           <span>Phone: {patient.phone || 'N/A'}</span>
-                          <span>Age: {appt.patientAge ? `${appt.patientAge} yrs` : calculateAge(patient.dateOfBirth)}</span>
+                          <span>Age: {appt.patientAge ? `${appt.patientAge} yrs` : 'N/A'}</span>
                           <span>Gender: {appt.patientGender || patient.gender || 'N/A'}</span>
                         </div>
                       </div>

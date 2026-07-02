@@ -3,7 +3,7 @@ import { Upload, AlertOctagon, Heart, BrainCircuit, Activity, ArrowRight, Loader
 import reportBg from '../assets/prescription.jpg';
 import { motion } from 'framer-motion';
 import { showFlash } from '../components/FlashMessage';
-import './PrescriptionAnalyzer.css';
+import '../styles/PrescriptionAnalyzer.css';
 
 // Framer Motion variants — same pattern as ReportAnalyzer / Home.jsx
 const containerVariants = {
@@ -104,7 +104,7 @@ const PrescriptionAnalyzer = ({ user, onOpenAuth }) => {
             AI Prescription Analyzer
           </motion.h2>
           <motion.p variants={descriptionVariants} className="rx-subtitle">
-            Scan your doctor's handwritten or digital prescriptions. Our system uses Gemini Vision to decode medicine names, usages, and side effects.
+            Scan your doctor's handwritten or digital prescriptions. Our system uses AI Vision to decode medicine names, usages, and side effects.
           </motion.p>
         </motion.section>
 

@@ -35,7 +35,6 @@ const doctorSignupSchema = z.object({
   fee: z.string().refine(val => val !== '' && !isNaN(val) && Number(val) >= 0, 'Fee must be a positive number.'),
   activeHours: z.string().trim().min(1, 'Daily available hours are required.'),
   address: z.string().trim().min(1, 'Clinic address is required.'),
-  profileImage: z.string().optional(),
   bio: z.string().optional(),
   latitude: z.any().optional(),
   longitude: z.any().optional(),
@@ -64,7 +63,6 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
   const [fee, setFee] = useState('');
   const [activeHours, setActiveHours] = useState('09:00 AM - 05:00 PM');
   const [address, setAddress] = useState('');
-  const [profileImage, setProfileImage] = useState('');
   const [bio, setBio] = useState('');
   const [clinicLat, setClinicLat] = useState('');
   const [clinicLng, setClinicLng] = useState('');
@@ -117,7 +115,6 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
         fee: field === 'fee' ? value : fee,
         activeHours: field === 'activeHours' ? value : activeHours,
         address: field === 'address' ? value : address,
-        profileImage: field === 'profileImage' ? value : profileImage,
         bio: field === 'bio' ? value : bio,
       };
 
@@ -251,7 +248,6 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
       payload.fee = fee.toString().trim();
       payload.activeHours = activeHours.trim();
       payload.address = address.trim();
-      payload.profileImage = profileImage.trim();
       payload.bio = bio.trim();
       payload.latitude = clinicLat !== '' ? Number(clinicLat) : undefined;
       payload.longitude = clinicLng !== '' ? Number(clinicLng) : undefined;
@@ -288,7 +284,6 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
       backendPayload.fee = Number(fee);
       backendPayload.activeHours = activeHours.trim();
       backendPayload.address = address.trim();
-      backendPayload.profileImage = profileImage.trim();
       backendPayload.bio = bio.trim();
       backendPayload.latitude = clinicLat !== '' ? Number(clinicLat) : '';
       backendPayload.longitude = clinicLng !== '' ? Number(clinicLng) : '';
@@ -477,7 +472,6 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
     setFee('');
     setActiveHours('09:00 AM - 05:00 PM');
     setAddress('');
-    setProfileImage('');
     setBio('');
     setClinicLat('');
     setClinicLng('');
@@ -995,30 +989,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
                   )}
                 </div>
 
-                <div>
-                  <label style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Profile Picture URL</label>
-                  <input
-                    type="url"
-                    value={profileImage}
-                    placeholder="e.g. https://api.dicebear.com/7.x/adventurer/svg?seed=doctor"
-                    onChange={(e) => handleFieldChange('profileImage', setProfileImage, e.target.value)}
-                    style={{
-                      width: '100%',
-                      background: 'rgba(0,0,0,0.3)',
-                      border: errors.profileImage ? '1px solid var(--accent-alert)' : '1px solid var(--card-border)',
-                      borderRadius: '8px',
-                      padding: '10px',
-                      color: '#fff',
-                      fontSize: '0.8rem',
-                      outline: 'none'
-                    }}
-                  />
-                  {errors.profileImage && (
-                    <span style={{ color: 'var(--accent-alert)', fontSize: '0.68rem', marginTop: '4px', display: 'block', textAlign: 'left' }}>
-                      {errors.profileImage}
-                    </span>
-                  )}
-                </div>
+
 
                 <div>
                   <label style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Professional Bio</label>

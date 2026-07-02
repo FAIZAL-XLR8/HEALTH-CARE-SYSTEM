@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, User, Mail, Phone, Calendar, Briefcase, FileText, CheckCircle, Clock, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
-import './Profile.css';
+import '../styles/Profile.css';
 
 const Profile = ({ user: initialUser, onBack }) => {
   const [user, setUser] = useState(initialUser);
@@ -78,7 +78,9 @@ const Profile = ({ user: initialUser, onBack }) => {
         </div>
 
         <div className="profile-name-container">
-          <h1 className="profile-name">{user.name}</h1>
+          <h1 className="profile-name">
+            {user.role === 'doctor' && !(user.name.startsWith('Dr.') || user.name.startsWith('Dr ')) ? `Dr. ${user.name}` : user.name}
+          </h1>
           <div className="profile-badge-row">
             <span 
               className="profile-role-badge"
@@ -132,7 +134,9 @@ const Profile = ({ user: initialUser, onBack }) => {
           <div className="profile-fields-list">
             <div>
               <span className="profile-field-label">Full Name</span>
-              <span className="profile-field-value">{user.name}</span>
+              <span className="profile-field-value">
+                {user.role === 'doctor' && !(user.name.startsWith('Dr.') || user.name.startsWith('Dr ')) ? `Dr. ${user.name}` : user.name}
+              </span>
             </div>
 
             <div>
@@ -214,16 +218,6 @@ const Profile = ({ user: initialUser, onBack }) => {
                   <span className="profile-field-label">Biography</span>
                   <span className="profile-bio-text">
                     "{user.bio}"
-                  </span>
-                </div>
-              )}
-
-              {user.location && user.location.coordinates && (
-                <div>
-                  <span className="profile-field-label">Map Coordinates</span>
-                  <span className="profile-coordinates-text">
-                    <MapPin size={12} style={{ color: 'var(--secondary-neon)' }} />
-                    Longitude: {user.location.coordinates[0].toFixed(6)}, Latitude: {user.location.coordinates[1].toFixed(6)}
                   </span>
                 </div>
               )}

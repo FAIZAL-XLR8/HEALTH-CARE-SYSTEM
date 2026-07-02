@@ -10,7 +10,16 @@ const SearchHub = ({ searchParams, onBook }) => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [progressWidth, setProgressWidth] = useState(0);
 
-
+  const getAreaName = (coords) => {
+    if (!coords || coords.length !== 2) return 'Bengaluru';
+    const [lng, lat] = coords;
+    if (lng > 77.630 && lng < 77.650 && lat > 12.965 && lat < 12.980) return 'Indiranagar';
+    if (lng > 77.610 && lng < 77.630 && lat > 12.925 && lat < 12.945) return 'Koramangala';
+    if (lng > 77.625 && lng < 77.645 && lat > 12.900 && lat < 12.920) return 'HSR Layout';
+    if (lng > 77.630 && lng < 77.645 && lat > 12.950 && lat < 12.965) return 'Domlur';
+    if (lng > 77.700) return 'Whitefield';
+    return 'Bengaluru';
+  };
 
   const { query } = searchParams;
 

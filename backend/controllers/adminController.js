@@ -87,7 +87,7 @@ exports.approveDoctor = async (req, res) => {
     console.log(`[Admin Approval] Doctor ${doctor.name} was approved by ${doctor.approvedBy}`);
     res.status(200).json({ message: 'Doctor application approved successfully. Notification email sent.', doctor });
   } catch (error) {
-    console.error('Error approving doctor:', error);
+  
     res.status(500).json({ message: 'Error approving doctor application.' });
   }
 };
